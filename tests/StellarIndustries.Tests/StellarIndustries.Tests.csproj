@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tests of the mod's pure logic (recipes, transactional crafting, recipe choice, content
+    validation). These source files use no Unity or game type, so they are compiled straight
+    into the test assembly; the game itself is not needed to run them: dotnet test
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>StellarIndustries.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\StellarIndustries\Core\Ids.cs" Link="Linked\Ids.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Content\ResourceCatalog.cs" Link="Linked\ResourceCatalog.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Production\MachineCatalog.cs" Link="Linked\MachineCatalog.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Production\Crafting.cs" Link="Linked\Crafting.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Production\RecipeSelector.cs" Link="Linked\RecipeSelector.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeBook.cs" Link="Linked\RecipeBook.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeValidator.cs" Link="Linked\RecipeValidator.cs" />
+  </ItemGroup>
+
+</Project>

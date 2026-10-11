@@ -1,0 +1,8 @@
+{
+    "id": "StellarIndustries",
+    "name": "Stellar Industries",
+    "author": "Romalaure",
+    "version": "0.1.0",
+    "description": "Industrie automatisee pour StellarDrive (prototype). Onglet Industrie : Atelier industriel (300 W) qui transforme le fer en plaques de fer et le cuivre en fil de cuivre tant qu'il a de l'energie, de la matiere et de la place. Inventaire de 10 emplacements, sauvegarde par le jeu. Regardez la machine pour voir son etat. Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste.",
+    "thumbnail": "thumbnail.png"
+}
