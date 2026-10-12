@@ -99,8 +99,8 @@ namespace StellarIndustries.Content
         {
             if (Settings.Values.All(s => s.isFluid || s.itemObject != null))
                 return;
-            ItemSettings[] items = Items(list);
-            if (items == null)
+            // The models wear the mod's atlas on the game's part shader: wait until a part material is loaded
+            if (!Parts.GameSkin.CaptureLogicGates())
                 return;
             if (_holder == null)
             {
@@ -108,32 +108,27 @@ namespace StellarIndustries.Content
                 _holder.SetActive(false);
                 Object.DontDestroyOnLoad(_holder);
             }
+            Material material = Parts.IndustrialSkin.Material;
             foreach (ResourceDef def in ResourceCatalog.All)
             {
                 ItemSettings settings = Settings[def.Id];
                 if (settings.isFluid || settings.itemObject != null)
                     continue;
-                ItemSettings donor = items.FirstOrDefault(i => i != null && i.id == def.MaterialFrom);
-                MeshRenderer donorRenderer = donor?.itemObject?.GetComponentInChildren<MeshRenderer>(true);
-                Material material = donorRenderer?.sharedMaterial;
-                Mesh donorMesh = donorRenderer?.GetComponent<MeshFilter>()?.sharedMesh;
-                if (material == null)
-                    continue;
                 var root = new GameObject(settings.name);
                 root.transform.SetParent(_holder.transform, false);
                 var visual = new GameObject("Visuals");
                 visual.transform.SetParent(root.transform, false);
-                // The donor item's own area of its texture atlas
-                var builder = new MeshBuilder { Panel = MeshBuilder.UvArea(donorMesh) };
-                BuildShape(builder, def.Shape);
-                // The game's object shader reads its palette color from UV1, like the donor's model
-                visual.AddComponent<MeshFilter>().sharedMesh = builder.Build(settings.name, Parts.GameSkin.MostUsedUv1(donorMesh));
-                var tinted = new Material(material) { name = settings.name };
-                if (tinted.HasProperty(ColorId))
-                    tinted.SetColor(ColorId, tinted.GetColor(ColorId) * new Color(def.Tint[0], def.Tint[1], def.Tint[2]));
-                visual.AddComponent<MeshRenderer>().sharedMaterial = tinted;
+                var builder = new MeshBuilder();
+                if (!ItemModels.Build(builder, def.Id))
+                {
+                    builder.Panel = Parts.IndustrialSkin.Uv(Parts.Tile.Steel);
+                    BuildShape(builder, def.Shape);
+                }
+                visual.AddComponent<MeshFilter>().sharedMesh = builder.Build(settings.name, Parts.GameSkin.Palette);
+                visual.AddComponent<MeshRenderer>().sharedMaterial = material;
                 settings.itemObject = root;
             }
+            IndustriesMod.Log.Msg($"items: {ResourceCatalog.All.Length} item models built");
         }
 
         // ---- Models (meters, about the size of the game's ore items: 0.3 m)

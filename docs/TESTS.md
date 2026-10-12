@@ -40,6 +40,14 @@ B sans câble et C plein inchangés ; contenu identique après rechargement ; **
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
 
+0.9.0 (12/10/2026), modèles : PASS animation (12 visuels de machines, 29 des 46 pièces
+mobiles en mouvement — celles des machines en production —, 8 voyants verts et 3 rouges) ;
+photos rapprochées avant/arrière (`dev/closeup_front.png`, `closeup_back.png`) et planche des
+27 objets (`dev/items.png`) vérifiées à l'œil ; ports d'objets : le second port d'Item Lines
+déplacé de l'avant (0 ; 0,75 ; 0,77) à la trappe arrière (-0,2 ; 0,4 ; -0,55) ; tous les tests
+de production, rechargement et charge repassés (200 machines animées : 0,244 ms par tick,
+66 → 60 images/s). Les 13 nouvelles recettes sont validées sans le jeu, pas produites en jeu.
+
 0.8.0 (12/10/2026), finitions : tableau de bord construit pendant le test (10 machines : 4 en
 production, 3 en attente, 1 hors tension, 1 sortie bloquée, 1 générateur en veille ; les deux
 machines à problème listées ; simulation 0,075 ms par tick) ; bruit des machines démarré par

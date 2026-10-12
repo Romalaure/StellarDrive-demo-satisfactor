@@ -7,7 +7,7 @@ Toutes les valeurs de jeu sont dans quelques tables C#. Après une modification 
 Plages d'ids réservées (`Core/Ids.cs`) : pièces 7601-7699, objets 7701-7799, techs 7801-7899.
 **Un id publié ne doit jamais être réutilisé pour autre chose** : les sauvegardes le gardent.
 
-Utilisés en 0.8.0 : pièces 7601-7609, objets 7701-7714, techs 7801-7805.
+Utilisés en 0.9.0 : pièces 7601-7610, objets 7701-7727, techs 7801-7806.
 
 ## Ajouter une ressource
 
@@ -27,7 +27,10 @@ new ResourceDef
 }
 ```
 
-Le modèle 3D et l'icône d'inventaire sont faits par le mod (`Content/IndustrialItems.cs`).
+Le modèle 3D (et donc l'icône d'inventaire) est construit dans `Content/ItemModels.cs` :
+ajouter un `case` pour le nouvel id, avec des boîtes et cylindres sur les tuiles de la planche
+de textures (`Tile.Steel`, `Tile.Copper`, `Tile.Circuit`...). Sans `case`, l'objet prend une
+forme simple selon `Shape`.
 Le validateur signale une ressource qu'aucune recette ne produit (avertissement) et toute
 recette qui en a besoin sans source (erreur : chaîne bloquée).
 
@@ -51,6 +54,15 @@ Un **combustible** : ajouter `(item, joules)` à `MachineCatalog.Fuels` (bûche 
 La pièce est un clone du coffre du jeu (`StorageChest`, 10 emplacements, sauvegardés et
 synchronisés par le jeu) avec le modèle du mod et une prise électrique 0 à l'arrière (sauf
 conteneur et quai). Les prises d'une pièce doivent avoir des ids 0..n-1 sans trou.
+
+Modèle : une méthode dans `Parts/MachineModels.cs` avec `ModelKit` (`Box`, `Cylinder`,
+`Pipe`, `Frame`, `Bolts`, `Ladder`, chaque forme sur une tuile de `Parts/IndustrialSkin.cs`).
+Pièces mobiles : `k.Moving("kind=spin axis=1,0,0 speed=200", pivot)` puis les formes de la
+pièce ; types `spin`, `bob` (aller-retour), `press` (frappe rapide, retour lent), `swing`
+(oscillation), `glow` (lumière qui s'allume) ; `k.Status(true/false)` pour ce qui n'apparaît
+qu'en marche ou à l'arrêt. Les pièces bougent seulement pendant la production
+(`Parts/MachineVisuals.cs`). Laisser libre l'arrière de la rangée de service (hauteur 0,4 m :
+boîtier électrique à +0,2 m, trappes à 0 et -0,2 m).
 
 Pour la rendre disponible par la recherche : l'ajouter aux `Parts` d'une tech de
 `Parts/IndustryResearch.cs` (sinon elle est disponible d'office).

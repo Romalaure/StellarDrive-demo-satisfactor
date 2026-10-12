@@ -21,7 +21,9 @@ namespace StellarIndustries.Core
         /// <summary>Client to server: send me the factory overview.</summary>
         OverviewRequest = 4,
         /// <summary>Server to one client: the factory overview, Text is the panel.</summary>
-        Overview = 5
+        Overview = 5,
+        /// <summary>Server to every client: the working machines, Text is "ship:part;ship:part...".</summary>
+        Active = 6
     }
 
     /// <summary>
@@ -89,6 +91,19 @@ namespace StellarIndustries.Core
             else if (network.IsClientStarted)
             {
                 network.ClientManager.Broadcast(message);
+            }
+        }
+
+        /// <summary>Server only: tells every remote client (not the host's own).</summary>
+        public static void SendToClients(SIMessageKind kind, uint a, ushort b, string text)
+        {
+            if (_network == null || !_network.IsServerStarted)
+                return;
+            var message = new SIMessage { Kind = (byte)kind, A = a, B = b, Text = text ?? "" };
+            foreach (NetworkConnection connection in _network.ServerManager.Clients.Values)
+            {
+                if (connection != null && !connection.IsLocalClient && connection.IsAuthenticated)
+                    _network.ServerManager.Broadcast(connection, message);
             }
         }
 

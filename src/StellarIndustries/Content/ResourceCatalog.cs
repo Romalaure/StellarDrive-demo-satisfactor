@@ -69,6 +69,19 @@ namespace StellarIndustries.Content
         public const uint CrushedCopper = 7712;
         public const uint StellarDust = 7713;
         public const uint BiomassBrick = 7714;
+        public const uint SteelIngot = 7715;
+        public const uint SteelBeam = 7716;
+        public const uint SteelPipe = 7717;
+        public const uint Concrete = 7718;
+        public const uint CopperSheet = 7719;
+        public const uint Rotor = 7720;
+        public const uint Stator = 7721;
+        public const uint Motor = 7722;
+        public const uint AssemblyFrame = 7723;
+        public const uint CircuitBoard = 7724;
+        public const uint Computer = 7725;
+        public const uint HeatSink = 7726;
+        public const uint HeavyFrame = 7727;
 
         public static readonly ResourceDef[] All =
         {
@@ -160,6 +173,85 @@ namespace StellarIndustries.Content
                 Id = BiomassBrick, Name = "Briquette de biomasse", Category = ResourceCategory.Component, Mass = 1.5f, Tier = 1,
                 Description = "Bois broyé et pressé. Brûle cinq fois plus longtemps qu'une bûche dans le générateur à combustion.",
                 MaterialFrom = GameItems.Wood, Tint = new[] { 0.6f, 0.45f, 0.3f }, Shape = ResourceShape.Brick
+            },
+            // ---- Steel, concrete, components (0.9)
+            new ResourceDef
+            {
+                Id = SteelIngot, Name = "Lingot d'acier", Category = ResourceCategory.Intermediate, Mass = 2f, Tier = 1, MaxStack = 100,
+                Description = "Fer affiné avec du carbone de biomasse : plus dur et plus résistant.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = SteelBeam, Name = "Poutre d'acier", Category = ResourceCategory.Component, Mass = 6f, Tier = 1, MaxStack = 50,
+                Description = "Poutre en I pour les structures lourdes.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = SteelPipe, Name = "Tuyau d'acier", Category = ResourceCategory.Component, Mass = 2f, Tier = 1, MaxStack = 100,
+                Description = "Tube d'acier : conduites, axes, bâtis.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Concrete, Name = "Béton", Category = ResourceCategory.Intermediate, Mass = 4f, Tier = 1, MaxStack = 50,
+                Description = "Bloc de béton coulé (poussière stellaire et glace).",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = CopperSheet, Name = "Feuille de cuivre", Category = ResourceCategory.Intermediate, Mass = 1f, Tier = 1, MaxStack = 100,
+                Description = "Cuivre laminé en feuille mince, pour l'électronique et les échangeurs.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = Rotor, Name = "Rotor", Category = ResourceCategory.Component, Mass = 5f, Tier = 2, MaxStack = 50,
+                Description = "Arbre et bobinages tournants d'un moteur.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Stator, Name = "Stator", Category = ResourceCategory.Component, Mass = 6f, Tier = 2, MaxStack = 50,
+                Description = "Carcasse fixe et bobinages d'un moteur.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Motor, Name = "Moteur électrique", Category = ResourceCategory.Advanced, Mass = 12f, Tier = 2, MaxStack = 20,
+                Description = "Rotor et stator assemblés : la force des machines avancées.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = AssemblyFrame, Name = "Cadre d'assemblage", Category = ResourceCategory.Component, Mass = 8f, Tier = 2, MaxStack = 50,
+                Description = "Cadre rigide de plaques renforcées et de tiges, base des grandes structures.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = CircuitBoard, Name = "Circuit imprimé", Category = ResourceCategory.Component, Mass = 0.5f, Tier = 2, MaxStack = 100,
+                Description = "Plaque de verre gravée de pistes de cuivre.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = Computer, Name = "Ordinateur", Category = ResourceCategory.Advanced, Mass = 8f, Tier = 3, MaxStack = 20,
+                Description = "Unité de calcul : circuits, câblage et boîtier renforcé.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = HeatSink, Name = "Dissipateur thermique", Category = ResourceCategory.Component, Mass = 3f, Tier = 2, MaxStack = 50,
+                Description = "Ailettes d'aluminium sur une semelle de cuivre.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = HeavyFrame, Name = "Cadre lourd", Category = ResourceCategory.Advanced, Mass = 30f, Tier = 3, MaxStack = 20,
+                Description = "Cadre d'acier, de béton et de poutres pour les machines les plus lourdes.",
+                MaterialFrom = GameItems.Iron
             }
         };
 

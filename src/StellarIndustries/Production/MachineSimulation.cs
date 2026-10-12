@@ -65,6 +65,9 @@ namespace StellarIndustries.Production
         private static ShipsServerTracker _ships;
         private static float _nextPrune;
 
+        /// <summary>Host only: every simulated machine.</summary>
+        public static IEnumerable<KeyValuePair<(uint, ushort), Runtime>> All => Runtimes;
+
         /// <summary>Host only: what a machine is doing now (null if the host does not simulate it).</summary>
         public static Runtime Get(uint shipId, ushort partId) => Runtimes.TryGetValue((shipId, partId), out Runtime rt) ? rt : null;
 

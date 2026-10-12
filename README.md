@@ -4,7 +4,7 @@ Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisati
 transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
 déclare opérationnel que ce qui a été vérifié dans le jeu.
 
-**Version 0.8.0 — phases A à I.** Voir le [rapport de faisabilité](docs/FAISABILITE.md) pour ce
+**Version 0.9.0 — phases A à I, modèles détaillés et animés.** Voir le [rapport de faisabilité](docs/FAISABILITE.md) pour ce
 que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
 
 ![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
@@ -15,7 +15,8 @@ Onglet de construction **« Industrie »**, débloqué par la branche de recherc
 
 | Fonction | État |
 |---|---|
-| **Atelier, Fonderie, Presse, Broyeur, Assembleuse** : minerai → lingots → plaques, tiges, fil → vis, câbles, tôles → plaques renforcées ; le broyeur donne +33 % de lingots | ✅ testé en jeu |
+| **Atelier, Fonderie, Presse, Broyeur, Assembleuse, Fabricateur** : minerai → lingots (fer, cuivre, aluminium, acier) → plaques, tiges, fil, poutres, tuyaux → vis, câbles, béton → rotors, stators, circuits, cadres → moteurs, ordinateurs, cadres lourds (27 objets, 32 recettes) | ✅ testé en jeu (chaînes de base) ; nouvelles recettes : testées sans le jeu |
+| **Modèles détaillés et animés** pendant la production, textures propres au mod, prises à l'arrière (boîtier électrique, trappes d'objets) | ✅ vérifié par photos et test en jeu |
 | Ne produit que s'il a de l'énergie, de la matière **et** de la place ; rien n'est consommé sans être produit | ✅ testé en jeu |
 | Énergie : consomme sur le réseau électrique du jeu, ralentit si le réseau manque de puissance | ✅ testé en jeu (énergie insuffisante : non testé) |
 | **Choix de recette** (touche `N` en visant la machine), gardé dans la sauvegarde | ✅ testé en jeu (touche : non testée à la main) |
@@ -41,9 +42,14 @@ Onglet de construction **« Industrie »**, débloqué par la branche de recherc
 4. Un **Extracteur** à côté d'un rocher (touche `K` pour en trouver) fournit le minerai, et
    *Item Lines* relie les machines entre elles.
 
-Chaîne : minerai → **Fonderie** → lingots → **Atelier** → plaques, tiges, fil → **Presse** →
-vis, câbles, briquettes → **Assembleuse** → plaques renforcées. Le **Broyeur** double le
-minerai avant la fonderie.
+Chaîne : minerai → **Fonderie** → lingots (acier : fer + briquette) → **Atelier** → plaques,
+tiges, fil, poutres, tuyaux → **Presse** → vis, câbles, feuilles de cuivre, béton, briquettes →
+**Assembleuse** → plaques renforcées, rotors, stators, cadres, circuits, dissipateurs →
+**Fabricateur** → moteurs, ordinateurs, cadres lourds. Le **Broyeur** double le minerai avant
+la fonderie.
+
+Toutes les prises sont à l'arrière des machines : la prise électrique sort du boîtier jaune et
+noir, les lignes d'objets se branchent dans les deux trappes à côté.
 
 ## Limitations connues
 

@@ -16,7 +16,8 @@ namespace StellarIndustries.Production
         Extractor,
         Generator,
         Container,
-        Dock
+        Dock,
+        Fabricator
     }
 
     /// <summary>
@@ -68,6 +69,7 @@ namespace StellarIndustries.Production
         public const ushort CombustionGenerator = 7607;
         public const ushort IndustrialContainer = 7608;
         public const ushort LoadingDock = 7609;
+        public const ushort Fabricator = 7610;
 
         public static readonly MachineDef[] All =
         {
@@ -134,6 +136,12 @@ namespace StellarIndustries.Production
                               "Visez-le et appuyez sur N : arrêt, envoi ou réception. Un quai en envoi vide son contenu (4 objets/s) " +
                               "dans le quai en réception le plus proche, à moins de 4 m, même sur un autre vaisseau.",
                 BuildCost = new[] { (ResourceCatalog.ReinforcedPlate, 2), (ResourceCatalog.Cable, 4), (ResourceCatalog.IronRod, 6) }
+            },
+            new MachineDef
+            {
+                PartId = Fabricator, Name = "Fabricateur", Model = MachineModel.Fabricator, Tier = 2, Watts = 1500f, Mass = 320f, Width = 1.6f, Height = 1.7f,
+                Description = "Cellule robotisée à deux bras : moteurs, ordinateurs, cadres lourds (jusqu'à 4 ingrédients).",
+                BuildCost = new[] { (ResourceCatalog.AssemblyFrame, 4), (ResourceCatalog.Rotor, 4), (ResourceCatalog.Cable, 20) }
             }
         };
 

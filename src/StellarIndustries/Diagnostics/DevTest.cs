@@ -258,7 +258,14 @@ namespace StellarIndustries.Diagnostics
                 if (i == 1)
                     PlaceDevRock(ship);
                 if (i == 3)
+                {
                     yield return Photograph(shipId, "machines");
+                    yield return CheckAnimations(shipId);
+                }
+                if (i == 5)
+                    yield return PhotographMachines(shipId);
+                if (i == 8)
+                    yield return PhotographItems(shipId);
                 if (i == 6)
                 {
                     Log("overview: " + Strip(FactoryOverview.Build()));
@@ -361,6 +368,150 @@ namespace StellarIndustries.Diagnostics
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
+        }
+
+        // ---- Looks and animations
+
+        private static Transform ShipVisual(uint shipId)
+        {
+            var client = SDModKit.Game.GameRefs.Service<ShipsClientTracker>();
+            return client != null && client.TryGetShipVisualTransform(shipId, out Transform t) ? t : null;
+        }
+
+        /// <summary>Moving pieces of working machines must move: positions and rotations compared 0.5 s apart.</summary>
+        private static IEnumerator CheckAnimations(uint shipId)
+        {
+            Transform ship = ShipVisual(shipId);
+            if (ship == null)
+            {
+                Log("FAIL animation: no ship visual");
+                yield break;
+            }
+            var pieces = ship.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith(Parts.MachineVisuals.AnimPrefix)).ToList();
+            var before = pieces.Select(t => (t.localPosition, t.localRotation)).ToList();
+            int visuals = ship.GetComponentsInChildren<Parts.MachineVisuals>(true).Length;
+            yield return Wait(0.5f);
+            int moved = 0;
+            var kinds = new Dictionary<string, int>();
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                if (pieces[i] == null)
+                    continue;
+                bool changed = (pieces[i].localPosition - before[i].localPosition).sqrMagnitude > 1e-8f || Quaternion.Angle(pieces[i].localRotation, before[i].localRotation) > 0.01f;
+                if (!changed)
+                    continue;
+                moved++;
+                string kind = pieces[i].name.Split(' ').FirstOrDefault(x => x.StartsWith("kind=")) ?? "?";
+                kinds.TryGetValue(kind, out int n);
+                kinds[kind] = n + 1;
+            }
+            int greens = ship.GetComponentsInChildren<Transform>(true).Count(t => t.name == Parts.MachineVisuals.StatusOn && t.gameObject.activeSelf);
+            int reds = ship.GetComponentsInChildren<Transform>(true).Count(t => t.name == Parts.MachineVisuals.StatusOff && t.gameObject.activeSelf);
+            Log($"{(moved > 0 && greens > 0 ? "PASS" : "FAIL")} animation: {visuals} machine visuals, {moved}/{pieces.Count} moving pieces moved in 0.5 s ({string.Join(", ", kinds.Select(k => k.Value + " " + k.Key))}); status lights {greens} green, {reds} red");
+        }
+
+        /// <summary>Close-ups of every machine of the test ship, front and back, in two sheets.</summary>
+        private static IEnumerator PhotographMachines(uint shipId)
+        {
+            Transform ship = ShipVisual(shipId);
+            ShipsServerTracker ships = ServiceLocator.GetService<ShipsServerTracker>();
+            TrackedShipServer server = ships?.GetShip(shipId);
+            if (ship == null || server == null)
+                yield break;
+            ushort[] ids = { WorkshopA, SmelterPart, PressPart, CrusherPart, AssemblerPart, ExtractorPart, Gen7, DockA, ContainerPart };
+            const int cell = 600, cols = 3;
+            int rows = (ids.Length + cols - 1) / cols;
+            var cameraObject = new GameObject("SI_DevCamera");
+            var camera = cameraObject.AddComponent<Camera>();
+            if (Camera.main != null)
+                camera.CopyFrom(Camera.main);
+            camera.enabled = false;
+            camera.fieldOfView = 45f;
+            camera.nearClipPlane = 0.05f;
+            var target = RenderTexture.GetTemporary(cell, cell, 24, RenderTextureFormat.ARGB32);
+            camera.targetTexture = target;
+            var shot = new Texture2D(cell, cell, TextureFormat.RGBA32, false);
+            foreach ((string side, Vector3 dir) in new[] { ("front", new Vector3(0.45f, 0.5f, 1f)), ("back", new Vector3(-0.35f, 0.45f, -1f)) })
+            {
+                var sheet = new Texture2D(cell * cols, cell * rows, TextureFormat.RGBA32, false);
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    if (!server.TryGetStatefulPart(ids[i], out StatefulPart part))
+                        continue;
+                    MachineCatalog.TryGet(part.Settings.id, out MachineDef def);
+                    Vector3 center = ship.TransformPoint(part.LocalPosition + part.LocalRotation * new Vector3(0f, (def?.Height ?? 1.5f) * 0.45f, 0f));
+                    Vector3 view = ship.rotation * (part.LocalRotation * dir.normalized);
+                    camera.transform.position = center + view * 2.9f;
+                    camera.transform.rotation = Quaternion.LookRotation(center - camera.transform.position, ship.up);
+                    camera.Render();
+                    RenderTexture previous = RenderTexture.active;
+                    RenderTexture.active = target;
+                    shot.ReadPixels(new Rect(0, 0, cell, cell), 0, 0);
+                    shot.Apply();
+                    RenderTexture.active = previous;
+                    sheet.SetPixels((i % cols) * cell, (rows - 1 - i / cols) * cell, cell, cell, shot.GetPixels());
+                    yield return null;
+                }
+                sheet.Apply();
+                Directory.CreateDirectory(Folder);
+                File.WriteAllBytes(Path.Combine(Folder, $"closeup_{side}.png"), sheet.EncodeToPNG());
+                Object.Destroy(sheet);
+            }
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(target);
+            Object.Destroy(shot);
+            Object.Destroy(cameraObject);
+            Log("machine close-ups written");
+        }
+
+        /// <summary>Every item model of the mod, in a grid floating above the test ship, photographed.</summary>
+        private static IEnumerator PhotographItems(uint shipId)
+        {
+            Transform ship = ShipVisual(shipId);
+            if (ship == null)
+                yield break;
+            var holder = new GameObject("SI_DevItems");
+            Vector3 origin = ship.position + ship.up * 6f;
+            holder.transform.SetPositionAndRotation(origin, ship.rotation);
+            const int cols = 7;
+            int n = 0;
+            foreach (ResourceDef def in ResourceCatalog.All)
+            {
+                ItemSettings settings = IndustrialItems.Find(def.Id);
+                if (settings?.itemObject == null)
+                    continue;
+                GameObject copy = Object.Instantiate(settings.itemObject, holder.transform, false);
+                copy.SetActive(true);
+                copy.transform.localPosition = new Vector3((n % cols - (cols - 1) * 0.5f) * 0.5f, -(n / cols) * 0.45f, 0f);
+                copy.transform.localRotation = Quaternion.Euler(-25f, 30f, 0f);
+                n++;
+            }
+            var cameraObject = new GameObject("SI_DevCamera");
+            var camera = cameraObject.AddComponent<Camera>();
+            if (Camera.main != null)
+                camera.CopyFrom(Camera.main);
+            camera.enabled = false;
+            camera.fieldOfView = 30f;
+            camera.nearClipPlane = 0.05f;
+            camera.transform.position = holder.transform.TransformPoint(new Vector3(0f, -0.65f, 6.2f));
+            camera.transform.rotation = Quaternion.LookRotation(holder.transform.TransformPoint(new Vector3(0f, -0.65f, 0f)) - camera.transform.position, ship.up);
+            var target = RenderTexture.GetTemporary(1600, 900, 24, RenderTextureFormat.ARGB32);
+            camera.targetTexture = target;
+            yield return null;
+            camera.Render();
+            var shot = new Texture2D(1600, 900, TextureFormat.RGBA32, false);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = target;
+            shot.ReadPixels(new Rect(0, 0, 1600, 900), 0, 0);
+            shot.Apply();
+            RenderTexture.active = previous;
+            File.WriteAllBytes(Path.Combine(Folder, "items.png"), shot.EncodeToPNG());
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(target);
+            Object.Destroy(shot);
+            Object.Destroy(cameraObject);
+            Object.Destroy(holder);
+            Log($"{n} item models photographed");
         }
 
         // ---- Load test (DevPhase 3)
@@ -541,12 +692,14 @@ namespace StellarIndustries.Diagnostics
             PartSettings settings = SDModKit.Game.CustomParts.Get(partId);
             if (settings?.part == null)
                 return -1;
+            int found = -1;
             foreach (SocketObject socket in settings.part.GetComponentsInChildren<SocketObject>(true))
             {
-                if ((int)socket.Type == 3)
-                    return socket.Id;
+                Log($"part {partId} socket {socket.Id} type {(int)socket.Type} at {settings.part.transform.InverseTransformPoint(socket.transform.position):F2}");
+                if ((int)socket.Type == 3 && found < 0)
+                    found = socket.Id;
             }
-            return -1;
+            return found;
         }
 
         // ---- Extraction

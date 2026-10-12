@@ -51,6 +51,9 @@ namespace StellarIndustries.Parts
             new Tech { Id = 7805, Name = "Logistique industrielle", Requires = new ushort[] { 7803 }, Position = new Vector2Int(5, 2),
                 Parts = new[] { MachineCatalog.IndustrialContainer, MachineCatalog.LoadingDock },
                 Cost = new[] { (ResourceCatalog.ReinforcedPlate, 4), (ResourceCatalog.Cable, 10), (ResourceCatalog.Screws, 30) } },
+            new Tech { Id = 7806, Name = "Fabrication avancée", Requires = new ushort[] { 7803 }, Position = new Vector2Int(5, 3),
+                Parts = new[] { MachineCatalog.Fabricator },
+                Cost = new[] { (ResourceCatalog.Rotor, 4), (ResourceCatalog.Stator, 4), (ResourceCatalog.AssemblyFrame, 2) } },
         };
 
         private static readonly HashSet<ushort> Locked = new HashSet<ushort>();

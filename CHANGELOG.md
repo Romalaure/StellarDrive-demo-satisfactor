@@ -1,5 +1,33 @@
 # Journal des changements
 
+## 0.9.0 — modèles, textures, animations, nouveaux objets
+
+- **Textures propres au mod** : planche de 48 tuiles dessinées par le code dans le style du jeu
+  (tôles peintes à contour, acier brossé, rivets, tôle larmée, bandes de danger, grilles,
+  écrans, voyants, cuivre, circuits...), avec carte de normales (rainures, rivets, fentes) et
+  carte d'émission (écrans, voyants, bouches de four), portées par le shader des pièces du jeu.
+  Générée une fois puis mise en cache (`UserData/StellarIndustries/cache`).
+- **Modèles refaits, plus détaillés**, avec une disposition commune : châssis à tôle larmée et
+  bande de danger, côté opérateur à l'avant (console à boutons, écran, jauge, voyant d'état),
+  côté service à l'arrière.
+- **Prises logiques** : la prise électrique sort d'un boîtier électrique jaune et noir (avec
+  son conduit) à l'arrière ; les deux ports d'objets qu'ajoute *Item Lines* sont rangés dans
+  deux trappes de la même rangée (le second était au milieu de la face avant : il est déplacé).
+- **Animations** pendant la production : volants et tambours qui tournent, coulisseau de presse
+  qui frappe, bras robotisés, foreuse qui tourne et descend, pistons, ventilateurs, rouleaux du
+  quai, gyrophare, bouches de four et écrans qui s'allument, voyant rouge → vert. L'hôte envoie
+  la liste des machines actives aux clients (une fois par seconde, si elle change).
+- **Objets redessinés** : chaque objet a son modèle (lingots trapézoïdaux, bobines, sacs de
+  poudre, tas de vis, plaques boulonnées...) et ses textures ; les icônes d'inventaire en
+  découlent.
+- **13 nouveaux objets** (noms génériques) : lingot d'acier, poutre et tuyau d'acier, béton,
+  feuille de cuivre, rotor, stator, moteur électrique, cadre d'assemblage, circuit imprimé,
+  ordinateur, dissipateur thermique, cadre lourd (7715-7727).
+- **Fabricateur** (7610, 1 500 W) : cellule robotisée à deux bras, jusqu'à 4 ingrédients
+  (moteur, ordinateur, cadre lourd). Tech *Fabrication avancée* (7806).
+- 13 nouvelles recettes (acier, poutres, tuyaux, béton, feuilles de cuivre, rotor, stator,
+  cadre, circuit, dissipateur, moteur, ordinateur, cadre lourd) : 32 au total.
+
 ## 0.8.0 — phases H et I (finitions, diagnostic, charge, multijoueur)
 
 - **Tableau de bord industriel** (`F7`) : machines par état, énergie consommée et produite,
