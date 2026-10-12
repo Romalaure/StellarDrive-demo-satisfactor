@@ -23,9 +23,27 @@ namespace StellarIndustries.Parts
             foreach (MachineDef def in MachineCatalog.All)
             {
                 MachineDef machine = def;
-                PartTools.Register(machine.PartId, Donor, machine.Tier, (settings, prefab) => Configure(machine, settings, prefab));
+                PartTools.Register(machine.PartId, Donor, BuildRow(machine), (settings, prefab) => Configure(machine, settings, prefab));
             }
             IndustriesMod.Log.Msg($"registered {MachineCatalog.All.Length} machine(s)");
+        }
+
+        /// <summary>Build menu row (the menu shows about three): basic production, advanced production, power and logistics.</summary>
+        private static int BuildRow(MachineDef def)
+        {
+            if (def.Generates || def.Stores || def.IsLogistics)
+                return 2;
+            switch (def.PartId)
+            {
+                case MachineCatalog.Workshop:
+                case MachineCatalog.Smelter:
+                case MachineCatalog.Press:
+                case MachineCatalog.Crusher:
+                case MachineCatalog.Extractor:
+                    return 0;
+                default:
+                    return 1;
+            }
         }
 
         private static void Configure(MachineDef def, PartSettings settings, GameObject prefab)

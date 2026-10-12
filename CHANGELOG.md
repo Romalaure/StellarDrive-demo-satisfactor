@@ -1,5 +1,33 @@
 # Journal des changements
 
+## 0.10.0 — contenu étendu et wiki dans le jeu
+
+- Comparaison avec les jeux d'automatisation (liste des bâtiments et objets d'un wiki de
+  référence) : ajout de ce qui manquait et que StellarDrive permet, sous des noms et des modèles
+  propres au mod. Les fluides, véhicules et trains restent impossibles (voir Limites).
+- **4 machines** : *Haut fourneau* (7611, deux entrées : acier au charbon de bois, alliage,
+  quartz), *Raffinerie* (7612, chimie de la biomasse avec coproduits), *Accumulateur* (7613,
+  60 MJ, se charge du surplus du réseau et le rend, charge gardée dans la sauvegarde),
+  *Accélérateur de particules* (7614, 8 kW). Modèles détaillés et animés, prises à l'arrière.
+- **26 objets** (7728-7753) : charbon de bois, biomasse, silice, cristal de quartz, plastique,
+  caoutchouc, résine, lingot et tôle d'alliage, boîtier en aluminium, fil fin, poutre enrobée,
+  panneau intelligent, ossature polyvalente, faisceau de câbles, oscillateur à quartz,
+  connecteur rapide, module radio, cellule de batterie, système de refroidissement, bloc moteur,
+  contrôleur adaptatif, supercalculateur, turbomoteur, matière stellaire condensée, processeur
+  quantique ; chacun avec son modèle. 53 objets et 59 recettes en tout.
+- Combustibles : biomasse (15 kJ), charbon de bois (300 kJ).
+- Recherche : *Métallurgie et chimie*, *Stockage d'énergie*, *Physique des particules*
+  (7807-7809) ; placement de la branche revu (les techs suivantes ont toujours leur place à
+  droite, la branche ne se mélange plus quand d'autres mods ajoutent des techs).
+- **Wiki dans le jeu** : entrée « Wiki Stellar Industries » dans le Guide (touche G), pages
+  écrites (démarrer, énergie, logistique, touches, limites) et pages créées à partir du contenu
+  (une fiche par machine et par objet : recettes, débit par minute, obtention, utilisation,
+  coût, recherche, prises), liens cliquables.
+- Menu de construction : machines rangées en trois rangées (production de base, avancée,
+  énergie et logistique).
+- **Changement** : le coproduit du broyeur sur les éclats stellaires est la silice (et non plus
+  le verre, que la même machine broyait aussitôt).
+
 ## 0.9.0 — modèles, textures, animations, nouveaux objets
 
 - **Textures propres au mod** : planche de 48 tuiles dessinées par le code dans le style du jeu

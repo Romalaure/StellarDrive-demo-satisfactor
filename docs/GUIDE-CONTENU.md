@@ -7,7 +7,14 @@ Toutes les valeurs de jeu sont dans quelques tables C#. Après une modification 
 Plages d'ids réservées (`Core/Ids.cs`) : pièces 7601-7699, objets 7701-7799, techs 7801-7899.
 **Un id publié ne doit jamais être réutilisé pour autre chose** : les sauvegardes le gardent.
 
-Utilisés en 0.9.0 : pièces 7601-7610, objets 7701-7727, techs 7801-7806.
+Utilisés en 0.10.0 : pièces 7601-7614, objets 7701-7753, techs 7801-7809.
+
+## Wiki dans le jeu
+
+Les pages écrites sont dans `docs/wiki/*.md` (intégrées à la DLL) ; les fiches des machines,
+des objets, des recettes et de la recherche sont créées par `Wiki/WikiContent.cs` à partir des
+tables : un objet ou une machine ajouté apparaît tout seul dans le wiki. Liens : `[texte](Page)`
+vers `Machine-<id>`, `Objet-<id>` ou le nom d'une page écrite.
 
 ## Ajouter une ressource
 

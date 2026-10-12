@@ -10,7 +10,7 @@ namespace StellarIndustries.Content
     /// with bolts, wire spools, screw piles, sacks of powder, a rotor with copper windings...).
     /// The game renders the inventory icons from these models.
     /// </summary>
-    internal static class ItemModels
+    internal static partial class ItemModels
     {
         private static MeshBuilder _m;
 
@@ -61,7 +61,7 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.Computer: ComputerModel(); return true;
                 case ResourceCatalog.HeatSink: HeatSinkModel(); return true;
                 case ResourceCatalog.HeavyFrame: HeavyFrameModel(); return true;
-                default: return false;
+                default: return BuildAdvanced(id);
             }
         }
 

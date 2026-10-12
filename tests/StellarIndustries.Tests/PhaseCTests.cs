@@ -199,7 +199,7 @@ namespace StellarIndustries.Tests
             Stack[] slots = Holding(GameItems.StellarShard, 5);
             Assert.Equal(5, RunAll(ref slots, "crusher.shard"));
             Assert.Equal(15, Crafting.CountOf(slots, ResourceCatalog.StellarDust));
-            Assert.Equal(5, Crafting.CountOf(slots, GameItems.Glass));
+            Assert.Equal(5, Crafting.CountOf(slots, ResourceCatalog.Silica));
         }
 
         [Fact]
@@ -207,7 +207,7 @@ namespace StellarIndustries.Tests
         {
             // Extractors and generators have no recipe
             foreach (MachineDef m in MachineCatalog.All)
-                Assert.True((m.Extracts || m.Generates || m.IsLogistics) ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
+                Assert.True(m.HasNoRecipe ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
             var made = RecipeBook.All.SelectMany(r => r.Outputs).Select(o => o.Item).ToHashSet();
             foreach (ResourceDef r in ResourceCatalog.All)
                 Assert.Contains(r.Id, made);

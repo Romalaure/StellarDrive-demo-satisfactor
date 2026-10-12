@@ -47,6 +47,9 @@ namespace StellarIndustries.Production
             public string Detail;
             /// <summary>Generator: energy already drawn from the fuel item being burnt, and offered this tick (joules).</summary>
             public float Burned, Offered;
+            /// <summary>Accumulator: stored energy (joules), whether it was read from the save, and this tick's charge and discharge.</summary>
+            public float Stored, Request;
+            public bool Loaded;
         }
 
         private struct Entry
@@ -60,6 +63,7 @@ namespace StellarIndustries.Production
         private static readonly Dictionary<(uint, ushort), Runtime> Runtimes = new Dictionary<(uint, ushort), Runtime>();
         private static readonly List<Entry> Running = new List<Entry>();
         private static readonly List<Entry> Burning = new List<Entry>();
+        private static readonly List<Entry> Storing = new List<Entry>();
         private static readonly List<(uint, ushort)> Stale = new List<(uint, ushort)>();
         private static readonly Stack[] Buffer = new Stack[10];
         private static ShipsServerTracker _ships;
@@ -92,6 +96,7 @@ namespace StellarIndustries.Production
         {
             Running.Clear();
             Burning.Clear();
+            Storing.Clear();
             if (deltaTime <= 0f || !Settings.Enabled.Value || Diagnostics.DevTest.HoldProduction)
                 return;
             if (_ships == null)
@@ -110,7 +115,9 @@ namespace StellarIndustries.Production
                     rt.LastSeen = now;
                     rt.Group = null;
                     rt.PowerRate = 0f;
-                    if (def.Dock)
+                    if (def.Stores)
+                        Storing.Add(new Entry { Ship = ship, Part = part, Def = def, Runtime = rt });
+                    else if (def.Dock)
                         Logistics.LoadingDocks.Collect(ship, part, def, rt);
                     else if (def.Container)
                         rt.Status = MachineStatus.Idle;
@@ -120,6 +127,9 @@ namespace StellarIndustries.Production
                         Prepare(power, ship, part, def, rt, deltaTime);
                 }
             }
+            // Accumulators last: they balance what every consumer and producer of their network asked and offered
+            foreach (Entry entry in Storing)
+                PrepareAccumulator(power, entry, deltaTime);
             Logistics.LoadingDocks.Run(deltaTime);
             if (now >= _nextPrune)
                 Prune(now);
@@ -175,6 +185,82 @@ namespace StellarIndustries.Production
                 rt.Group = group;
             }
             Running.Add(new Entry { Ship = ship, Part = part, Def = def, Runtime = rt });
+        }
+
+        // ---- Accumulators
+
+        public const string ChargePrefix = "charge=";
+
+        /// <summary>Charge (joules) kept for a machine in the companion file, or 0.</summary>
+        private static float SavedCharge(uint ship, ushort part)
+        {
+            string value = MachineControl.Choices.Get(ship, part);
+            return value != null && value.StartsWith(ChargePrefix) &&
+                   float.TryParse(value.Substring(ChargePrefix.Length), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float j) ? j : 0f;
+        }
+
+        /// <summary>Before saving: every accumulator's charge goes into the companion file.</summary>
+        public static void KeepCharges()
+        {
+            foreach (KeyValuePair<(uint, ushort), Runtime> pair in Runtimes)
+            {
+                if (pair.Value.Loaded)
+                    MachineControl.Choices.Set(pair.Key.Item1, pair.Key.Item2, ChargePrefix + Mathf.RoundToInt(pair.Value.Stored).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+        }
+
+        /// <summary>
+        /// An accumulator covers its network's shortfall from its charge, or charges from its spare
+        /// capacity (which makes the generators really give more). Energy is conserved.
+        /// </summary>
+        private static void PrepareAccumulator(PowerServerTracker power, Entry entry, float deltaTime)
+        {
+            Runtime rt = entry.Runtime;
+            MachineDef def = entry.Def;
+            if (!rt.Loaded)
+            {
+                rt.Stored = Mathf.Clamp(SavedCharge(entry.Ship.Id, entry.Part.Id), 0f, def.StoreJoules);
+                rt.Loaded = true;
+            }
+            rt.Recipe = null;
+            rt.Offered = rt.Request = 0f;
+            rt.Watts = def.Watts;
+            rt.Detail = $"Charge : {rt.Stored / 1e6f:0.0} / {def.StoreJoules / 1e6f:0} MJ ({rt.Stored / def.StoreJoules * 100f:0} %)";
+            if (!power.TryGetGroupFromSocket(new EntityPartSocket(entry.Ship.Id, entry.Part.Id, PowerSocket), out PowerGroupServerState group))
+            {
+                rt.Status = MachineStatus.Unpowered;
+                return;
+            }
+            rt.Group = group;
+            float step = def.Watts * deltaTime;
+            float balance = group.TotalPowerProductionCapacity - group.TotalPowerNeeded;
+            if (balance < 0f && rt.Stored > 0f)
+            {
+                rt.Offered = Mathf.Min(-balance, step, rt.Stored);
+                group.TotalPowerProductionCapacity += rt.Offered;
+            }
+            else if (balance > 0f && rt.Stored < def.StoreJoules)
+            {
+                rt.Request = Mathf.Min(balance, step, def.StoreJoules - rt.Stored);
+                group.TotalPowerNeeded += rt.Request;
+            }
+        }
+
+        private static void AfterAccumulators(float deltaTime)
+        {
+            foreach (Entry entry in Storing)
+            {
+                Runtime rt = entry.Runtime;
+                if (rt.Group == null)
+                    continue;
+                float given = rt.Offered * Mathf.Clamp01(rt.Group.NormalizedGeneratorRate);
+                float taken = rt.Request * Mathf.Clamp01(rt.Group.NormalizedConsumerRate);
+                rt.Stored = Mathf.Clamp(rt.Stored + taken - given, 0f, entry.Def.StoreJoules);
+                rt.PowerRate = Mathf.Clamp01((given + taken) / (entry.Def.Watts * deltaTime));
+                rt.Status = given > 0f || taken > 0f ? MachineStatus.Producing : MachineStatus.Standby;
+                rt.Detail = (given > 0f ? "Décharge" : taken > 0f ? "Charge" : "En attente") +
+                            $" — {rt.Stored / 1e6f:0.0} / {entry.Def.StoreJoules / 1e6f:0} MJ ({rt.Stored / entry.Def.StoreJoules * 100f:0} %)";
+            }
         }
 
         // ---- Generators
@@ -249,6 +335,7 @@ namespace StellarIndustries.Production
                 return;
             }
             AfterGenerators(deltaTime);
+            AfterAccumulators(deltaTime);
             foreach (Entry entry in Running)
             {
                 Runtime rt = entry.Runtime;

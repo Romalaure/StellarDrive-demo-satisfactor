@@ -53,7 +53,9 @@ namespace StellarIndustries.Recipes
                     Error(issues, $"machine {m.Name}: extraction invalide");
                 if (m.Generates && MachineCatalog.Fuels.Length == 0)
                     Error(issues, $"machine {m.Name}: aucun combustible");
-                if (!m.Extracts && !m.Generates && !m.IsLogistics && !recipeList.Any(r => r.Machine == m.PartId))
+                if (m.Stores && !(m.StoreJoules > 0f && m.Watts > 0f))
+                    Error(issues, $"machine {m.Name}: stockage invalide");
+                if (!m.HasNoRecipe && !recipeList.Any(r => r.Machine == m.PartId))
                     Warn(issues, $"machine {m.Name}: aucune recette");
             }
 

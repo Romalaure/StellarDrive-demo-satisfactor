@@ -82,6 +82,32 @@ namespace StellarIndustries.Content
         public const uint Computer = 7725;
         public const uint HeatSink = 7726;
         public const uint HeavyFrame = 7727;
+        public const uint Charcoal = 7728;
+        public const uint Biomass = 7729;
+        public const uint Silica = 7730;
+        public const uint QuartzCrystal = 7731;
+        public const uint Plastic = 7732;
+        public const uint Rubber = 7733;
+        public const uint Resin = 7734;
+        public const uint AlloyIngot = 7735;
+        public const uint AlloySheet = 7736;
+        public const uint AluminumCasing = 7737;
+        public const uint FineWire = 7738;
+        public const uint EncasedBeam = 7739;
+        public const uint SmartPanel = 7740;
+        public const uint Framework = 7741;
+        public const uint WiringHarness = 7742;
+        public const uint Oscillator = 7743;
+        public const uint FastConnector = 7744;
+        public const uint RadioModule = 7745;
+        public const uint BatteryCell = 7746;
+        public const uint CoolingSystem = 7747;
+        public const uint EngineBlock = 7748;
+        public const uint ControlUnit = 7749;
+        public const uint Supercomputer = 7750;
+        public const uint TurboMotor = 7751;
+        public const uint QuantumProcessor = 7752;
+        public const uint StellarMatter = 7753;
 
         public static readonly ResourceDef[] All =
         {
@@ -252,6 +278,163 @@ namespace StellarIndustries.Content
                 Id = HeavyFrame, Name = "Cadre lourd", Category = ResourceCategory.Advanced, Mass = 30f, Tier = 3, MaxStack = 20,
                 Description = "Cadre d'acier, de béton et de poutres pour les machines les plus lourdes.",
                 MaterialFrom = GameItems.Iron
+            },
+            // ---- Chemistry, alloys, electronics, top tier (0.10)
+            new ResourceDef
+            {
+                Id = Charcoal, Name = "Charbon de bois", Category = ResourceCategory.Intermediate, Mass = 1f, Tier = 1, MaxStack = 100,
+                Description = "Bois carbonisé à la raffinerie : combustible dense et carbone pour l'acier.",
+                MaterialFrom = GameItems.Wood
+            },
+            new ResourceDef
+            {
+                Id = Biomass, Name = "Biomasse", Category = ResourceCategory.Ore, Mass = 0.5f, Tier = 0, MaxStack = 200,
+                Description = "Bois broyé en copeaux : matière première de la chimie et combustible léger.",
+                MaterialFrom = GameItems.Wood
+            },
+            new ResourceDef
+            {
+                Id = Silica, Name = "Silice", Category = ResourceCategory.Intermediate, Mass = 0.5f, Tier = 1, MaxStack = 200,
+                Description = "Verre broyé en sable fin, base des cristaux de quartz.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = QuartzCrystal, Name = "Cristal de quartz", Category = ResourceCategory.Intermediate, Mass = 0.5f, Tier = 2, MaxStack = 100,
+                Description = "Cristal pur fondu de silice et de poussière stellaire : il vibre à fréquence fixe.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = Plastic, Name = "Plastique", Category = ResourceCategory.Intermediate, Mass = 0.5f, Tier = 2, MaxStack = 100,
+                Description = "Polymère tiré de la biomasse : léger, isolant.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = Rubber, Name = "Caoutchouc", Category = ResourceCategory.Intermediate, Mass = 0.5f, Tier = 2, MaxStack = 100,
+                Description = "Gomme élastique pour joints, courroies et isolants.",
+                MaterialFrom = GameItems.Wood
+            },
+            new ResourceDef
+            {
+                Id = Resin, Name = "Résine polymère", Category = ResourceCategory.Intermediate, Mass = 0.3f, Tier = 2, MaxStack = 200,
+                Description = "Résidu collant de la fabrication du plastique, transformé en caoutchouc.",
+                MaterialFrom = GameItems.Wood
+            },
+            new ResourceDef
+            {
+                Id = AlloyIngot, Name = "Lingot d'alliage", Category = ResourceCategory.Intermediate, Mass = 1.5f, Tier = 2, MaxStack = 100,
+                Description = "Aluminium allié de cuivre au haut fourneau : léger et résistant à la corrosion.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = AlloySheet, Name = "Tôle d'alliage", Category = ResourceCategory.Component, Mass = 1f, Tier = 2, MaxStack = 100,
+                Description = "Tôle laminée d'alliage aluminium-cuivre.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = AluminumCasing, Name = "Boîtier en aluminium", Category = ResourceCategory.Component, Mass = 1f, Tier = 2, MaxStack = 100,
+                Description = "Boîtier cylindrique usiné dans un lingot d'aluminium.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = FineWire, Name = "Fil fin", Category = ResourceCategory.Intermediate, Mass = 0.05f, Tier = 1, MaxStack = 200,
+                Description = "Fil de cuivre très fin pour l'électronique.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = EncasedBeam, Name = "Poutre enrobée", Category = ResourceCategory.Component, Mass = 10f, Tier = 2, MaxStack = 50,
+                Description = "Poutres d'acier noyées dans le béton : charpente des grands bâtiments.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = SmartPanel, Name = "Panneau intelligent", Category = ResourceCategory.Component, Mass = 6f, Tier = 2, MaxStack = 50,
+                Description = "Plaque renforcée motorisée par un rotor : panneau orientable.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Framework, Name = "Ossature polyvalente", Category = ResourceCategory.Component, Mass = 10f, Tier = 2, MaxStack = 50,
+                Description = "Cadre d'assemblage renforcé de poutres d'acier.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = WiringHarness, Name = "Faisceau de câbles", Category = ResourceCategory.Component, Mass = 4f, Tier = 2, MaxStack = 50,
+                Description = "Stator câblé prêt à monter.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = Oscillator, Name = "Oscillateur à quartz", Category = ResourceCategory.Component, Mass = 1f, Tier = 3, MaxStack = 50,
+                Description = "Cristaux de quartz montés dans un boîtier : l'horloge des circuits.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = FastConnector, Name = "Connecteur rapide", Category = ResourceCategory.Component, Mass = 1f, Tier = 3, MaxStack = 50,
+                Description = "Connecteur multibroche à fil fin pour les liaisons rapides.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = RadioModule, Name = "Module radio", Category = ResourceCategory.Advanced, Mass = 3f, Tier = 3, MaxStack = 20,
+                Description = "Émetteur-récepteur : oscillateur, dissipateur et boîtiers.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = BatteryCell, Name = "Cellule de batterie", Category = ResourceCategory.Component, Mass = 2f, Tier = 2, MaxStack = 50,
+                Description = "Cellule d'accumulateur : tôles d'alliage dans un boîtier.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = CoolingSystem, Name = "Système de refroidissement", Category = ResourceCategory.Advanced, Mass = 6f, Tier = 3, MaxStack = 20,
+                Description = "Dissipateurs, joints de caoutchouc et glace en circuit fermé.",
+                MaterialFrom = GameItems.Aluminum
+            },
+            new ResourceDef
+            {
+                Id = EngineBlock, Name = "Bloc moteur", Category = ResourceCategory.Advanced, Mass = 20f, Tier = 3, MaxStack = 20,
+                Description = "Moteur électrique monté sur panneaux, avec ses courroies.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = ControlUnit, Name = "Contrôleur adaptatif", Category = ResourceCategory.Advanced, Mass = 6f, Tier = 3, MaxStack = 20,
+                Description = "Calculateur de pilotage : faisceaux, ossature et ordinateur.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Supercomputer, Name = "Supercalculateur", Category = ResourceCategory.Advanced, Mass = 20f, Tier = 3, MaxStack = 10,
+                Description = "Grappe d'ordinateurs reliés par connecteurs rapides.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = TurboMotor, Name = "Turbomoteur", Category = ResourceCategory.Advanced, Mass = 30f, Tier = 4, MaxStack = 10,
+                Description = "Bloc moteur refroidi et piloté par radio : la puissance ultime.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = QuantumProcessor, Name = "Processeur quantique", Category = ResourceCategory.Advanced, Mass = 2f, Tier = 4, MaxStack = 10,
+                Description = "Calcul sur matière stellaire condensée, sorti de l'accélérateur.",
+                MaterialFrom = GameItems.StellarShard
+            },
+            new ResourceDef
+            {
+                Id = StellarMatter, Name = "Matière stellaire condensée", Category = ResourceCategory.Advanced, Mass = 1f, Tier = 4, MaxStack = 20,
+                Description = "Poussière stellaire compressée en particule lumineuse dans l'accélérateur.",
+                MaterialFrom = GameItems.StellarShard
             }
         };
 

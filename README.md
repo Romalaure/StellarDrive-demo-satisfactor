@@ -4,7 +4,7 @@ Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisati
 transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
 déclare opérationnel que ce qui a été vérifié dans le jeu.
 
-**Version 0.9.0 — phases A à I, modèles détaillés et animés.** Voir le [rapport de faisabilité](docs/FAISABILITE.md) pour ce
+**Version 0.10.0 — 14 machines, 53 objets, 59 recettes, wiki dans le jeu (touche G).** Voir le [rapport de faisabilité](docs/FAISABILITE.md) pour ce
 que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
 
 ![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
@@ -16,6 +16,8 @@ Onglet de construction **« Industrie »**, débloqué par la branche de recherc
 | Fonction | État |
 |---|---|
 | **Atelier, Fonderie, Presse, Broyeur, Assembleuse, Fabricateur** : minerai → lingots (fer, cuivre, aluminium, acier) → plaques, tiges, fil, poutres, tuyaux → vis, câbles, béton → rotors, stators, circuits, cadres → moteurs, ordinateurs, cadres lourds (27 objets, 32 recettes) | ✅ testé en jeu (chaînes de base) ; nouvelles recettes : testées sans le jeu |
+| **Haut fourneau, Raffinerie, Accumulateur (60 MJ), Accélérateur de particules** ; chimie de la biomasse, alliages, électronique, composants de haut niveau | ✅ testé en jeu (haut fourneau, raffinerie, accumulateur et sa charge après rechargement) ; accélérateur : modèle seulement |
+| **Wiki dans le jeu** : Guide (G) » Wiki Stellar Industries, une fiche par machine et par objet | ✅ testé en jeu (84 pages, aucun lien cassé, captures) |
 | **Modèles détaillés et animés** pendant la production, textures propres au mod, prises à l'arrière (boîtier électrique, trappes d'objets) | ✅ vérifié par photos et test en jeu |
 | Ne produit que s'il a de l'énergie, de la matière **et** de la place ; rien n'est consommé sans être produit | ✅ testé en jeu |
 | Énergie : consomme sur le réseau électrique du jeu, ralentit si le réseau manque de puissance | ✅ testé en jeu (énergie insuffisante : non testé) |
@@ -56,8 +58,8 @@ noir, les lignes d'objets se branchent dans les deux trappes à côté.
 - Le cycle en cours repart de zéro après un rechargement (aucun objet perdu).
 - 10 emplacements par machine (limite du stockage du jeu).
 - L'extracteur ne voit que les rochers chargés par le jeu de l'hôte (près d'un joueur).
-- Pas de batterie propre (utilisez celles de TF Advanced), pas de fluides industriels, pas de
-  vaisseaux automatiques (voir le rapport de faisabilité).
+- Pas de fluides industriels (la raffinerie travaille la biomasse solide), pas de véhicules ni
+  de trains automatiques (voir le rapport de faisabilité et la page Limites du wiki).
 - Chez un client, l'état des machines vient de l'hôte (non testé à deux joueurs).
 
 ## Installation

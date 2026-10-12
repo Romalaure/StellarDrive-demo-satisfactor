@@ -54,6 +54,15 @@ namespace StellarIndustries.Parts
             new Tech { Id = 7806, Name = "Fabrication avancée", Requires = new ushort[] { 7803 }, Position = new Vector2Int(5, 3),
                 Parts = new[] { MachineCatalog.Fabricator },
                 Cost = new[] { (ResourceCatalog.Rotor, 4), (ResourceCatalog.Stator, 4), (ResourceCatalog.AssemblyFrame, 2) } },
+            new Tech { Id = 7807, Name = "Métallurgie et chimie", Requires = new ushort[] { 7802 }, Position = new Vector2Int(5, 4),
+                Parts = new[] { MachineCatalog.Foundry, MachineCatalog.Refinery },
+                Cost = new[] { (ResourceCatalog.SteelBeam, 10), (ResourceCatalog.Concrete, 20), (ResourceCatalog.ReinforcedPlate, 6) } },
+            new Tech { Id = 7808, Name = "Stockage d'énergie", Requires = new ushort[] { 7807 }, Position = new Vector2Int(7, 3),
+                Parts = new[] { MachineCatalog.Accumulator },
+                Cost = new[] { (ResourceCatalog.AlloySheet, 20), (ResourceCatalog.AluminumCasing, 10), (ResourceCatalog.Rubber, 10) } },
+            new Tech { Id = 7809, Name = "Physique des particules", Requires = new ushort[] { 7806, 7807 }, Position = new Vector2Int(7, 4),
+                Parts = new[] { MachineCatalog.Accelerator },
+                Cost = new[] { (ResourceCatalog.Supercomputer, 2), (ResourceCatalog.CoolingSystem, 2), (ResourceCatalog.QuartzCrystal, 20) } },
         };
 
         private static readonly HashSet<ushort> Locked = new HashSet<ushort>();
@@ -61,6 +70,7 @@ namespace StellarIndustries.Parts
         private static ResearchSettingsList _list;
         private static int _placedCount;
         private static float _nextCheck, _nextEnsure;
+        private static readonly HashSet<ushort> _placedOnce = new HashSet<ushort>();
 
         public static IReadOnlyList<ResearchSettings> Techs => Added;
 
@@ -144,7 +154,7 @@ namespace StellarIndustries.Parts
         // ---- Layout: the tree's cells are 500 x 260 apart, boxes 410 x 170, lines from a box's right edge to the next one's left edge
 
         private const float CellWidth = 500f, CellHeight = 260f, HalfWidth = 205f, HalfHeight = 85f;
-        private const int MaxColumn = 7, MaxRow = 6;
+        private const int MaxColumn = 9, MaxRow = 6;
 
         private static bool Shown(ResearchSettings r) => r != null && r.availableInDemo && !r.hideFromTechTree;
         private static Vector2 Center(Vector2Int c) => new Vector2(c.x * CellWidth, c.y * CellHeight);
@@ -174,6 +184,14 @@ namespace StellarIndustries.Parts
             {
                 Vector2Int wish = All.FirstOrDefault(t => t.Id == tech.id)?.Position ?? tech.positionInTechTree;
                 int minX = tech.requirements.Where(Shown).Select(r => r.positionInTechTree.x + 1).DefaultIfEmpty(0).Max();
+                // Room is kept on the right for the techs that follow it (a chain must stay left to right)
+                int maxX = Mathf.Max(minX, MaxColumn - DepthBelow(tech.id));
+                // Stay put when the current cell still fits: placing again after another mod added
+                // techs must not shuffle the branch
+                Vector2Int here = tech.positionInTechTree;
+                if (_placedOnce.Contains(tech.id) && here.x >= minX && here.x <= maxX && !shown.Any(o => o != tech && o.positionInTechTree == here))
+                    continue;
+                _placedOnce.Add(tech.id);
                 Vector2Int? best = null;
                 float bestScore = float.MaxValue;
                 for (int x = minX; x <= MaxColumn; x++)
@@ -186,7 +204,7 @@ namespace StellarIndustries.Parts
                         // The tree is shared with other mods and often full: a crossing line is only cosmetic,
                         // a tech far from its parents is harder to read, so nearness weighs as much
                         int crossings = Crossings(tech, cell, shown);
-                        float score = crossings * 30f + (x - minX) * 12f + Mathf.Abs(y - wish.y) * 4f + Mathf.Abs(y - ParentRow(tech)) * 6f;
+                        float score = (x > maxX ? 5000f : 0f) + crossings * 30f + (x - minX) * 12f + Mathf.Abs(y - wish.y) * 4f + Mathf.Abs(y - ParentRow(tech)) * 6f;
                         if (score < bestScore)
                         {
                             bestScore = score;
@@ -199,6 +217,15 @@ namespace StellarIndustries.Parts
                 if (best == null)
                     IndustriesMod.Log.Warning($"research: no free cell right of {tech.techName}'s requirements, left at {tech.positionInTechTree}");
             }
+        }
+
+        /// <summary>How many of the mod's techs follow this one at most (columns needed on its right).</summary>
+        private static int DepthBelow(ushort id)
+        {
+            int depth = 0;
+            foreach (Tech child in All.Where(t => t.Requires.Contains(id)))
+                depth = Mathf.Max(depth, 1 + DepthBelow(child.Id));
+            return depth;
         }
 
         private static int ParentRow(ResearchSettings tech) => tech.requirements.Where(Shown).Select(r => r.positionInTechTree.y).DefaultIfEmpty(tech.positionInTechTree.y).First();

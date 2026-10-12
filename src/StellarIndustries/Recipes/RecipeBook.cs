@@ -87,7 +87,7 @@ namespace StellarIndustries.Recipes
             {
                 Id = "crusher.shard", Name = "Poussière stellaire", Machine = MachineCatalog.Crusher, Seconds = 4f, Tier = 1,
                 Inputs = new[] { new ItemAmount(GameItems.StellarShard, 1) },
-                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarDust, 3), new ItemAmount(GameItems.Glass, 1) }
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarDust, 3), new ItemAmount(ResourceCatalog.Silica, 1) }
             },
 
             // ---- Assembler (several inputs)
@@ -146,6 +146,176 @@ namespace StellarIndustries.Recipes
                 Id = "fabricator.heavy_frame", Name = "Cadre lourd", Machine = MachineCatalog.Fabricator, Seconds = 30f, Tier = 3,
                 Inputs = new[] { new ItemAmount(ResourceCatalog.AssemblyFrame, 4), new ItemAmount(ResourceCatalog.SteelPipe, 10), new ItemAmount(ResourceCatalog.SteelBeam, 4), new ItemAmount(ResourceCatalog.Concrete, 5) },
                 Outputs = new[] { new ItemAmount(ResourceCatalog.HeavyFrame, 1) }
+            },
+
+            // ---- 0.10: crusher
+            new RecipeDef
+            {
+                Id = "crusher.biomass", Name = "Biomasse", Machine = MachineCatalog.Crusher, Seconds = 3f, Tier = 1,
+                Inputs = new[] { new ItemAmount(GameItems.Wood, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Biomass, 4) }
+            },
+            new RecipeDef
+            {
+                Id = "crusher.silica", Name = "Silice", Machine = MachineCatalog.Crusher, Seconds = 3f, Tier = 1,
+                Inputs = new[] { new ItemAmount(GameItems.Glass, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Silica, 2) }
+            },
+            // ---- Foundry (two inputs)
+            new RecipeDef
+            {
+                Id = "foundry.steel", Name = "Lingot d'acier (charbon de bois)", Machine = MachineCatalog.Foundry, Seconds = 4f, Tier = 2,
+                Inputs = new[] { new ItemAmount(GameItems.Iron, 3), new ItemAmount(ResourceCatalog.Charcoal, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.SteelIngot, 3) }
+            },
+            new RecipeDef
+            {
+                Id = "foundry.alloy", Name = "Lingot d'alliage", Machine = MachineCatalog.Foundry, Seconds = 4f, Tier = 2,
+                Inputs = new[] { new ItemAmount(GameItems.Aluminum, 2), new ItemAmount(ResourceCatalog.CopperIngot, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.AlloyIngot, 2) }
+            },
+            new RecipeDef
+            {
+                Id = "foundry.quartz", Name = "Cristal de quartz", Machine = MachineCatalog.Foundry, Seconds = 6f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Silica, 3), new ItemAmount(ResourceCatalog.StellarDust, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.QuartzCrystal, 2) }
+            },
+            // ---- Refinery (biomass chemistry, co-products)
+            new RecipeDef
+            {
+                Id = "refinery.charcoal", Name = "Charbon de bois", Machine = MachineCatalog.Refinery, Seconds = 4f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Biomass, 4) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Charcoal, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "refinery.plastic", Name = "Plastique", Machine = MachineCatalog.Refinery, Seconds = 6f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Biomass, 6), new ItemAmount(GameItems.Ice, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Plastic, 2), new ItemAmount(ResourceCatalog.Resin, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "refinery.resin", Name = "Résine polymère", Machine = MachineCatalog.Refinery, Seconds = 5f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Biomass, 5) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Resin, 2) }
+            },
+            new RecipeDef
+            {
+                Id = "refinery.rubber", Name = "Caoutchouc", Machine = MachineCatalog.Refinery, Seconds = 6f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Resin, 3), new ItemAmount(GameItems.Ice, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Rubber, 2) }
+            },
+            // ---- Workshop
+            new RecipeDef
+            {
+                Id = "workshop.fine_wire", Name = "Fil fin", Machine = MachineCatalog.Workshop, Seconds = 3f, Tier = 1,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.CopperIngot, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.FineWire, 5) }
+            },
+            new RecipeDef
+            {
+                Id = "workshop.alloy_sheet", Name = "Tôle d'alliage", Machine = MachineCatalog.Workshop, Seconds = 4f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.AlloyIngot, 3) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.AlloySheet, 2) }
+            },
+            new RecipeDef
+            {
+                Id = "workshop.casing", Name = "Boîtier en aluminium", Machine = MachineCatalog.Workshop, Seconds = 3f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.AluminumIngot, 3) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.AluminumCasing, 2) }
+            },
+            // ---- Assembler
+            new RecipeDef
+            {
+                Id = "assembler.encased_beam", Name = "Poutre enrobée", Machine = MachineCatalog.Assembler, Seconds = 10f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.SteelBeam, 3), new ItemAmount(ResourceCatalog.Concrete, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.EncasedBeam, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.smart_panel", Name = "Panneau intelligent", Machine = MachineCatalog.Assembler, Seconds = 15f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.ReinforcedPlate, 1), new ItemAmount(ResourceCatalog.Rotor, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.SmartPanel, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.framework", Name = "Ossature polyvalente", Machine = MachineCatalog.Assembler, Seconds = 20f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.AssemblyFrame, 1), new ItemAmount(ResourceCatalog.SteelBeam, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Framework, 2) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.harness", Name = "Faisceau de câbles", Machine = MachineCatalog.Assembler, Seconds = 15f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Stator, 1), new ItemAmount(ResourceCatalog.Cable, 10) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.WiringHarness, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.oscillator", Name = "Oscillateur à quartz", Machine = MachineCatalog.Assembler, Seconds = 12f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.QuartzCrystal, 4), new ItemAmount(ResourceCatalog.AluminumCasing, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Oscillator, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.battery", Name = "Cellule de batterie", Machine = MachineCatalog.Assembler, Seconds = 10f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.AlloySheet, 2), new ItemAmount(ResourceCatalog.AluminumCasing, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.BatteryCell, 1) }
+            },
+            // ---- Fabricator
+            new RecipeDef
+            {
+                Id = "fabricator.connector", Name = "Connecteur rapide", Machine = MachineCatalog.Fabricator, Seconds = 15f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.FineWire, 40), new ItemAmount(ResourceCatalog.Cable, 4), new ItemAmount(ResourceCatalog.Plastic, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.FastConnector, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.radio", Name = "Module radio", Machine = MachineCatalog.Fabricator, Seconds = 25f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Oscillator, 1), new ItemAmount(ResourceCatalog.HeatSink, 2), new ItemAmount(ResourceCatalog.AluminumCasing, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.RadioModule, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.cooling", Name = "Système de refroidissement", Machine = MachineCatalog.Fabricator, Seconds = 20f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.HeatSink, 2), new ItemAmount(ResourceCatalog.Rubber, 4), new ItemAmount(GameItems.Ice, 5) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.CoolingSystem, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.engine_block", Name = "Bloc moteur", Machine = MachineCatalog.Fabricator, Seconds = 30f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Motor, 1), new ItemAmount(ResourceCatalog.Rubber, 8), new ItemAmount(ResourceCatalog.SmartPanel, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.EngineBlock, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.control_unit", Name = "Contrôleur adaptatif", Machine = MachineCatalog.Fabricator, Seconds = 40f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.WiringHarness, 2), new ItemAmount(ResourceCatalog.Framework, 1), new ItemAmount(ResourceCatalog.Computer, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.ControlUnit, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.supercomputer", Name = "Supercalculateur", Machine = MachineCatalog.Fabricator, Seconds = 60f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Computer, 2), new ItemAmount(ResourceCatalog.FastConnector, 2), new ItemAmount(ResourceCatalog.Plastic, 12) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Supercomputer, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.turbo_motor", Name = "Turbomoteur", Machine = MachineCatalog.Fabricator, Seconds = 60f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.CoolingSystem, 2), new ItemAmount(ResourceCatalog.RadioModule, 2), new ItemAmount(ResourceCatalog.EngineBlock, 1), new ItemAmount(ResourceCatalog.Rubber, 12) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.TurboMotor, 1) }
+            },
+            // ---- Particle accelerator
+            new RecipeDef
+            {
+                Id = "accelerator.matter", Name = "Matière stellaire condensée", Machine = MachineCatalog.Accelerator, Seconds = 30f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.StellarDust, 40), new ItemAmount(ResourceCatalog.QuartzCrystal, 4) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "accelerator.quantum", Name = "Processeur quantique", Machine = MachineCatalog.Accelerator, Seconds = 60f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Supercomputer, 1), new ItemAmount(ResourceCatalog.StellarMatter, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.QuantumProcessor, 1) }
             }
         };
 

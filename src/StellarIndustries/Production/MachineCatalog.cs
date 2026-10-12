@@ -17,7 +17,11 @@ namespace StellarIndustries.Production
         Generator,
         Container,
         Dock,
-        Fabricator
+        Fabricator,
+        Foundry,
+        Refinery,
+        Accumulator,
+        Accelerator
     }
 
     /// <summary>
@@ -44,6 +48,9 @@ namespace StellarIndustries.Production
         public float ExtractSeconds = 6f, ExtractRadius = 6f;
         /// <summary>Generator: burns the fuels of <see cref="Fuels"/> from its slots and gives up to <see cref="Watts"/> to its network.</summary>
         public bool Generates;
+        /// <summary>Accumulator: stores up to <see cref="StoreJoules"/>, charges and discharges at <see cref="Watts"/>.</summary>
+        public bool Stores;
+        public float StoreJoules;
         /// <summary>Plain storage (no production): a buffer for conveyors and transfers.</summary>
         public bool Container;
         /// <summary>Loading dock: sends its contents to a receiving dock of another ship (or part) within <see cref="DockRange"/>.</summary>
@@ -53,6 +60,8 @@ namespace StellarIndustries.Production
         public int DockRate = 4;
         /// <summary>No production, no recipe: a container or a dock.</summary>
         public bool IsLogistics => Container || Dock;
+        /// <summary>No recipe at all: extractor, generator, accumulator, container, dock.</summary>
+        public bool HasNoRecipe => Extracts || Generates || Stores || IsLogistics;
         /// <summary>Placement box (meters): width (x), height (y), depth (z).</summary>
         public float Width = 1.4f, Height = 1.5f, Depth = 1.2f;
         public (uint Item, int Count)[] BuildCost;
@@ -70,6 +79,10 @@ namespace StellarIndustries.Production
         public const ushort IndustrialContainer = 7608;
         public const ushort LoadingDock = 7609;
         public const ushort Fabricator = 7610;
+        public const ushort Foundry = 7611;
+        public const ushort Refinery = 7612;
+        public const ushort Accumulator = 7613;
+        public const ushort Accelerator = 7614;
 
         public static readonly MachineDef[] All =
         {
@@ -142,6 +155,32 @@ namespace StellarIndustries.Production
                 PartId = Fabricator, Name = "Fabricateur", Model = MachineModel.Fabricator, Tier = 2, Watts = 1500f, Mass = 320f, Width = 1.6f, Height = 1.7f,
                 Description = "Cellule robotisée à deux bras : moteurs, ordinateurs, cadres lourds (jusqu'à 4 ingrédients).",
                 BuildCost = new[] { (ResourceCatalog.AssemblyFrame, 4), (ResourceCatalog.Rotor, 4), (ResourceCatalog.Cable, 20) }
+            },
+            new MachineDef
+            {
+                PartId = Foundry, Name = "Haut fourneau", Model = MachineModel.Foundry, Tier = 2, Watts = 900f, Mass = 300f, Height = 2.1f,
+                Description = "Four à deux entrées : acier au charbon de bois (meilleur rendement), alliage aluminium-cuivre, cristaux de quartz.",
+                BuildCost = new[] { (ResourceCatalog.SteelBeam, 6), (ResourceCatalog.Concrete, 10), (ResourceCatalog.ReinforcedPlate, 4) }
+            },
+            new MachineDef
+            {
+                PartId = Refinery, Name = "Raffinerie", Model = MachineModel.Refinery, Tier = 2, Watts = 1000f, Mass = 280f, Height = 2.0f,
+                Description = "Chimie de la biomasse : charbon de bois, résine, plastique, caoutchouc (coproduits).",
+                BuildCost = new[] { (ResourceCatalog.SteelPipe, 12), (ResourceCatalog.SteelBeam, 4), (ResourceCatalog.Motor, 1) }
+            },
+            new MachineDef
+            {
+                PartId = Accumulator, Name = "Accumulateur", Model = MachineModel.Accumulator, Tier = 2, Watts = 3000f, Mass = 400f, Height = 1.6f,
+                Stores = true, StoreJoules = 60000000f,
+                Description = "Stocke 60 MJ : se charge du surplus de son réseau, le rend quand le réseau manque (3 kW). La charge est gardée dans la sauvegarde.",
+                BuildCost = new[] { (ResourceCatalog.BatteryCell, 10), (ResourceCatalog.AlloySheet, 8), (ResourceCatalog.Cable, 12) }
+            },
+            new MachineDef
+            {
+                PartId = Accelerator, Name = "Accélérateur de particules", Model = MachineModel.Accelerator, Tier = 3, Watts = 8000f, Mass = 600f,
+                Width = 1.8f, Height = 2.2f, Depth = 1.6f,
+                Description = "Anneau d'accélération : condense la poussière stellaire en matière et fabrique les processeurs quantiques. Gros consommateur (8 kW).",
+                BuildCost = new[] { (ResourceCatalog.HeavyFrame, 4), (ResourceCatalog.Supercomputer, 1), (ResourceCatalog.CoolingSystem, 4) }
             }
         };
 
@@ -149,7 +188,9 @@ namespace StellarIndustries.Production
         public static readonly (uint Item, float Joules)[] Fuels =
         {
             (GameItems.Wood, 40000f),
-            (ResourceCatalog.BiomassBrick, 200000f)
+            (ResourceCatalog.BiomassBrick, 200000f),
+            (ResourceCatalog.Biomass, 15000f),
+            (ResourceCatalog.Charcoal, 300000f)
         };
 
         public static float FuelEnergy(uint item)

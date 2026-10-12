@@ -40,6 +40,16 @@ B sans câble et C plein inchangés ; contenu identique après rechargement ; **
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
 
+0.10.0 (12/10/2026) : PASS haut fourneau 6 fer + 2 charbon de bois → 6 lingots d'acier ;
+PASS raffinerie réglée sur plastique 12 biomasse + 2 glace → 4 plastique + 2 résine ; PASS
+accumulateur chargé par le surplus du générateur (120 kJ en ~30 s), charge écrite dans
+`stellar-industries.txt` et relue après rechargement ; PASS broyeur avec le nouveau coproduit
+(silice) ; PASS wiki : 84 pages, 0 lien cassé, entrée trouvée dans le Guide, captures
+`dev/wiki_*.png` vérifiées ; recherche : 9 techs placées de gauche à droite (colonnes 5 à 9,
+l'écran de recherche du jeu s'élargit jusqu'à la dernière colonne) ; animations (17 machines)
+et tous les tests précédents repassés. Non testés en production : accélérateur, fabricateur et
+les recettes de haut niveau (validées sans le jeu).
+
 0.9.0 (12/10/2026), modèles : PASS animation (12 visuels de machines, 29 des 46 pièces
 mobiles en mouvement — celles des machines en production —, 8 voyants verts et 3 rouges) ;
 photos rapprochées avant/arrière (`dev/closeup_front.png`, `closeup_back.png`) et planche des

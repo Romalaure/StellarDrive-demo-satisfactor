@@ -6,7 +6,7 @@
     <Nullable>disable</Nullable>
     <AssemblyName>StellarIndustries</AssemblyName>
     <RootNamespace>StellarIndustries</RootNamespace>
-    <Version>0.9.0</Version>
+    <Version>0.10.0</Version>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <!-- Game assemblies reference netstandard facades; silence the resulting version-conflict noise -->
@@ -48,6 +48,11 @@
 
   <ItemGroup>
     <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <!-- The in-game wiki's written pages (the other pages are generated from the catalogs) -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\docs\wiki\*.md" LogicalName="Wiki.%(Filename).md" />
   </ItemGroup>
 
   <Target Name="DeployToGameMods" AfterTargets="Build" Condition="'$(DeployToGame)' == 'true' And Exists('$(GamePath)\Mods')">

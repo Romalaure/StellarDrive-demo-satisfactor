@@ -129,6 +129,7 @@ namespace StellarIndustries.Production
         {
             if (string.IsNullOrEmpty(worldDirectory) || !Directory.Exists(worldDirectory))
                 return;
+            MachineSimulation.KeepCharges();
             ShipsServerTracker ships = ServiceLocator.GetService<ShipsServerTracker>();
             int pruned = Choices.Prune((shipId, partId) =>
             {

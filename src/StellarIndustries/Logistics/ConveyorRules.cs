@@ -29,6 +29,8 @@ namespace StellarIndustries.Logistics
         {
             if (def.Extracts || def.IsLogistics)
                 return true;
+            if (def.Stores)
+                return false;
             if (def.Generates)
                 return false;
             if (!recipes.Any(r => r.Outputs.Any(o => o.Item == item)))
@@ -40,7 +42,7 @@ namespace StellarIndustries.Logistics
         {
             if (def.IsLogistics)
                 return true;
-            if (def.Extracts)
+            if (def.Extracts || def.Stores)
                 return false;
             if (def.Generates)
                 return MachineCatalog.FuelEnergy(item) > 0f && Crafting.CountOf(slots, item) < Math.Min(FuelAhead, maxStack(item));

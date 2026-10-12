@@ -51,6 +51,7 @@ namespace StellarIndustries.Diagnostics
         private const ushort WoodGenerator = 60, IronFloor = 1;
         private const ushort GeneratorPart = 1, WorkshopA = 2, WorkshopB = 3, WorkshopC = 4;
         private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12, Gen6 = 13, ExtractorPart = 14, Gen7 = 15, WorkshopD = 16, DockA = 17, ContainerPart = 18, CargoDock = 1;
+        private const ushort Gen8 = 19, AccumulatorPart = 20, Gen9 = 21, FoundryPart = 22, Gen10 = 23, RefineryPart = 24, FabricatorPart = 25, AcceleratorPart = 26;
 
         private static MelonPreferences_Entry<string> _world;
         private static MelonPreferences_Entry<int> _phase;
@@ -227,7 +228,7 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(WorkshopB, new StorageState { InventorySlots = Slots((GameItems.Iron, 6)) });
             var full = Enumerable.Repeat((GameItems.Iron, IndustrialItems.MaxStack(GameItems.Iron)), 10).ToArray();
             ship.UpdatePartState(WorkshopC, new StorageState { InventorySlots = Slots(full) });
-            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6 })
+            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6, Gen8, Gen9, Gen10 })
                 ship.UpdatePartState(generator, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
             ship.UpdatePartState(SmelterPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.StellarDust, 4)) });
             ship.UpdatePartState(CrusherPart, new StorageState { InventorySlots = Slots((GameItems.StellarShard, 2)) });
@@ -235,6 +236,10 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(PressPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronRod, 3), (ResourceCatalog.CopperWire, 4)) });
             // The press would make screws on its own (first recipe): it is set to cables only
             Log($"press set to cables: {MachineControl.SetChoice(shipId, PressPart, "press.cable")}");
+            // 0.10 machines: the foundry makes steel with charcoal, the refinery is set to plastic
+            ship.UpdatePartState(FoundryPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.Charcoal, 2)) });
+            ship.UpdatePartState(RefineryPart, new StorageState { InventorySlots = Slots((ResourceCatalog.Biomass, 12), (GameItems.Ice, 2)) });
+            Log($"refinery set to plastic: {MachineControl.SetChoice(shipId, RefineryPart, "refinery.plastic")}");
             // Dock A sends to the cargo ship's dock
             ship.UpdatePartState(DockA, new StorageState { InventorySlots = Slots((GameItems.Iron, 12), (GameItems.Copper, 5)) });
             ship.UpdatePartState(ContainerPart, new StorageState { InventorySlots = Slots((ResourceCatalog.Screws, 50)) });
@@ -266,6 +271,11 @@ namespace StellarIndustries.Diagnostics
                     yield return PhotographMachines(shipId);
                 if (i == 8)
                     yield return PhotographItems(shipId);
+                if (i == 10)
+                {
+                    UI.MachineHud.Forced = null;
+                    yield return CheckWiki();
+                }
                 if (i == 6)
                 {
                     Log("overview: " + Strip(FactoryOverview.Build()));
@@ -290,10 +300,14 @@ namespace StellarIndustries.Diagnostics
             {
                 Check(ship, SmelterPart, (ResourceCatalog.IronIngot, 6), (GameItems.Glass, 2));
             }
-            Check(ship, CrusherPart, (ResourceCatalog.StellarDust, 6), (GameItems.Glass, 2));
+            Check(ship, CrusherPart, (ResourceCatalog.StellarDust, 6), (ResourceCatalog.Silica, 2));
             Check(ship, AssemblerPart, (ResourceCatalog.ReinforcedPlate, 1));
             Check(ship, PressPart, (ResourceCatalog.IronRod, 3), (ResourceCatalog.Cable, 2));
             CheckExtractor(ship);
+            Check(ship, FoundryPart, (ResourceCatalog.SteelIngot, 6));
+            Check(ship, RefineryPart, (ResourceCatalog.Plastic, 4), (ResourceCatalog.Resin, 2));
+            MachineSimulation.Runtime acc = MachineSimulation.Get(ship.Id, AccumulatorPart);
+            Log($"{(acc != null && acc.Stored > 10000f ? "PASS" : "FAIL")} accumulator charged from the generator's spare power: {acc?.Stored:0} J, {acc?.Status}, {acc?.Detail}");
             Check(ship, DockA);
             Check(ship, ContainerPart, (ResourceCatalog.Screws, 50));
             TrackedShipServer cargoShip = ships.GetShip(_cargoId);
@@ -368,6 +382,8 @@ namespace StellarIndustries.Diagnostics
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
+            MachineSimulation.Runtime acc = MachineSimulation.Get(test.Id, AccumulatorPart);
+            Log($"{(acc != null && acc.Stored >= 100000f ? "PASS" : "FAIL")} accumulator charge after reload: {acc?.Stored:0} J ({acc?.Detail})");
         }
 
         // ---- Looks and animations
@@ -418,8 +434,8 @@ namespace StellarIndustries.Diagnostics
             TrackedShipServer server = ships?.GetShip(shipId);
             if (ship == null || server == null)
                 yield break;
-            ushort[] ids = { WorkshopA, SmelterPart, PressPart, CrusherPart, AssemblerPart, ExtractorPart, Gen7, DockA, ContainerPart };
-            const int cell = 600, cols = 3;
+            ushort[] ids = { WorkshopA, SmelterPart, PressPart, CrusherPart, AssemblerPart, ExtractorPart, Gen7, DockA, ContainerPart, FabricatorPart, FoundryPart, RefineryPart, AccumulatorPart, AcceleratorPart };
+            const int cell = 500, cols = 5;
             int rows = (ids.Length + cols - 1) / cols;
             var cameraObject = new GameObject("SI_DevCamera");
             var camera = cameraObject.AddComponent<Camera>();
@@ -512,6 +528,56 @@ namespace StellarIndustries.Diagnostics
             Object.Destroy(cameraObject);
             Object.Destroy(holder);
             Log($"{n} item models photographed");
+        }
+
+        // ---- Wiki
+
+        /// <summary>Every wiki page renders and every link leads to a page; the guide opens on the wiki (screenshots).</summary>
+        private static IEnumerator CheckWiki()
+        {
+            var names = Wiki.WikiPages.Names.ToList();
+            var broken = new List<string>();
+            var link = new System.Text.RegularExpressions.Regex("\\[([^\\]]+)\\]\\(([^)]+)\\)");
+            foreach (string page in names)
+            {
+                foreach (string md in new[] { Wiki.WikiContent.Generate().TryGetValue(page, out string g) ? g : null })
+                {
+                    if (md == null)
+                        continue;
+                    foreach (System.Text.RegularExpressions.Match m in link.Matches(md))
+                    {
+                        string target = Path.GetFileNameWithoutExtension(m.Groups[2].Value.Split('#')[0]);
+                        if (!m.Groups[2].Value.StartsWith("http") && !Wiki.WikiPages.Exists(target))
+                            broken.Add(page + " -> " + target);
+                    }
+                }
+                Wiki.WikiPages.Render(page);
+            }
+            Log($"{(broken.Count == 0 && names.Count > 60 ? "PASS" : "FAIL")} wiki: {names.Count} pages ({string.Join(", ", names.Where(n => !n.StartsWith("Objet-") && !n.StartsWith("Machine-")))} + machine and item pages), {broken.Count} broken link(s) {string.Join("; ", broken.Take(10))}");
+            var activator = Object.FindObjectsByType<global::UI.Guide.GuideMenuActivator>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault();
+            if (activator == null)
+            {
+                Log("wiki: no guide in this scene, no screenshots");
+                yield break;
+            }
+            activator.ToggleGuide();
+            yield return Wait(1.5f);
+            var canvas = Object.FindObjectsByType<global::UI.Guide.GuideCanvas>(FindObjectsSortMode.None).FirstOrDefault();
+            var buttons = canvas != null ? HarmonyLib.Traverse.Create(canvas).Field<List<global::UI.Guide.GuideEntryButton>>("_buttons").Value : null;
+            global::UI.Guide.GuideEntryButton entry = buttons?.FirstOrDefault(b => b.PageContent != null && b.PageContent.EntryId == Wiki.WikiGuide.EntryId);
+            Log($"wiki: guide open {canvas != null}, {buttons?.Count} entries, wiki entry {(entry != null ? "found" : "MISSING")}");
+            if (entry != null)
+            {
+                canvas.SelectGuideEntry(entry);
+                foreach ((string page, string file) in new[] { ("Home", "wiki_home"), ("Machine-7612", "wiki_machine"), ("Objet-7720", "wiki_item"), ("Recherche", "wiki_research") })
+                {
+                    Wiki.WikiPage.Show(page);
+                    yield return Wait(1f);
+                    ScreenCapture.CaptureScreenshot(Path.Combine(Folder, file + ".png"));
+                    yield return Wait(0.5f);
+                }
+            }
+            activator.Close();
         }
 
         // ---- Load test (DevPhase 3)
@@ -729,6 +795,10 @@ namespace StellarIndustries.Diagnostics
             }
             _devRock = new GameObject("SI_DevRock");
             _devRock.transform.position = at.Value + new Vector3(0f, 0f, 3f);
+            // The rock moves with the ship (a big test ship can still settle or slide on the ground)
+            Transform shipVisual = ShipVisual(ship.Id);
+            if (shipVisual != null)
+                _devRock.transform.SetParent(shipVisual, true);
             var minable = _devRock.AddComponent<Planets.Objects.MinablePlanetObject>();
             minable.dropRate = new Planets.Objects.Common.Model.ItemDropRate { item = IndustrialItems.Find(GameItems.Iron), amountMin = 1, amountMax = 2 };
             _devRockItem = minable.dropRate.item != null ? minable.dropRate.item.itemName : "?";
@@ -841,7 +911,7 @@ namespace StellarIndustries.Diagnostics
             var hull = new StringBuilder();
             for (int x = -5; x <= 5; x++)
             {
-                for (int z = -3; z <= 5; z++)
+                for (int z = -3; z <= 8; z++)
                 {
                     if (hull.Length > 0)
                         hull.Append(',');
@@ -859,12 +929,16 @@ namespace StellarIndustries.Diagnostics
                 Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f),
                 Part(Gen6, WoodGenerator, 4.5f, 2.2f), Part(ExtractorPart, MachineCatalog.Extractor, 4.3f, 0f),
                 Part(Gen7, MachineCatalog.CombustionGenerator, -4f, 4.4f), Part(WorkshopD, MachineCatalog.Workshop, -2f, 4.4f),
-                Part(DockA, MachineCatalog.LoadingDock, 4.3f, 4.4f), Part(ContainerPart, MachineCatalog.IndustrialContainer, 1.5f, 4.4f));
+                Part(DockA, MachineCatalog.LoadingDock, 4.3f, 4.4f), Part(ContainerPart, MachineCatalog.IndustrialContainer, 1.5f, 4.4f),
+                Part(Gen8, WoodGenerator, -4.3f, 6.8f), Part(AccumulatorPart, MachineCatalog.Accumulator, -2.6f, 6.8f),
+                Part(Gen9, WoodGenerator, -1f, 6.8f), Part(FoundryPart, MachineCatalog.Foundry, 0.6f, 6.8f),
+                Part(Gen10, WoodGenerator, 2.2f, 6.8f), Part(RefineryPart, MachineCatalog.Refinery, 3.8f, 6.8f),
+                Part(FabricatorPart, MachineCatalog.Fabricator, 3.6f, 9.3f), Part(AcceleratorPart, MachineCatalog.Accelerator, 0.4f, 9.3f));
             // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
             string Cable(int id, ushort from, ushort to) =>
                 $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";
             string cables = string.Join(",", Cable(1, GeneratorPart, WorkshopA), Cable(2, Gen2, SmelterPart), Cable(3, Gen3, CrusherPart),
-                Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart), Cable(6, Gen6, ExtractorPart), Cable(7, Gen7, WorkshopD));
+                Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart), Cable(6, Gen6, ExtractorPart), Cable(7, Gen7, WorkshopD), Cable(9, Gen8, AccumulatorPart), Cable(10, Gen9, FoundryPart), Cable(11, Gen10, RefineryPart));
             // Item line (SDModKit item cable, type 3): smelter -> workshop D
             if (itemFrom >= 0)
                 cables += $",{{\"id\":8,\"type\":3,\"plugA\":{{\"shipId\":1,\"partId\":{SmelterPart},\"socketId\":{itemFrom}}},\"plugB\":{{\"shipId\":1,\"partId\":{WorkshopD},\"socketId\":{itemTo}}}}}";

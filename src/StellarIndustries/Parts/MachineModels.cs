@@ -16,7 +16,7 @@ namespace StellarIndustries.Parts
     /// Moving pieces (flywheels, rams, drums, drill, pistons, fans, arm, rollers) and glowing
     /// parts are animated by <see cref="MachineVisuals"/> while the machine works.
     /// </summary>
-    internal static class MachineModels
+    internal static partial class MachineModels
     {
         /// <summary>Height of the back service row (power socket and item port), above the bottom.</summary>
         public const float ServiceHeight = 0.4f;
@@ -43,6 +43,10 @@ namespace StellarIndustries.Parts
                 case MachineModel.Container: Container(kit, w, d, def.Height); break;
                 case MachineModel.Dock: Dock(kit, w, d); break;
                 case MachineModel.Fabricator: Fabricator(kit, w, d); break;
+                case MachineModel.Foundry: Foundry(kit, w, d); break;
+                case MachineModel.Refinery: Refinery(kit, w, d); break;
+                case MachineModel.Accumulator: Accumulator(kit, w, d); break;
+                case MachineModel.Accelerator: Accelerator(kit, w, d); break;
                 default: Workshop(kit, w, d); break;
             }
             if (!def.IsLogistics)
