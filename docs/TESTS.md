@@ -11,7 +11,7 @@ dotnet test tests/StellarIndustries.Tests
 Couvrent la logique pure (compilée telle quelle dans le projet de test) : craft
 transactionnel, coproduits, piles pleines, choix de recette, validateur de contenu.
 
-Dernier résultat (0.2.0) : **34 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production).
+Dernier résultat (0.3.0) : **36 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction).
 
 ## 2. Test d'acceptation en jeu (automatique, jeu lancé)
 

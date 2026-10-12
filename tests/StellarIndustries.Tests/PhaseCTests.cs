@@ -205,11 +205,42 @@ namespace StellarIndustries.Tests
         [Fact]
         public void EveryMachineHasRecipesAndEveryItemIsMade()
         {
+            // Extractors have no recipe: they draw from a rock
             foreach (MachineDef m in MachineCatalog.All)
-                Assert.NotEmpty(RecipeBook.ForMachine(m.PartId));
+                Assert.True(m.Extracts ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
             var made = RecipeBook.All.SelectMany(r => r.Outputs).Select(o => o.Item).ToHashSet();
             foreach (ResourceDef r in ResourceCatalog.All)
                 Assert.Contains(r.Id, made);
+        }
+    }
+
+    public class ExtractionTests
+    {
+        [Fact]
+        public void ExtractionFillsTheMachineOneItemPerCycleThenBlocks()
+        {
+            RecipeDef dig = RecipeBook.Extraction(MachineCatalog.Extractor, GameItems.Iron, 6f, "Iron");
+            Assert.Same(dig, RecipeBook.Get(dig.Id));
+            Assert.Same(dig, RecipeBook.Extraction(MachineCatalog.Extractor, GameItems.Iron, 6f, "Iron"));
+            var slots = new Stack[10];
+            int cycles = 0;
+            while (Crafting.TryCraft(slots, dig, item => 20, out Stack[] after) == CraftResult.Ok)
+            {
+                slots = after;
+                cycles++;
+            }
+            Assert.Equal(200, cycles);
+            Assert.Equal(CraftResult.OutputBlocked, Crafting.Check(slots, dig, item => 20));
+            Assert.Null(RecipeSelector.Pick(slots, new[] { dig }, null, item => 20, out MachineStatus status));
+            Assert.Equal(MachineStatus.OutputBlocked, status);
+        }
+
+        [Fact]
+        public void ExtractionIsNotAListedRecipe()
+        {
+            RecipeBook.Extraction(MachineCatalog.Extractor, GameItems.Copper, 6f, "Copper");
+            Assert.DoesNotContain(RecipeBook.All, r => r.Machine == MachineCatalog.Extractor);
+            Assert.Empty(RecipeBook.ForMachine(MachineCatalog.Extractor));
         }
     }
 }
