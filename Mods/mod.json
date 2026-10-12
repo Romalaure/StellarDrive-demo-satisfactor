@@ -2,7 +2,7 @@
     "id": "StellarIndustries",
     "name": "Stellar Industries",
     "author": "Romalaure",
-    "version": "0.1.0",
-    "description": "Industrie automatisee pour StellarDrive (prototype). Onglet Industrie : Atelier industriel (300 W) qui transforme le fer en plaques de fer et le cuivre en fil de cuivre tant qu'il a de l'energie, de la matiere et de la place. Inventaire de 10 emplacements, sauvegarde par le jeu. Regardez la machine pour voir son etat. Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste.",
+    "version": "0.8.0",
+    "description": "Industrie automatisee pour StellarDrive. Onglet Industrie, branche de recherche Industrie : atelier, fonderie, presse, broyeur, assembleuse (minerai -> lingots -> plaques, tiges, fil -> vis, cables -> plaques renforcees), extracteur sur rocher minable + scanner (K), generateur a combustion (bois, briquettes), quai de transfert entre vaisseaux, conteneur. Choix de recette (N), tableau de bord (F7). Machines alimentees par le reseau electrique du jeu, contenus sauvegardes par le jeu. Convoyeurs avec Item Lines (facultatif). Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste a deux.",
     "thumbnail": "thumbnail.png"
 }
