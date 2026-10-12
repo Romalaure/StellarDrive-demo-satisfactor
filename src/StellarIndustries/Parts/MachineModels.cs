@@ -31,6 +31,8 @@ namespace StellarIndustries.Parts
                 case MachineModel.Assembler: Assembler(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Extractor: Extractor(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Generator: Generator(o, body, accent, screen, glow, dark); break;
+                case MachineModel.Container: Container(o, body, accent, screen, glow, dark); break;
+                case MachineModel.Dock: Dock(o, body, accent, screen, glow, dark); break;
                 default: Workshop(o, body, accent, screen, glow, dark); break;
             }
             string name = "SI_" + model;
@@ -190,6 +192,48 @@ namespace StellarIndustries.Parts
             dark.Cylinder(o + new Vector3(-0.05f, 1.62f, -0.2f), o + new Vector3(-0.05f, 1.68f, -0.2f), 0.1f, 0.1f, 10);
             Corners(o, accent, 1.4f, 1.2f);
             screen.Box(o + new Vector3(0.38f, 0.75f, 0.42f), new Vector3(0.24f, 0.16f, 0.02f));
+        }
+
+        // A ribbed cargo crate with corner castings and a hatch
+        private static void Container(Vector3 o, MeshBuilder body, MeshBuilder accent, MeshBuilder screen, MeshBuilder glow, MeshBuilder dark)
+        {
+            body.Box(o + new Vector3(0f, 0.58f, 0f), new Vector3(1.3f, 1.08f, 1.1f));
+            for (int i = 0; i < 5; i++)
+            {
+                float x = -0.52f + i * 0.26f;
+                dark.Box(o + new Vector3(x, 0.58f, 0.56f), new Vector3(0.06f, 0.96f, 0.03f));
+                dark.Box(o + new Vector3(x, 0.58f, -0.56f), new Vector3(0.06f, 0.96f, 0.03f));
+            }
+            foreach (float x in new[] { -0.62f, 0.62f })
+            {
+                foreach (float z in new[] { -0.52f, 0.52f })
+                {
+                    accent.Box(o + new Vector3(x, 0.08f, z), new Vector3(0.12f, 0.16f, 0.12f));
+                    accent.Box(o + new Vector3(x, 1.08f, z), new Vector3(0.12f, 0.16f, 0.12f));
+                }
+            }
+            dark.Box(o + new Vector3(0f, 1.13f, 0f), new Vector3(0.7f, 0.04f, 0.6f));
+            glow.Box(o + new Vector3(0.45f, 0.95f, 0.57f), new Vector3(0.08f, 0.08f, 0.02f));
+        }
+
+        // A loading dock: low platform, an arch with a chute, arrows on the deck
+        private static void Dock(Vector3 o, MeshBuilder body, MeshBuilder accent, MeshBuilder screen, MeshBuilder glow, MeshBuilder dark)
+        {
+            body.Box(o + new Vector3(0f, 0.15f, 0f), new Vector3(1.4f, 0.3f, 1.2f));
+            body.Box(o + new Vector3(-0.6f, 0.8f, -0.1f), new Vector3(0.14f, 1.0f, 0.14f));
+            body.Box(o + new Vector3(0.6f, 0.8f, -0.1f), new Vector3(0.14f, 1.0f, 0.14f));
+            body.Box(o + new Vector3(0f, 1.33f, -0.1f), new Vector3(1.34f, 0.14f, 0.3f));
+            dark.Box(o + new Vector3(0f, 1.0f, -0.1f), new Vector3(0.5f, 0.5f, 0.4f));
+            dark.Box(o + new Vector3(0f, 0.32f, 0.1f), new Vector3(1.1f, 0.04f, 0.8f));
+            // Arrows pointing forward (the side facing the other dock)
+            for (int i = 0; i < 2; i++)
+            {
+                float z = -0.05f + i * 0.35f;
+                accent.Box(o + new Vector3(-0.12f, 0.35f, z), new Vector3(0.32f, 0.02f, 0.08f), Quaternion.Euler(0f, 40f, 0f));
+                accent.Box(o + new Vector3(0.12f, 0.35f, z), new Vector3(0.32f, 0.02f, 0.08f), Quaternion.Euler(0f, -40f, 0f));
+            }
+            glow.Box(o + new Vector3(0f, 1.41f, 0.06f), new Vector3(0.9f, 0.03f, 0.03f));
+            screen.Box(o + new Vector3(0.45f, 1.0f, 0.07f), new Vector3(0.2f, 0.14f, 0.02f));
         }
 
         private static void Corners(Vector3 o, MeshBuilder accent, float width, float depth)

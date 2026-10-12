@@ -11,7 +11,7 @@ dotnet test tests/StellarIndustries.Tests
 Couvrent la logique pure (compilée telle quelle dans le projet de test) : craft
 transactionnel, coproduits, piles pleines, choix de recette, validateur de contenu.
 
-Dernier résultat (0.5.0) : **46 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction, convoyeurs, combustible et conservation de l'énergie).
+Dernier résultat (0.7.0) : **50 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction, convoyeurs, combustible, transferts).
 
 ## 2. Test d'acceptation en jeu (automatique, jeu lancé)
 
@@ -39,6 +39,11 @@ fonderie 6 fer + 4 poussière → 6 lingots + 2 verre ; broyeur 2 éclats → 6 
 B sans câble et C plein inchangés ; contenu identique après rechargement ; **choix de recette
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
+
+0.7.0 (12/10/2026), quais : un petit vaisseau cargo (3 × 3, un quai en réception) est posé
+à côté du vaisseau de test ; le quai A (12 fer, 5 cuivre, en envoi) l'a trouvé à 3,0 m : PASS
+quai A vide, quai du cargo 12 fer + 5 cuivre ; conteneur intact (50 vis) ; contenus identiques
+après rechargement.
 
 0.6.0 (12/10/2026), recherche : PASS 4 techs ajoutées et placées (7801 en (5,2), 7802 (6,3),
 7803 (7,3), 7804 (6,4), avec les techs de TF Advanced, Arsenal, Item Lines... dans l'arbre) ;
@@ -87,4 +92,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Touche K du scanner | non testée à la main (le scan est testé) |
 | Poser une ligne Item Lines à la main entre deux machines | non testé |
 | Arbre de recherche à l'écran, payer une tech à la table | non testé |
+| Quai : amarrer un vrai cargo piloté à côté d'une base | non testé |
 | Deux joueurs (hôte + client) | non testé |

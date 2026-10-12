@@ -207,7 +207,7 @@ namespace StellarIndustries.Tests
         {
             // Extractors and generators have no recipe
             foreach (MachineDef m in MachineCatalog.All)
-                Assert.True((m.Extracts || m.Generates) ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
+                Assert.True((m.Extracts || m.Generates || m.IsLogistics) ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
             var made = RecipeBook.All.SelectMany(r => r.Outputs).Select(o => o.Item).ToHashSet();
             foreach (ResourceDef r in ResourceCatalog.All)
                 Assert.Contains(r.Id, made);

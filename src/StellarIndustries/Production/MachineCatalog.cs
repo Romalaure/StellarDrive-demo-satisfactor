@@ -14,7 +14,9 @@ namespace StellarIndustries.Production
         Crusher,
         Assembler,
         Extractor,
-        Generator
+        Generator,
+        Container,
+        Dock
     }
 
     /// <summary>
@@ -41,6 +43,15 @@ namespace StellarIndustries.Production
         public float ExtractSeconds = 6f, ExtractRadius = 6f;
         /// <summary>Generator: burns the fuels of <see cref="Fuels"/> from its slots and gives up to <see cref="Watts"/> to its network.</summary>
         public bool Generates;
+        /// <summary>Plain storage (no production): a buffer for conveyors and transfers.</summary>
+        public bool Container;
+        /// <summary>Loading dock: sends its contents to a receiving dock of another ship (or part) within <see cref="DockRange"/>.</summary>
+        public bool Dock;
+        public float DockRange = 4f;
+        /// <summary>Dock: items moved per second.</summary>
+        public int DockRate = 4;
+        /// <summary>No production, no recipe: a container or a dock.</summary>
+        public bool IsLogistics => Container || Dock;
         /// <summary>Placement box (meters): width (x), height (y), depth (z).</summary>
         public float Width = 1.4f, Height = 1.5f, Depth = 1.2f;
         public (uint Item, int Count)[] BuildCost;
@@ -55,6 +66,8 @@ namespace StellarIndustries.Production
         public const ushort Assembler = 7605;
         public const ushort Extractor = 7606;
         public const ushort CombustionGenerator = 7607;
+        public const ushort IndustrialContainer = 7608;
+        public const ushort LoadingDock = 7609;
 
         public static readonly MachineDef[] All =
         {
@@ -105,6 +118,22 @@ namespace StellarIndustries.Production
                 Description = "Brûle bois ou briquettes de biomasse et alimente son réseau électrique jusqu'à 6 000 W. " +
                               "Ne brûle que ce que le réseau consomme. Une briquette (presse : 4 bois) vaut 5 bois.",
                 BuildCost = new[] { (ResourceCatalog.IronPlate, 10), (ResourceCatalog.Cable, 6), (ResourceCatalog.IronRod, 6) }
+            },
+            new MachineDef
+            {
+                PartId = IndustrialContainer, Name = "Conteneur industriel", Model = MachineModel.Container, Tier = 2, Watts = 0f, Mass = 60f, Height = 1.2f,
+                Container = true,
+                Description = "Caisse renforcée de 10 emplacements : tampon entre machines (lignes d'objets) ou soute d'un vaisseau cargo.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 8), (ResourceCatalog.Screws, 16) }
+            },
+            new MachineDef
+            {
+                PartId = LoadingDock, Name = "Quai de transfert", Model = MachineModel.Dock, Tier = 2, Watts = 0f, Mass = 90f, Height = 1.4f,
+                Dock = true, DockRange = 4f, DockRate = 4,
+                Description = "Transfère des objets vers un autre quai, par exemple d'un vaisseau cargo amarré à une base. " +
+                              "Visez-le et appuyez sur N : arrêt, envoi ou réception. Un quai en envoi vide son contenu (4 objets/s) " +
+                              "dans le quai en réception le plus proche, à moins de 4 m, même sur un autre vaisseau.",
+                BuildCost = new[] { (ResourceCatalog.ReinforcedPlate, 2), (ResourceCatalog.Cable, 4), (ResourceCatalog.IronRod, 6) }
             }
         };
 

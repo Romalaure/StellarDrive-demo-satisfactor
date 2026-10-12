@@ -1,5 +1,16 @@
 # Journal des changements
 
+## 0.7.0 — phase G (transferts entre vaisseaux)
+
+- **Quai de transfert** (7609) : touche `N` en le visant → arrêt / envoi / réception. Un quai en
+  envoi vide son contenu (4 objets/s) dans le quai en réception le plus proche à moins de 4 m,
+  **même sur un autre vaisseau** (les lignes d'Item Lines restent dans un vaisseau). Les deux
+  inventaires sont écrits dans le même tick ; le mode est gardé dans `stellar-industries.txt`.
+- **Conteneur industriel** (7608) : 10 emplacements, tampon pour les lignes ou soute de cargo.
+- Tech *Logistique industrielle* (7805, après *Assemblage*).
+- Pas de vaisseaux automatiques : le jeu n'offre pas de pilotage automatique fiable ; le quai
+  sert aux cargos pilotés par les joueurs.
+
 ## 0.6.0 — phase F (recherche)
 
 - Branche **Industrie** à la table de recherche (techs 7801-7804), après *Power Generation* :

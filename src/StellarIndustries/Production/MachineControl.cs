@@ -57,8 +57,15 @@ namespace StellarIndustries.Production
             if (ship == null || !ship.TryGetStatefulPart(partId, out StatefulPart part) || part?.Settings == null ||
                 !MachineCatalog.TryGet(part.Settings.id, out MachineDef def))
                 return false;
-            if (!string.IsNullOrEmpty(recipeId) && RecipeBook.ForMachine(def.PartId).All(r => r.Id != recipeId))
+            if (def.Dock)
+            {
+                if (!string.IsNullOrEmpty(recipeId) && recipeId != Logistics.LoadingDocks.Send && recipeId != Logistics.LoadingDocks.Receive)
+                    return false;
+            }
+            else if (!string.IsNullOrEmpty(recipeId) && RecipeBook.ForMachine(def.PartId).All(r => r.Id != recipeId))
+            {
                 return false;
+            }
             Choices.Set(shipId, partId, recipeId);
             MachineSimulation.Restart(shipId, partId);
             IndustriesMod.Log.Msg($"machine {shipId}/{partId} ({def.Name}): recipe {(string.IsNullOrEmpty(recipeId) ? "automatic" : recipeId)}");

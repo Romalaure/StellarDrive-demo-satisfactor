@@ -26,4 +26,4 @@ for i in $(seq 1 300); do
 done
 while tasklist //FI "IMAGENAME eq StellarDrive.exe" | grep -q StellarDrive; do sleep 2; done
 cp "$S/prefs.user.cfg" "$C"
-grep -a -E "Stellar_Industries|Stellar Industries|dev:|ERROR|Error" "$L" | grep -a -v "TFAdvanced\]\|\[StellarDrive_Demo_TF" | cut -c1-400 | head -120
+grep -a -E "Stellar_Industries|Stellar Industries|dev:|ERROR|Error" "$L" | grep -a -v "TFAdvanced\]\|\[StellarDrive_Demo_TF" | cut -c1-400 | head -400

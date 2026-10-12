@@ -27,7 +27,7 @@ namespace StellarIndustries.Logistics
 
         public static bool CanSend(MachineDef def, RecipeDef[] recipes, RecipeDef active, uint item)
         {
-            if (def.Extracts)
+            if (def.Extracts || def.IsLogistics)
                 return true;
             if (def.Generates)
                 return false;
@@ -38,6 +38,8 @@ namespace StellarIndustries.Logistics
 
         public static bool CanAccept(MachineDef def, RecipeDef[] recipes, RecipeDef chosen, Stack[] slots, uint item, Func<uint, int> maxStack)
         {
+            if (def.IsLogistics)
+                return true;
             if (def.Extracts)
                 return false;
             if (def.Generates)

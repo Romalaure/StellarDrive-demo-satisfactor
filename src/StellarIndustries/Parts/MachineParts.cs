@@ -42,8 +42,9 @@ namespace StellarIndustries.Parts
             Transform visuals = PartTools.Blank(prefab, center, size);
             var origin = new Vector3(donor.center.x, bottom, donor.center.z);
             MachineModels.Build(def.Model, visuals, origin, def);
-            // Power in at the back, low on the body
-            PartTools.GraftSocket(prefab, MachineSimulation.PowerSocket, CableType.Power, origin + new Vector3(def.Width * 0.25f, 0.35f, -(def.Depth * 0.5f - 0.05f)), Vector3.back);
+            // Power in (or out, for a generator) at the back, low on the body; containers and docks need none
+            if (!def.IsLogistics)
+                PartTools.GraftSocket(prefab, MachineSimulation.PowerSocket, CableType.Power, origin + new Vector3(def.Width * 0.25f, 0.35f, -(def.Depth * 0.5f - 0.05f)), Vector3.back);
             IndustriesMod.Log.Msg($"machine {def.PartId} '{def.Name}': donor box {donor.center} {donor.size}, machine box {center} {size}");
             if (Diagnostics.DevTest.Active)
             {

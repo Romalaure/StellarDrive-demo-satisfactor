@@ -50,7 +50,7 @@ namespace StellarIndustries.Diagnostics
         private const string GameScene = "MainGame";
         private const ushort WoodGenerator = 60, IronFloor = 1;
         private const ushort GeneratorPart = 1, WorkshopA = 2, WorkshopB = 3, WorkshopC = 4;
-        private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12, Gen6 = 13, ExtractorPart = 14, Gen7 = 15, WorkshopD = 16;
+        private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12, Gen6 = 13, ExtractorPart = 14, Gen7 = 15, WorkshopD = 16, DockA = 17, ContainerPart = 18, CargoDock = 1;
 
         private static MelonPreferences_Entry<string> _world;
         private static MelonPreferences_Entry<int> _phase;
@@ -187,6 +187,23 @@ namespace StellarIndustries.Diagnostics
             }
             uint shipId = state.Id;
             Log($"test ship {shipId} loaded, {state.StatefulParts.Length} parts");
+            // A small cargo ship beside it: its receiving dock 3 m in front of dock A
+            var cargoData = JsonUtility.FromJson<ShipImportExportUtils.ShipImportExportData>(CargoJson());
+            SavedShipState cargo = new ShipsConverter().ConvertToState(cargoData.ships).States.Cast<SavedShipState>().Single();
+            cargo.Id = ids.CreateUniqueIdForObject();
+            cargo.SpaceId = player.SpaceId;
+            cargo.Position = player.Position + up * 1.5f + player.Rotation * (Vector3.right * 8f + new Vector3(4.3f, 0f, 7.4f));
+            cargo.Rotation = player.Rotation;
+            cargo.Velocity = Vector3.zero;
+            if (physicsSpace != 0 && physicsSpace != cargo.SpaceId && transpose != null)
+            {
+                cargo.Position = transpose.Position(cargo.SpaceId, physicsSpace, cargo.Position);
+                cargo.SpaceId = physicsSpace;
+            }
+            cargo.RelativeSpaceId = spaces.GetOrCreateShipRelativeSpace(cargo.Id);
+            ships.LoadShip(cargo);
+            _cargoId = cargo.Id;
+            Log($"cargo ship {cargo.Id} loaded");
             Log("build menu: " + string.Join("; ", SDModKit.Game.CustomParts.BuildMenuReport.Where(r => r.StartsWith("SI_"))));
             var research = ServiceLocator.GetService<Research.ResearchClientProxy>();
             PartSettings workshop = SDModKit.Game.CustomParts.Get(MachineCatalog.Workshop);
@@ -218,6 +235,10 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(PressPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronRod, 3), (ResourceCatalog.CopperWire, 4)) });
             // The press would make screws on its own (first recipe): it is set to cables only
             Log($"press set to cables: {MachineControl.SetChoice(shipId, PressPart, "press.cable")}");
+            // Dock A sends to the cargo ship's dock
+            ship.UpdatePartState(DockA, new StorageState { InventorySlots = Slots((GameItems.Iron, 12), (GameItems.Copper, 5)) });
+            ship.UpdatePartState(ContainerPart, new StorageState { InventorySlots = Slots((ResourceCatalog.Screws, 50)) });
+            Log($"dock A send: {MachineControl.SetChoice(shipId, DockA, Logistics.LoadingDocks.Send)}, cargo dock receive: {MachineControl.SetChoice(_cargoId, CargoDock, Logistics.LoadingDocks.Receive)}");
             // Workshop D runs on the mod's combustion generator, fed with 2 logs
             ship.UpdatePartState(Gen7, new StorageState { InventorySlots = Slots((GameItems.Wood, 2)) });
             // Workshop D would make rods from single ingots as they arrive: it is set to plates
@@ -261,6 +282,14 @@ namespace StellarIndustries.Diagnostics
             Check(ship, AssemblerPart, (ResourceCatalog.ReinforcedPlate, 1));
             Check(ship, PressPart, (ResourceCatalog.IronRod, 3), (ResourceCatalog.Cable, 2));
             CheckExtractor(ship);
+            Check(ship, DockA);
+            Check(ship, ContainerPart, (ResourceCatalog.Screws, 50));
+            TrackedShipServer cargoShip = ships.GetShip(_cargoId);
+            Log($"dock A: {MachineSimulation.Get(shipId, DockA)?.Detail}");
+            if (cargoShip != null)
+                Check(cargoShip, CargoDock, (GameItems.Iron, 12), (GameItems.Copper, 5));
+            else
+                Log("FAIL cargo ship missing");
             MachineSimulation.Runtime gen = MachineSimulation.Get(ship.Id, Gen7);
             Log($"{(gen != null && (gen.Status == MachineStatus.Producing || gen.Status == MachineStatus.Standby) && gen.Burned > 0f ? "PASS" : "FAIL")} combustion generator: {gen?.Status}, {gen?.Burned:0} J drawn from the log being burnt, {gen?.Detail}");
             if (_devRock != null)
@@ -300,7 +329,9 @@ namespace StellarIndustries.Diagnostics
                 if (!ship.GetAllStatefulParts<StorageState>().Any(p => MachineCatalog.TryGet(p.Settings.id, out _)))
                     continue;
                 Log($"after reload, ship {ship.Id}: {Describe(ship)}");
-                test = ship;
+                // The main test ship is the one with the most machines (the cargo ship has one dock)
+                if (test == null || ship.GetAllStatefulParts<StorageState>().Count() > test.GetAllStatefulParts<StorageState>().Count())
+                    test = ship;
             }
             if (test == null)
             {
@@ -325,6 +356,38 @@ namespace StellarIndustries.Diagnostics
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
+        }
+
+        // ---- Transfers
+
+        private static uint _cargoId;
+
+        /// <summary>A 3 x 3 floor with one loading dock.</summary>
+        private static string CargoJson()
+        {
+            var hull = new StringBuilder();
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int z = -1; z <= 1; z++)
+                {
+                    if (hull.Length > 0)
+                        hull.Append(',');
+                    hull.Append($"{{\"partId\":{IronFloor},\"x\":{x},\"y\":0,\"z\":{z},\"forwardOrientationId\":4,\"upOrientationId\":0,\"voxelPartTypeId\":0,\"FrontColor\":{{\"x\":120,\"y\":140,\"z\":170}},\"BackColor\":{{\"x\":120,\"y\":120,\"z\":120}}}}");
+                }
+            }
+            string part = string.Format(CultureInfo.InvariantCulture,
+                "{{\"id\":{0},\"settingsId\":{1},\"coord\":{{\"x\":0,\"y\":-0.46,\"z\":0}},\"forwardOrientationId\":2,\"upOrientationId\":4}}", CargoDock, MachineCatalog.LoadingDock);
+            var sb = new StringBuilder();
+            sb.Append("{\"rootShipId\":1,\"cables\":[],\"ships\":[{");
+            sb.Append("\"id\":1,\"relativeSpaceId\":0,\"spaceId\":0,\"position\":{\"x\":0,\"y\":0,\"z\":0},\"velocity\":{\"x\":0,\"y\":0,\"z\":0},\"rotation\":{\"x\":0,\"y\":0,\"z\":0,\"w\":1},");
+            sb.Append("\"rooms\":[],\"hullParts\":[").Append(hull).Append("],\"statefulFloatingParts\":[").Append(part).Append("],\"statefulHullParts\":[],");
+            foreach (string empty in new[] { "thrustersStates", "storageStates", "fluidTankStates", "constantStates", "beaconStates", "leverStates", "warpDriveStates",
+                         "dockingDoorStates", "targeterStates", "mathGateStates", "unaryMathGateStates", "memoryRegisterStates", "transmitterStates", "rotorStates",
+                         "electrolyzerStates", "woodThrusterStates", "woodGeneratorStates", "ethanolDistillerStates" })
+                sb.Append('"').Append(empty).Append("\":[],");
+            sb.Length--;
+            sb.Append("}]}");
+            return sb.ToString();
         }
 
         // ---- Research
@@ -523,7 +586,8 @@ namespace StellarIndustries.Diagnostics
                 Part(Gen4, WoodGenerator, -4f, 2.2f), Part(AssemblerPart, MachineCatalog.Assembler, -2f, 2.2f),
                 Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f),
                 Part(Gen6, WoodGenerator, 4.5f, 2.2f), Part(ExtractorPart, MachineCatalog.Extractor, 4.3f, 0f),
-                Part(Gen7, MachineCatalog.CombustionGenerator, -4f, 4.4f), Part(WorkshopD, MachineCatalog.Workshop, -2f, 4.4f));
+                Part(Gen7, MachineCatalog.CombustionGenerator, -4f, 4.4f), Part(WorkshopD, MachineCatalog.Workshop, -2f, 4.4f),
+                Part(DockA, MachineCatalog.LoadingDock, 4.3f, 4.4f), Part(ContainerPart, MachineCatalog.IndustrialContainer, 1.5f, 4.4f));
             // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
             string Cable(int id, ushort from, ushort to) =>
                 $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";

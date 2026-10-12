@@ -107,12 +107,17 @@ namespace StellarIndustries.Production
                     rt.LastSeen = now;
                     rt.Group = null;
                     rt.PowerRate = 0f;
-                    if (def.Generates)
+                    if (def.Dock)
+                        Logistics.LoadingDocks.Collect(ship, part, def, rt);
+                    else if (def.Container)
+                        rt.Status = MachineStatus.Idle;
+                    else if (def.Generates)
                         PrepareGenerator(power, ship, part, def, rt, deltaTime);
                     else
                         Prepare(power, ship, part, def, rt, deltaTime);
                 }
             }
+            Logistics.LoadingDocks.Run(deltaTime);
             if (now >= _nextPrune)
                 Prune(now);
         }
@@ -302,7 +307,7 @@ namespace StellarIndustries.Production
             }
         }
 
-        private static InventorySlot[] Write(Stack[] stacks)
+        public static InventorySlot[] Write(Stack[] stacks)
         {
             var slots = new InventorySlot[stacks.Length];
             for (int i = 0; i < stacks.Length; i++)

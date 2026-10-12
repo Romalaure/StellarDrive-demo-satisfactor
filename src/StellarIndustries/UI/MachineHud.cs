@@ -83,11 +83,21 @@ namespace StellarIndustries.UI
             Keyboard keyboard = Keyboard.current;
             if (_aimedDef == null || keyboard == null || Cursor.visible || !keyboard[_key].wasPressedThisFrame)
                 return;
+            bool back = keyboard.shiftKey.isPressed;
+            if (_aimedDef.Dock)
+            {
+                // Off -> send -> receive -> off
+                string[] modes = { "", Logistics.LoadingDocks.Send, Logistics.LoadingDocks.Receive };
+                string current = InstanceFinder.IsServerStarted ? MachineControl.Choices.Get(_aimed.Ship, _aimed.Part) : MachineControl.ClientReport(_aimed.Ship, _aimed.Part, 5f)?.ChosenId;
+                int index = Math.Max(0, Array.IndexOf(modes, current ?? ""));
+                SINet.SendToServer(SIMessageKind.SetRecipe, _aimed.Ship, _aimed.Part, modes[(index + (back ? 2 : 1)) % 3]);
+                _nextLook = 0f;
+                return;
+            }
             RecipeDef[] recipes = RecipeBook.ForMachine(_aimedDef.PartId);
             if (recipes.Length < 2)
                 return;
             RecipeDef chosen = CurrentChoice(_aimed.Ship, _aimed.Part, _aimedDef);
-            bool back = keyboard.shiftKey.isPressed;
             RecipeDef next = RecipeSelector.Next(recipes, chosen, back ? -1 : 1);
             SINet.SendToServer(SIMessageKind.SetRecipe, _aimed.Ship, _aimed.Part, next?.Id ?? "");
             _nextLook = 0f;
@@ -111,7 +121,10 @@ namespace StellarIndustries.UI
             if (report != null)
             {
                 MachineReport r = report.Value;
-                Text.Append(StatusText(r.Status));
+                if (def.IsLogistics)
+                    Text.Append(def.Dock ? (r.Status == MachineStatus.Producing ? "<color=#6f8>Transfert en cours</color>" : "<color=#9aa>Pas de transfert</color>") : "<color=#9aa>Stockage</color>");
+                else
+                    Text.Append(StatusText(r.Status));
                 RecipeDef running = r.RecipeId != null ? RecipeBook.Get(r.RecipeId) : null;
                 if (running != null)
                 {
@@ -140,6 +153,8 @@ namespace StellarIndustries.UI
                 if (!s.IsEmpty)
                     Text.Append("\n  ").Append(s.Count).Append(" × ").Append(IndustrialItems.NameOf(s.Item));
             }
+            if (def.Dock)
+                Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] arrêt / envoi / réception</color>");
             if (recipes.Length > 1)
                 Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] recette suivante, Maj+[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] précédente</color>");
             return Text.ToString();

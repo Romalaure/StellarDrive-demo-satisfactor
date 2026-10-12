@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.6.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.7.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -107,6 +107,7 @@ namespace StellarIndustries
             MachineSimulation.Forget();
             MachineControl.Forget();
             Deposits.Forget();
+            Logistics.LoadingDocks.Forget();
             _inGame = sceneName == "MainGame";
             if (_inGame && _partsRegistered)
                 InstallConveyors();
