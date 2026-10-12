@@ -195,6 +195,7 @@ namespace StellarIndustries.Diagnostics
                 PartSettings settings = SDModKit.Game.CustomParts.Get(m.PartId);
                 Log($"part {m.PartId} {(settings != null ? settings.fullLabel : "MISSING")}: unlocked {(research != null && settings != null ? research.IsPartUnlocked(settings).ToString() : "unknown")}, cost {(settings != null ? string.Join(", ", settings.BuildingCost.Select(c => c.Quantity + " x " + IndustrialItems.NameOf(c.ItemId))) : "-")}");
             }
+            CheckResearch(research);
             Log($"workshop part settings {(workshop != null ? workshop.fullLabel : "missing")}, unlocked {(research != null && workshop != null ? research.IsPartUnlocked(workshop).ToString() : "unknown")}, cost {(workshop != null ? string.Join(", ", workshop.BuildingCost.Select(c => c.Quantity + " x " + c.ItemId)) : "-")}");
             yield return Wait(1f);
             TrackedShipServer ship = ships.GetShip(shipId);
@@ -324,6 +325,28 @@ namespace StellarIndustries.Diagnostics
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
+        }
+
+        // ---- Research
+
+        /// <summary>The branch is in the game's list; researching its first tech unlocks its machines and only those.</summary>
+        private static void CheckResearch(Research.ResearchClientProxy research)
+        {
+            Log("research techs: " + string.Join(", ", Parts.IndustryResearch.Techs.Select(t => $"{t.id} {t.techName} at {t.positionInTechTree} requires [{string.Join(",", t.requirements.Select(r => r.id))}]")));
+            Log("research tree: " + Parts.IndustryResearch.Map());
+            var state = Object.FindObjectsByType<Research.ResearchNetworkedState>(FindObjectsSortMode.None).FirstOrDefault();
+            PartSettings workshop = SDModKit.Game.CustomParts.Get(MachineCatalog.Workshop), press = SDModKit.Game.CustomParts.Get(MachineCatalog.Press);
+            if (research == null || state == null || workshop == null || press == null)
+            {
+                Log("FAIL research services missing");
+                return;
+            }
+            bool before = research.IsPartUnlocked(workshop);
+            Log($"before: tech 7801 researched {state.IsResearched(7801)}, workshop unlocked {before}, press unlocked {research.IsPartUnlocked(press)}");
+            state.ServerMarkResearchAsDone(7801);
+            bool workshopAfter = research.IsPartUnlocked(workshop), pressAfter = research.IsPartUnlocked(press);
+            bool ok = Parts.IndustryResearch.Techs.Count == Parts.IndustryResearch.All.Length && (before == false || state.IsResearched(7801)) && workshopAfter && !pressAfter;
+            Log($"{(ok ? "PASS" : "FAIL")} research: {Parts.IndustryResearch.Techs.Count} techs in the tree; after Industrie de base: workshop unlocked {workshopAfter}, press unlocked {pressAfter} (needs Transformation)");
         }
 
         // ---- Conveyors

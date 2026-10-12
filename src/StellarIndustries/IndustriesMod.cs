@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.5.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.6.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -110,6 +110,8 @@ namespace StellarIndustries
             _inGame = sceneName == "MainGame";
             if (_inGame && _partsRegistered)
                 InstallConveyors();
+            if (_partsRegistered)
+                EnsureResearch();
             Diagnostics.DevTest.OnSceneLoaded(sceneName);
         }
 
@@ -132,6 +134,19 @@ namespace StellarIndustries
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void EnsureResearch()
+        {
+            try
+            {
+                Parts.IndustryResearch.Ensure();
+            }
+            catch (Exception e)
+            {
+                Log.Error("research: " + e);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void InstallConveyors()
         {
             try
@@ -149,6 +164,7 @@ namespace StellarIndustries
         {
             try
             {
+                Parts.IndustryResearch.Tick();
                 UI.MachineHud.Update();
                 UI.DepositScanner.Update();
             }

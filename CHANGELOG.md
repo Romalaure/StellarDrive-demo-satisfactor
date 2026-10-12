@@ -1,5 +1,19 @@
 # Journal des changements
 
+## 0.6.0 — phase F (recherche)
+
+- Branche **Industrie** à la table de recherche (techs 7801-7804), après *Power Generation* :
+  - *Industrie de base* (20 fer, 10 cuivre) : atelier, fonderie, extracteur ;
+  - *Transformation* (20 plaques, 10 tiges, 10 fils) : presse, broyeur ;
+  - *Assemblage* (40 vis, 10 câbles, 10 plaques) : assembleuse ;
+  - *Énergie industrielle* (10 briquettes, 6 câbles, 10 plaques) : générateur à combustion.
+- Les coûts des niveaux supérieurs sont payés en produits du mod : on remonte la chaîne.
+- Placement automatique dans l'arbre partagé avec les autres mods (cases libres à droite des
+  prérequis, au plus près). Un id de tech déjà pris est signalé et la tech n'est pas ajoutée.
+- Réglage `ResearchUnlocks` (activé) ; désactivé, toutes les machines sont disponibles.
+- **Changement** : sur une partie existante, les machines doivent maintenant être recherchées
+  pour être construites (celles déjà posées restent et fonctionnent).
+
 ## 0.5.0 — phase E (énergie)
 
 - **Générateur à combustion** (7607, jusqu'à 6 000 W) : brûle bois (40 kJ, comme le générateur

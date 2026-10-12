@@ -164,15 +164,15 @@ namespace StellarIndustries.Parts
 namespace StellarIndustries.Parts
 {
     /// <summary>
-    /// The mod's parts are in no research yet (the mod's own tech tree comes with a later
-    /// phase): they are available from the start instead of staying locked forever.
+    /// The mod's parts outside its research branch (see <see cref="IndustryResearch"/>), or all of
+    /// them when ResearchUnlocks is off, are available from the start instead of staying locked.
     /// </summary>
     [HarmonyLib.HarmonyPatch(typeof(Research.ResearchClientProxy), nameof(Research.ResearchClientProxy.IsPartUnlocked))]
     internal static class PartUnlockPatch
     {
         private static void Postfix(Ships.Interface.Settings.PartSettings part, ref bool __result)
         {
-            if (!__result && part != null && PartTools.Ids.Contains(part.id))
+            if (!__result && part != null && PartTools.Ids.Contains(part.id) && !IndustryResearch.IsResearchPart(part.id))
                 __result = true;
         }
     }

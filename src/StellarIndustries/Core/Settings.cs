@@ -15,6 +15,7 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<float> MachineHudDistance { get; private set; }
         public static MelonPreferences_Entry<string> RecipeKey { get; private set; }
         public static MelonPreferences_Entry<string> ScanKey { get; private set; }
+        public static MelonPreferences_Entry<bool> ResearchUnlocks { get; private set; }
         public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
 
         public static void Load()
@@ -38,6 +39,8 @@ namespace StellarIndustries.Core
                 description: "Key of the deposit scanner: lists the minable rocks around you for a few seconds.");
             ScanRadius = _category.CreateEntry("ScanRadius", 80f,
                 description: "Reach of the deposit scanner (meters).");
+            ResearchUnlocks = _category.CreateEntry("ResearchUnlocks", true,
+                description: "On: the machines are unlocked by the research branch Industrie (research table). Off: all available from the start. Takes effect at the next game start.");
             Diagnostics.DevTest.Load(_category);
         }
 

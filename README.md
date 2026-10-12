@@ -4,7 +4,7 @@ Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisati
 transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
 déclare opérationnel que ce qui a été vérifié dans le jeu.
 
-**Version 0.5.0 — phases A à E.** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
+**Version 0.6.0 — phases A à F.** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
 pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
 
 ![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
@@ -24,6 +24,7 @@ pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE
 | **Scanner de gisements** (touche `K`) : rochers autour du joueur par type, distance, direction | ✅ testé en jeu (vrais rochers détectés) |
 | **Convoyeurs** avec le mod *Item Lines* (facultatif) : les machines n'envoient que leurs produits et ne reçoivent que leurs ingrédients | ✅ testé en jeu (fonderie → atelier par une ligne) |
 | **Générateur à combustion** (6 kW) : bois ou briquettes de biomasse, ne brûle que ce que le réseau consomme | ✅ testé en jeu (alimente un atelier) |
+| **Recherche « Industrie »** (4 techs) : les machines se débloquent à la table de recherche | ✅ déblocage testé en jeu (arbre non vérifié à l'écran) |
 | Panneau d'état en visant une machine (état, recette, progression, énergie, contenu, mode) | ✅ affichage vérifié par capture |
 | Multijoueur | ⚠️ conçu pour (l'hôte seul simule), **non testé** |
 

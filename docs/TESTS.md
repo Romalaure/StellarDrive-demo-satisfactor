@@ -40,6 +40,12 @@ B sans câble et C plein inchangés ; contenu identique après rechargement ; **
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
 
+0.6.0 (12/10/2026), recherche : PASS 4 techs ajoutées et placées (7801 en (5,2), 7802 (6,3),
+7803 (7,3), 7804 (6,4), avec les techs de TF Advanced, Arsenal, Item Lines... dans l'arbre) ;
+avant : atelier verrouillé ; tech 7801 marquée faite par l'état réseau du jeu
+(`ResearchNetworkedState.ServerMarkResearchAsDone`) → atelier débloqué, presse toujours
+verrouillée.
+
 0.5.0 (12/10/2026), générateur à combustion (pièce 15, 2 bûches) câblé à l'atelier D : PASS
 l'atelier a produit ses 4 plaques sur ce seul générateur ; 2 412 J tirés de la bûche en cours
 (≈ 8 s × 300 W), aucune bûche encore entièrement brûlée, « En veille » une fois l'atelier arrêté.
@@ -80,4 +86,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Poser un extracteur à côté d'un vrai rocher | non testé |
 | Touche K du scanner | non testée à la main (le scan est testé) |
 | Poser une ligne Item Lines à la main entre deux machines | non testé |
+| Arbre de recherche à l'écran, payer une tech à la table | non testé |
 | Deux joueurs (hôte + client) | non testé |
