@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.7.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.8.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -30,6 +30,7 @@ namespace StellarIndustries
             IndustrialItems.Create();
             SINet.InstallSerializers();
             MachineControl.Install();
+            Diagnostics.FactoryOverview.Install();
             ApplyPatches();
             Log.Msg("ready");
         }
@@ -108,6 +109,9 @@ namespace StellarIndustries
             MachineControl.Forget();
             Deposits.Forget();
             Logistics.LoadingDocks.Forget();
+            Diagnostics.FactoryOverview.Forget();
+            if (_partsRegistered)
+                StopSound();
             _inGame = sceneName == "MainGame";
             if (_inGame && _partsRegistered)
                 InstallConveyors();
@@ -131,6 +135,20 @@ namespace StellarIndustries
             {
                 UI.MachineHud.OnGUI();
                 UI.DepositScanner.OnGUI();
+                Diagnostics.FactoryOverview.OnGUI();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void StopSound()
+        {
+            try
+            {
+                UI.MachineSound.Stop();
+            }
+            catch (Exception e)
+            {
+                ErrorLog.Report("machine sound", e);
             }
         }
 
@@ -168,6 +186,8 @@ namespace StellarIndustries
                 Parts.IndustryResearch.Tick();
                 UI.MachineHud.Update();
                 UI.DepositScanner.Update();
+                Diagnostics.FactoryOverview.Update();
+                UI.MachineSound.Update();
             }
             catch (Exception e)
             {

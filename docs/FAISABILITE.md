@@ -70,14 +70,15 @@ Un seul assembly `StellarIndustries.dll`, dossiers par responsabilité :
 
 ```
 src/StellarIndustries/
-  Core/         initialisation, réglages, plages d'ids, journal d'erreurs, MeshBuilder
+  Core/         initialisation, réglages, plages d'ids, journal d'erreurs, MeshBuilder, messages réseau (SINet)
   Content/      catalogue de ressources (données pures) + création des ItemSettings
   Recipes/      livre de recettes (données pures) + validateur
-  Production/   catalogue de machines, craft transactionnel, choix de recette (purs),
-                simulation hôte branchée sur le tick électrique du jeu
-  Parts/        pièces SDModKit (donneur, modèle, prise), apparence du jeu
-  UI/           panneau d'état de la machine visée
-  Diagnostics/  test d'acceptation en jeu (désactivé par défaut)
+  Production/   catalogue de machines, craft transactionnel, choix de recette, combustible (purs),
+                simulation hôte branchée sur le tick électrique du jeu, gisements, fichier compagnon
+  Logistics/    règles des convoyeurs, transferts (purs), pont Item Lines, quais de transfert
+  Parts/        pièces SDModKit (donneur, modèles, prise), apparence du jeu, branche de recherche
+  UI/           panneau de la machine visée, scanner de gisements, bruit des machines
+  Diagnostics/  tableau de bord industriel, test d'acceptation et de charge en jeu (désactivé par défaut)
 tests/          tests unitaires de la logique pure (sans le jeu)
 ```
 
@@ -107,16 +108,16 @@ Principes :
 
 ## F. Stratégie de livraison
 
-| Version | Contenu | Condition de passage |
+| Version | Contenu | État |
 |---|---|---|
 | 0.1 (A) | Atelier, 2 objets, 2 recettes, énergie, persistance, panneau d'état | ✅ tests en jeu automatiques |
-| 0.2 (C) | Fonderie, presse, broyeur ; chaînes fer/cuivre/aluminium ; choix de recette sauvegardé (fichier compagnon) | Test à la main du menu de construction et du panneau |
-| 0.3 (B) | Extracteur posé près d'un gisement, scanner simple | Prototype de détection des rochers |
-| 0.4 (D) | Convoyeurs : intégration ItemLines ou câble « Item Line » propre ; règles d'entrée/sortie | Décision sur la dépendance ItemLines |
-| 0.5 (E) | Générateurs, batteries (réutiliser TF Advanced si installé), fluides industriels | |
-| 0.6 (F) | Branche de recherche « Industrie » (niveaux 0-6) | |
-| 0.7 (G) | Conteneurs de transfert, vaisseaux industriels | |
-| 0.8+ (H, I) | Modèles, sons FMOD, outils de diagnostic, tests de charge, multijoueur | Test à deux joueurs |
+| 0.2 (C) | Fonderie, presse, broyeur, assembleuse ; chaînes fer/cuivre/aluminium ; choix de recette sauvegardé (fichier compagnon) | ✅ testé en jeu ; panneau vérifié par capture ; menu de construction non vérifié à la main |
+| 0.3 (B) | Extracteur posé près d'un gisement, scanner simple | ✅ testé en jeu (rocher de test ; vrais rochers détectés par le scanner) |
+| 0.4 (D) | Convoyeurs : **décision** intégration Item Lines (facultatif) + règles d'entrée/sortie | ✅ testé en jeu |
+| 0.5 (E) | Générateur à combustion, briquettes ; batteries : celles de TF Advanced ; fluides : non disponibles | ✅ générateur testé en jeu |
+| 0.6 (F) | Branche de recherche « Industrie » (5 techs) | ✅ déblocage testé en jeu |
+| 0.7 (G) | Quai de transfert entre vaisseaux, conteneur ; pas de vaisseaux automatiques | ✅ testé en jeu (deux vaisseaux) |
+| 0.8 (H, I) | Modèles, son FMOD synthétisé, tableau de bord, test de charge, messages réseau | ✅ testé en jeu (solo) ; ❌ multijoueur non testé à deux |
 
 ## Obstacles connus
 

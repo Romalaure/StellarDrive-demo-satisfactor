@@ -110,7 +110,7 @@ namespace StellarIndustries.Diagnostics
             if (!_started && inWorld > 25f)
             {
                 _started = true;
-                MelonCoroutines.Start(Guard(_phase.Value == 2 ? Verify() : Produce()));
+                MelonCoroutines.Start(Guard(_phase.Value == 3 ? LoadTest() : _phase.Value == 2 ? Verify() : Produce()));
             }
             if (_quit.Value > 0f && inWorld > _quit.Value)
             {
@@ -259,6 +259,11 @@ namespace StellarIndustries.Diagnostics
                     PlaceDevRock(ship);
                 if (i == 3)
                     yield return Photograph(shipId, "machines");
+                if (i == 6)
+                {
+                    Log("overview: " + Strip(FactoryOverview.Build()));
+                    Log($"machine hum volume {UI.MachineSound.CurrentVolume:0.00} (setting {Settings.MachineVolume.Value:0.00})");
+                }
                 if (i == 4)
                 {
                     Directory.CreateDirectory(Folder);
@@ -357,6 +362,120 @@ namespace StellarIndustries.Diagnostics
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
         }
+
+        // ---- Load test (DevPhase 3)
+
+        private const int LoadMachines = 200;
+
+        /// <summary>
+        /// 200 workshops on one ship, all producing at once (power not required for the test),
+        /// the simulation's cost measured over 15 s; nothing is saved.
+        /// </summary>
+        private static IEnumerator LoadTest()
+        {
+            var players = ServiceLocator.GetService<Players.Services.PlayersServerTracker>();
+            var player = players?.ActivePlayers.FirstOrDefault();
+            SpacesServer spaces = ServiceLocator.GetService<SpacesServer>();
+            ShipsServerTracker ships = ServiceLocator.GetService<ShipsServerTracker>();
+            var ids = ServiceLocator.GetService<WorldObjectsIdsServerTracker>();
+            if (player == null || spaces == null || ships == null || ids == null)
+            {
+                Log("FAIL services missing");
+                yield break;
+            }
+            yield return Wait(10f);
+            double idleMs = FactoryOverview.AverageMs;
+            float idleFps = 0f;
+            yield return MeasureFps(5f, f => idleFps = f);
+            bool requirePower = Settings.RequirePower.Value;
+            Settings.RequirePower.Value = false;
+            var data = JsonUtility.FromJson<ShipImportExportUtils.ShipImportExportData>(LoadJson());
+            SavedShipState state = new ShipsConverter().ConvertToState(data.ships).States.Cast<SavedShipState>().Single();
+            state.Id = ids.CreateUniqueIdForObject();
+            state.SpaceId = player.SpaceId;
+            Vector3 up = player.Rotation * Vector3.up;
+            state.Position = player.Position + up * 1.5f + player.Rotation * Vector3.right * 30f;
+            state.Rotation = player.Rotation;
+            state.Velocity = Vector3.zero;
+            uint physicsSpace = ClientOrigin.LocalPhysicsSpaceId;
+            var transpose = ServiceLocator.GetService<WorldTracking.Interface.Services.IWorldTransposeServer>();
+            if (physicsSpace != 0 && physicsSpace != state.SpaceId && transpose != null)
+            {
+                state.Position = transpose.Position(state.SpaceId, physicsSpace, state.Position);
+                state.SpaceId = physicsSpace;
+            }
+            state.RelativeSpaceId = spaces.GetOrCreateShipRelativeSpace(state.Id);
+            ships.LoadShip(state);
+            yield return Wait(1f);
+            TrackedShipServer ship = ships.GetShip(state.Id);
+            if (ship == null)
+            {
+                Log("FAIL load ship missing");
+                Settings.RequirePower.Value = requirePower;
+                yield break;
+            }
+            for (ushort id = 1; id <= LoadMachines; id++)
+                ship.UpdatePartState(id, new StorageState { InventorySlots = Slots((GameItems.Iron, 200), (GameItems.Copper, 100)) });
+            Log($"load ship {state.Id}: {LoadMachines} workshops filled, simulation idle cost {idleMs:0.000} ms/tick, {idleFps:0} fps");
+            // Two full 5 s windows of the overview's cost counter
+            yield return Wait(11f);
+            float loadFps = 0f;
+            yield return MeasureFps(5f, f => loadFps = f);
+            double loadMs = FactoryOverview.AverageMs;
+            int producing = ship.GetAllStatefulParts<StorageState>().Count(p => MachineSimulation.Get(ship.Id, p.Id)?.Status == MachineStatus.Producing);
+            Log("overview: " + Strip(FactoryOverview.Build()));
+            Settings.RequirePower.Value = requirePower;
+            bool ok = producing == LoadMachines && loadMs < 2.0;
+            Log($"{(ok ? "PASS" : "FAIL")} load: {producing}/{LoadMachines} producing, simulation {loadMs:0.000} ms/tick (peak {FactoryOverview.PeakMs:0.000}), {loadFps:0} fps (before: {idleFps:0} fps)");
+        }
+
+        private static IEnumerator MeasureFps(float seconds, Action<float> result)
+        {
+            float start = Time.unscaledTime;
+            int frames = 0;
+            while (Time.unscaledTime - start < seconds)
+            {
+                frames++;
+                yield return null;
+            }
+            result(frames / Mathf.Max(0.01f, Time.unscaledTime - start));
+        }
+
+        private static string LoadJson()
+        {
+            var hull = new StringBuilder();
+            for (int x = -16; x <= 16; x++)
+            {
+                for (int z = -12; z <= 12; z++)
+                {
+                    if (hull.Length > 0)
+                        hull.Append(',');
+                    hull.Append($"{{\"partId\":{IronFloor},\"x\":{x},\"y\":0,\"z\":{z},\"forwardOrientationId\":4,\"upOrientationId\":0,\"voxelPartTypeId\":0,\"FrontColor\":{{\"x\":150,\"y\":150,\"z\":150}},\"BackColor\":{{\"x\":120,\"y\":120,\"z\":120}}}}");
+                }
+            }
+            var parts = new StringBuilder();
+            for (int i = 0; i < LoadMachines; i++)
+            {
+                float x = -15f + (i % 20) * 1.55f, z = -11f + (i / 20) * 2.2f;
+                if (parts.Length > 0)
+                    parts.Append(',');
+                parts.Append(string.Format(CultureInfo.InvariantCulture,
+                    "{{\"id\":{0},\"settingsId\":{1},\"coord\":{{\"x\":{2},\"y\":-0.46,\"z\":{3}}},\"forwardOrientationId\":2,\"upOrientationId\":4}}", i + 1, MachineCatalog.Workshop, x, z));
+            }
+            var sb = new StringBuilder();
+            sb.Append("{\"rootShipId\":1,\"cables\":[],\"ships\":[{");
+            sb.Append("\"id\":1,\"relativeSpaceId\":0,\"spaceId\":0,\"position\":{\"x\":0,\"y\":0,\"z\":0},\"velocity\":{\"x\":0,\"y\":0,\"z\":0},\"rotation\":{\"x\":0,\"y\":0,\"z\":0,\"w\":1},");
+            sb.Append("\"rooms\":[],\"hullParts\":[").Append(hull).Append("],\"statefulFloatingParts\":[").Append(parts).Append("],\"statefulHullParts\":[],");
+            foreach (string empty in new[] { "thrustersStates", "storageStates", "fluidTankStates", "constantStates", "beaconStates", "leverStates", "warpDriveStates",
+                         "dockingDoorStates", "targeterStates", "mathGateStates", "unaryMathGateStates", "memoryRegisterStates", "transmitterStates", "rotorStates",
+                         "electrolyzerStates", "woodThrusterStates", "woodGeneratorStates", "ethanolDistillerStates" })
+                sb.Append('"').Append(empty).Append("\":[],");
+            sb.Length--;
+            sb.Append("}]}");
+            return sb.ToString();
+        }
+
+        private static string Strip(string rich) => System.Text.RegularExpressions.Regex.Replace(rich, "<[^>]+>", "").Replace("\n", " | ");
 
         // ---- Transfers
 

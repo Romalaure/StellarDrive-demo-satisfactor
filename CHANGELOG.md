@@ -1,5 +1,21 @@
 # Journal des changements
 
+## 0.8.0 — phases H et I (finitions, diagnostic, charge, multijoueur)
+
+- **Tableau de bord industriel** (`F7`) : machines par état, énergie consommée et produite,
+  cycles de la dernière minute, machines à vérifier (sans câble, sans énergie, pleines, sans
+  gisement, sans combustible), coût de la simulation (ms par tick, moyenne et pic). Chez un
+  client, le texte vient de l'hôte.
+- **Bruit des machines** : ronronnement original synthétisé par le mod (WAV écrit dans
+  `UserData/StellarIndustries/sounds`), joué par FMOD, volume selon la machine active la plus
+  proche (15 m). Réglage `MachineVolume`.
+- Modèles propres pour les 9 pièces (atelier, fonderie, presse, broyeur, assembleuse,
+  extracteur, générateur, conteneur, quai).
+- **Test de charge** (`DevPhase = 3`) : 200 ateliers produisant ensemble → 0,24 ms par tick de
+  simulation (pic 2,8 ms), 73 → 64 images/s.
+- Multijoueur : tout l'état visible (panneau, tableau de bord, choix de recette, mode des quais)
+  passe par les messages réseau du mod ; **non testé à deux joueurs**.
+
 ## 0.7.0 — phase G (transferts entre vaisseaux)
 
 - **Quai de transfert** (7609) : touche `N` en le visant → arrêt / envoi / réception. Un quai en

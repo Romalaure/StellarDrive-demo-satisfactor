@@ -40,6 +40,16 @@ B sans câble et C plein inchangés ; contenu identique après rechargement ; **
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
 
+0.8.0 (12/10/2026), finitions : tableau de bord construit pendant le test (10 machines : 4 en
+production, 3 en attente, 1 hors tension, 1 sortie bloquée, 1 générateur en veille ; les deux
+machines à problème listées ; simulation 0,075 ms par tick) ; bruit des machines démarré par
+FMOD sans erreur, volume 0,18 à ~10 m (réglage 0,5) — **l'écoute elle-même n'a pas été
+vérifiée**.
+
+Test de charge (`PHASE=3 FRESH=1 WORLD=test4 tools/devrun.sh 75`) : un vaisseau de 200
+ateliers remplis (énergie non requise pendant le test), rien n'est sauvegardé. PASS 200/200 en
+production, **0,238 ms par tick** en moyenne (pic 2,792 ms), 64 images/s (73 avant).
+
 0.7.0 (12/10/2026), quais : un petit vaisseau cargo (3 × 3, un quai en réception) est posé
 à côté du vaisseau de test ; le quai A (12 fer, 5 cuivre, en envoi) l'a trouvé à 3,0 m : PASS
 quai A vide, quai du cargo 12 fer + 5 cuivre ; conteneur intact (50 vis) ; contenus identiques
@@ -93,4 +103,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Poser une ligne Item Lines à la main entre deux machines | non testé |
 | Arbre de recherche à l'écran, payer une tech à la table | non testé |
 | Quai : amarrer un vrai cargo piloté à côté d'une base | non testé |
+| Touche F7, écouter le bruit des machines | non testé à la main |
 | Deux joueurs (hôte + client) | non testé |

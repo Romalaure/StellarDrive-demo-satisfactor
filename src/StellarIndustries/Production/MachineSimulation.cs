@@ -282,6 +282,7 @@ namespace StellarIndustries.Production
             // One cycle per tick at most; a partial next cycle is kept
             rt.Progress = Mathf.Min(rt.Progress - 1f, 0.99f);
             rt.Cycles++;
+            Diagnostics.FactoryOverview.Counted(1);
             entry.Ship.UpdatePartState(entry.Part.Id, state with { InventorySlots = Write(after) });
         }
 
@@ -325,6 +326,7 @@ namespace StellarIndustries.Production
     {
         private static void Prefix(PowerServerTracker __instance, float deltaTime)
         {
+            Diagnostics.FactoryOverview.BeginTick();
             try
             {
                 MachineSimulation.BeforeTransfers(__instance, deltaTime);
@@ -333,10 +335,12 @@ namespace StellarIndustries.Production
             {
                 ErrorLog.Report("machines", e);
             }
+            Diagnostics.FactoryOverview.Pause();
         }
 
         private static void Postfix(float deltaTime)
         {
+            Diagnostics.FactoryOverview.Resume();
             try
             {
                 MachineSimulation.AfterTransfers(deltaTime);
@@ -345,6 +349,7 @@ namespace StellarIndustries.Production
             {
                 ErrorLog.Report("machines", e);
             }
+            Diagnostics.FactoryOverview.EndTick();
         }
     }
 }

@@ -16,6 +16,8 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<string> RecipeKey { get; private set; }
         public static MelonPreferences_Entry<string> ScanKey { get; private set; }
         public static MelonPreferences_Entry<bool> ResearchUnlocks { get; private set; }
+        public static MelonPreferences_Entry<string> OverviewKey { get; private set; }
+        public static MelonPreferences_Entry<float> MachineVolume { get; private set; }
         public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
 
         public static void Load()
@@ -41,6 +43,10 @@ namespace StellarIndustries.Core
                 description: "Reach of the deposit scanner (meters).");
             ResearchUnlocks = _category.CreateEntry("ResearchUnlocks", true,
                 description: "On: the machines are unlocked by the research branch Industrie (research table). Off: all available from the start. Takes effect at the next game start.");
+            OverviewKey = _category.CreateEntry("OverviewKey", "F7",
+                description: "Key of the factory overview: machines by state, power, problems, simulation cost.");
+            MachineVolume = _category.CreateEntry("MachineVolume", 0.5f,
+                description: "Volume of the hum of working machines near you (0 = silent, 1 = loud).");
             Diagnostics.DevTest.Load(_category);
         }
 

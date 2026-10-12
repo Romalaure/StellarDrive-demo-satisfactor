@@ -17,7 +17,11 @@ namespace StellarIndustries.Core
         /// <summary>Client to server: what is machine A/B doing?</summary>
         StatusRequest = 2,
         /// <summary>Server to one client: machine A/B's state, Text from <see cref="Production.MachineStatusText"/>.</summary>
-        Status = 3
+        Status = 3,
+        /// <summary>Client to server: send me the factory overview.</summary>
+        OverviewRequest = 4,
+        /// <summary>Server to one client: the factory overview, Text is the panel.</summary>
+        Overview = 5
     }
 
     /// <summary>
