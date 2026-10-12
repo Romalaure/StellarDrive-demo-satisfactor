@@ -4,6 +4,7 @@ using Ships.Interface.Model.Parts;
 using Ships.Interface.Model.Parts.State;
 using StellarIndustries.Content;
 using StellarIndustries.Production;
+using StellarIndustries.Core;
 using UnityEngine;
 
 namespace StellarIndustries.Logistics
@@ -33,7 +34,7 @@ namespace StellarIndustries.Logistics
         private static readonly Production.Stack[] From = new Production.Stack[10], To = new Production.Stack[10];
         private static float _elapsed;
 
-        public static string ModeName(string mode) => mode == Send ? "envoi" : mode == Receive ? "réception" : "arrêt";
+        public static string ModeName(string mode) => mode == Send ? Lang.T("envoi", "send") : mode == Receive ? Lang.T("réception", "receive") : Lang.T("arrêt", "off");
 
         /// <summary>Called for every dock found in the tick (before <see cref="Run"/>).</summary>
         public static void Collect(TrackedShipServer ship, StatefulPart part, MachineDef def, MachineSimulation.Runtime rt)
@@ -59,7 +60,7 @@ namespace StellarIndustries.Logistics
                 d.Runtime.Recipe = null;
                 d.Runtime.Watts = 0f;
                 d.Runtime.Status = d.Mode == Send || d.Mode == Receive ? MachineStatus.Idle : MachineStatus.Idle;
-                d.Runtime.Detail = "Mode : " + ModeName(d.Mode);
+                d.Runtime.Detail = Lang.T("Mode : ", "Mode: ") + ModeName(d.Mode);
             }
             foreach (Dock sender in Seen)
             {
@@ -80,7 +81,7 @@ namespace StellarIndustries.Logistics
                 }
                 if (target == null)
                 {
-                    sender.Runtime.Detail = $"Mode : envoi — aucun quai en réception à moins de {sender.Def.DockRange:0} m";
+                    sender.Runtime.Detail = Lang.T($"Mode : envoi — aucun quai en réception à moins de {sender.Def.DockRange:0} m", $"Mode: send — no receiving dock within {sender.Def.DockRange:0} m");
                     continue;
                 }
                 Dock to = target.Value;
@@ -89,9 +90,11 @@ namespace StellarIndustries.Logistics
                 MachineSimulation.Read(fromState, From);
                 MachineSimulation.Read(toState, To);
                 int moved = ItemTransfer.Move(From, To, Mathf.Max(1, Mathf.RoundToInt(sender.Def.DockRate * seconds)), IndustrialItems.MaxStack);
-                string where = to.Ship.Id == sender.Ship.Id ? "même vaisseau" : "vaisseau " + to.Ship.Id;
-                sender.Runtime.Detail = $"Mode : envoi vers le quai {to.Part.Id} ({where}, {best:0.0} m)" + (moved == 0 ? " — rien à envoyer ou quai plein" : $" — {moved} objet(s) envoyé(s)");
-                to.Runtime.Detail = $"Mode : réception depuis le quai {sender.Part.Id} ({(to.Ship.Id == sender.Ship.Id ? "même vaisseau" : "vaisseau " + sender.Ship.Id)})";
+                string where = to.Ship.Id == sender.Ship.Id ? Lang.T("même vaisseau", "same ship") : Lang.T("vaisseau ", "ship ") + to.Ship.Id;
+                sender.Runtime.Detail = Lang.T($"Mode : envoi vers le quai {to.Part.Id} ({where}, {best:0.0} m)", $"Mode: sending to dock {to.Part.Id} ({where}, {best:0.0} m)") +
+                                        (moved == 0 ? Lang.T(" — rien à envoyer ou quai plein", " — nothing to send or dock full") : Lang.T($" — {moved} objet(s) envoyé(s)", $" — {moved} item(s) sent"));
+                string from = to.Ship.Id == sender.Ship.Id ? Lang.T("même vaisseau", "same ship") : Lang.T("vaisseau ", "ship ") + sender.Ship.Id;
+                to.Runtime.Detail = Lang.T($"Mode : réception depuis le quai {sender.Part.Id} ({from})", $"Mode: receiving from dock {sender.Part.Id} ({from})");
                 if (moved > 0)
                 {
                     sender.Runtime.Status = MachineStatus.Producing;

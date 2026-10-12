@@ -18,6 +18,7 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<bool> ResearchUnlocks { get; private set; }
         public static MelonPreferences_Entry<string> OverviewKey { get; private set; }
         public static MelonPreferences_Entry<float> MachineVolume { get; private set; }
+        public static MelonPreferences_Entry<string> Language { get; private set; }
         public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
 
         public static void Load()
@@ -47,6 +48,8 @@ namespace StellarIndustries.Core
                 description: "Key of the factory overview: machines by state, power, problems, simulation cost.");
             MachineVolume = _category.CreateEntry("MachineVolume", 0.5f,
                 description: "Volume of the hum of working machines near you (0 = silent, 1 = loud).");
+            Language = _category.CreateEntry("Language", "auto",
+                description: "Language of the mod: auto (follows the game: French if the game is in French, English otherwise), fr or en.");
             Diagnostics.DevTest.Load(_category);
         }
 

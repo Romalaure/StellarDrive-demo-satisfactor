@@ -28,6 +28,19 @@ namespace StellarIndustries.Parts
             IndustriesMod.Log.Msg($"registered {MachineCatalog.All.Length} machine(s)");
         }
 
+        /// <summary>The game language changed: the parts are renamed in place.</summary>
+        public static void Rename()
+        {
+            foreach (MachineDef def in MachineCatalog.All)
+            {
+                PartSettings settings = SDModKit.Game.CustomParts.Get(def.PartId);
+                if (settings == null)
+                    continue;
+                settings.fullLabel = Lang.MachineName(def);
+                settings.description = Lang.MachineDescription(def);
+            }
+        }
+
         /// <summary>Build menu row (the menu shows about three): basic production, advanced production, power and logistics.</summary>
         private static int BuildRow(MachineDef def)
         {
@@ -48,7 +61,7 @@ namespace StellarIndustries.Parts
 
         private static void Configure(MachineDef def, PartSettings settings, GameObject prefab)
         {
-            PartTools.Describe(settings, def.Name, def.Description, def.Mass, def.BuildCost);
+            PartTools.Describe(settings, Lang.MachineName(def), Lang.MachineDescription(def), def.Mass, def.BuildCost);
             Bounds donor = PartTools.DonorBounds(prefab);
             // The panel rectangles of the models are measured on the LogicGates atlas, not the chest's
             if (!GameSkin.CaptureLogicGates())

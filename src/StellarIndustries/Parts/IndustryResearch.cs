@@ -74,6 +74,17 @@ namespace StellarIndustries.Parts
 
         public static IReadOnlyList<ResearchSettings> Techs => Added;
 
+        /// <summary>The game language changed: the techs are renamed in place.</summary>
+        public static void Rename()
+        {
+            foreach (ResearchSettings tech in Added)
+            {
+                Tech def = All.FirstOrDefault(t => t.Id == tech.id);
+                if (def != null)
+                    tech.techName = Lang.TechName(def.Id, def.Name);
+            }
+        }
+
         /// <summary>The visible tree as text, one line per row (development log).</summary>
         public static string Map()
         {
@@ -128,7 +139,7 @@ namespace StellarIndustries.Parts
                 settings.name = "SI_Tech" + tech.Id;
                 settings.hideFlags = HideFlags.DontUnloadUnusedAsset;
                 settings.id = tech.Id;
-                settings.techName = tech.Name;
+                settings.techName = Lang.TechName(tech.Id, tech.Name);
                 settings.unlockedParts = parts;
                 settings.unlockedFeatures = new Research.Interface.Model.ResearchUnlockableFeature[0];
                 settings.unlockedGuideEntriesIds = new uint[0];

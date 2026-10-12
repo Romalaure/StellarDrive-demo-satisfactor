@@ -1,102 +1,109 @@
-# Stellar Industries — StellarDrive Demo
+# Stellar Industries
 
-Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisation : extraire,
-transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
-déclare opérationnel que ce qui a été vérifié dans le jeu.
+*[English below](#english)*
 
-**Version 0.10.0 — 14 machines, 53 objets, 59 recettes, wiki dans le jeu (touche G).** Voir le [rapport de faisabilité](docs/FAISABILITE.md) pour ce
-que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
+Un mod d'industrie pour **StellarDrive Demo**. Vous partez de quelques lingots de fer, et petit à petit vous montez une vraie usine : des machines qui extraient le minerai, le fondent, le façonnent et l'assemblent, des générateurs pour tout alimenter, des lignes d'objets pour faire circuler la production… jusqu'aux supercalculateurs et à l'accélérateur de particules.
 
-![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
+![Les machines de Stellar Industries](Mods/thumbnail.png)
 
-## Ce qui fonctionne
+## Ce que vous y trouverez
 
-Onglet de construction **« Industrie »**, débloqué par la branche de recherche **Industrie**.
+- **14 machines** dans l'onglet de construction « Industrie » : atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accélérateur de particules, extracteur, générateur à combustion, accumulateur, conteneur et quai de transfert.
+- **53 objets et 59 recettes**, des plaques de fer aux processeurs quantiques.
+- **Une branche de recherche** : chaque niveau se paie avec ce que vous fabriquez déjà, ce qui vous fait remonter la chaîne naturellement.
+- **Des machines vivantes** : volants qui tournent, presses qui frappent, bras robotisés, fours qui rougeoient, voyant vert quand tout va bien, et un léger ronronnement quand on passe à côté.
+- **Un wiki dans le jeu** : appuyez sur **G**, entrée « Wiki Stellar Industries ». Chaque machine et chaque objet a sa fiche.
+- **Français et anglais** : le mod suit la langue du jeu.
 
-| Fonction | État |
+Toutes les machines se branchent sur le réseau électrique du jeu et leur contenu est sauvegardé avec votre partie. Une machine ne consomme ses ingrédients qu'à la fin d'un cycle, et seulement si elle a la place de ranger le résultat : vous ne perdez jamais rien.
+
+## Pour commencer
+
+1. À la table de recherche, après *Power Generation*, recherchez **Industrie de base**.
+2. Posez une **fonderie** et un **atelier**, et branchez la prise à l'arrière de chacun sur un générateur.
+3. Mettez du minerai de fer dans la fonderie, puis les lingots dans l'atelier : voilà vos premières plaques.
+4. Regardez une machine pour voir ce qu'elle fait, et appuyez sur **N** pour changer sa recette.
+
+Pour aller plus loin, tout est expliqué dans le wiki du jeu (touche G).
+
+## Touches
+
+| Touche | Effet |
 |---|---|
-| **Atelier, Fonderie, Presse, Broyeur, Assembleuse, Fabricateur** : minerai → lingots (fer, cuivre, aluminium, acier) → plaques, tiges, fil, poutres, tuyaux → vis, câbles, béton → rotors, stators, circuits, cadres → moteurs, ordinateurs, cadres lourds (27 objets, 32 recettes) | ✅ testé en jeu (chaînes de base) ; nouvelles recettes : testées sans le jeu |
-| **Haut fourneau, Raffinerie, Accumulateur (60 MJ), Accélérateur de particules** ; chimie de la biomasse, alliages, électronique, composants de haut niveau | ✅ testé en jeu (haut fourneau, raffinerie, accumulateur et sa charge après rechargement) ; accélérateur : modèle seulement |
-| **Wiki dans le jeu** : Guide (G) » Wiki Stellar Industries, une fiche par machine et par objet | ✅ testé en jeu (84 pages, aucun lien cassé, captures) |
-| **Modèles détaillés et animés** pendant la production, textures propres au mod, prises à l'arrière (boîtier électrique, trappes d'objets) | ✅ vérifié par photos et test en jeu |
-| Ne produit que s'il a de l'énergie, de la matière **et** de la place ; rien n'est consommé sans être produit | ✅ testé en jeu |
-| Énergie : consomme sur le réseau électrique du jeu, ralentit si le réseau manque de puissance | ✅ testé en jeu (énergie insuffisante : non testé) |
-| **Choix de recette** (touche `N` en visant la machine), gardé dans la sauvegarde | ✅ testé en jeu (touche : non testée à la main) |
-| **Extracteur** : à moins de 6 m d'un rocher minable, en tire son minerai (1 / 6 s) sans l'épuiser | ✅ testé en jeu (avec un rocher de test) |
-| **Scanner de gisements** (touche `K`) | ✅ testé en jeu (vrais rochers détectés) |
-| **Convoyeurs** avec le mod *Item Lines* (facultatif) : les machines n'envoient que leurs produits et ne reçoivent que leurs ingrédients | ✅ testé en jeu |
-| **Générateur à combustion** (6 kW) : bois ou briquettes de biomasse, ne brûle que ce que le réseau consomme | ✅ testé en jeu |
-| **Quai de transfert** : d'un vaisseau à l'autre (cargo ↔ base), 4 objets/s, moins de 4 m | ✅ testé en jeu (entre deux vaisseaux) |
-| **Conteneur industriel** (10 emplacements) | ✅ testé en jeu |
-| **Recherche « Industrie »** (5 techs), coûts en produits du mod | ✅ déblocage testé (arbre non vérifié à l'écran) |
-| Panneau d'état en visant une machine | ✅ affichage vérifié par capture |
-| **Tableau de bord industriel** (`F7`) : machines par état, énergie, problèmes, coût de la simulation | ✅ testé en jeu |
-| Bruit des machines (son original synthétisé, FMOD) | ✅ joue en jeu (écoute non vérifiée) |
-| Charge : 200 machines en production | ✅ 0,24 ms par tick de simulation |
-| Multijoueur | ⚠️ conçu pour (l'hôte simule, messages réseau du mod), **non testé à deux joueurs** |
-
-## Démarrer
-
-1. Recherchez *Industrie de base* (après *Power Generation*) à la table de recherche.
-2. Posez une **Fonderie** et un **Atelier**, reliez leur prise arrière à un générateur.
-3. Mettez du minerai de fer dans la fonderie : elle fait des lingots ; mettez les lingots dans
-   l'atelier : il fait des plaques (ou des tiges, avec `N`).
-4. Un **Extracteur** à côté d'un rocher (touche `K` pour en trouver) fournit le minerai, et
-   *Item Lines* relie les machines entre elles.
-
-Chaîne : minerai → **Fonderie** → lingots (acier : fer + briquette) → **Atelier** → plaques,
-tiges, fil, poutres, tuyaux → **Presse** → vis, câbles, feuilles de cuivre, béton, briquettes →
-**Assembleuse** → plaques renforcées, rotors, stators, cadres, circuits, dissipateurs →
-**Fabricateur** → moteurs, ordinateurs, cadres lourds. Le **Broyeur** double le minerai avant
-la fonderie.
-
-Toutes les prises sont à l'arrière des machines : la prise électrique sort du boîtier jaune et
-noir, les lignes d'objets se branchent dans les deux trappes à côté.
-
-## Limitations connues
-
-- Le cycle en cours repart de zéro après un rechargement (aucun objet perdu).
-- 10 emplacements par machine (limite du stockage du jeu).
-- L'extracteur ne voit que les rochers chargés par le jeu de l'hôte (près d'un joueur).
-- Pas de fluides industriels (la raffinerie travaille la biomasse solide), pas de véhicules ni
-  de trains automatiques (voir le rapport de faisabilité et la page Limites du wiki).
-- Chez un client, l'état des machines vient de l'hôte (non testé à deux joueurs).
+| Regarder une machine | son état, sa recette, son énergie, son contenu |
+| `N` | changer de recette (Maj+N : revenir en arrière) |
+| `K` | repérer les rochers minables autour de vous |
+| `F7` | le tableau de bord de toute l'usine |
+| `G` | le guide du jeu, avec le wiki du mod |
 
 ## Installation
 
-1. Installer **SDModKit** (gestionnaire de mods StellarModManager).
-2. Installer **Stellar Industries** depuis le gestionnaire (ou copier `StellarIndustries.dll`
-   dans `StellarDrive Demo/Mods/`). *Item Lines* est conseillé pour les convoyeurs.
-3. Tous les joueurs d'une partie doivent avoir le mod.
+1. Installez **SDModKit** depuis StellarModManager.
+2. Installez **Stellar Industries** depuis StellarModManager.
+3. Facultatif mais conseillé : **Item Lines**, pour relier les machines entre elles.
 
-## Désinstallation
+En multijoueur, tout le monde doit avoir le mod. Le jeu à plusieurs n'a pas encore été beaucoup testé : n'hésitez pas à signaler les soucis.
 
-Avant de retirer la DLL : faites une copie de votre sauvegarde, videz les machines et coffres
-des objets du mod, recyclez les machines, sauvegardez. Sinon les machines disparaissent avec
-leur contenu au chargement suivant. Voir [compatibilité](docs/COMPATIBILITE.md).
-Pour simplement arrêter la production : `Enabled = false` dans la section
-`[StellarIndustries]` de `UserData/MelonPreferences.cfg`.
+Pour désinstaller proprement, videz et recyclez vos machines avant de retirer le mod (et gardez une copie de votre sauvegarde).
 
-## Compilation
+## À savoir
 
-Prérequis : .NET SDK 8, le jeu installé avec MelonLoader 0.7.3 et SDModKit. Le chemin du jeu est
-dans `Directory.Build.props` (`GamePath`, surchargeable par `Directory.Build.props.user` ou
-`-p:GamePath=...`). Aucune DLL du jeu n'est commitée.
+- Chaque machine a 10 emplacements, comme les coffres du jeu.
+- Pas de fluides, de trains ni de drones : le jeu ne le permet pas. Pour transporter, un cargo piloté et deux quais de transfert font très bien l'affaire.
+- Un cycle commencé repart de zéro quand on recharge la partie (sans perte d'objets).
 
-```
-dotnet build src/StellarIndustries/StellarIndustries.csproj -c Release   # copie aussi la DLL dans Mods/
-dotnet test tests/StellarIndustries.Tests                                # tests sans le jeu
-powershell tools/package.ps1                                             # zip pour une release
-```
+---
 
-## Documentation
+## English
 
-- [Rapport de faisabilité et architecture](docs/FAISABILITE.md)
-- [Ajouter une ressource, une machine, une recette, une tech ; réglages](docs/GUIDE-CONTENU.md)
-- [Compatibilité sauvegardes, multijoueur, autres mods](docs/COMPATIBILITE.md)
-- [Tests](docs/TESTS.md)
-- [Journal des changements](CHANGELOG.md)
+An industry mod for **StellarDrive Demo**. You start with a handful of iron ingots and slowly build up a real factory: machines that dig ore, smelt it, shape it and put it together, generators to keep everything running, item lines to move your production around… all the way to supercomputers and a particle accelerator.
 
-Mécaniques inspirées des jeux d'automatisation ; aucun modèle, texture, son, nom ou code d'un
-autre jeu n'est utilisé. Les modèles sont construits par le mod avec les matériaux de
-StellarDrive ; le son des machines est synthétisé par le mod.
+### What's inside
+
+- **14 machines** in the "Industrie" build tab: workshop, smelter, press, crusher, assembler, fabricator, blast furnace, refinery, particle accelerator, extractor, combustion generator, accumulator, container and transfer dock.
+- **53 items and 59 recipes**, from iron plates to quantum processors.
+- **A research branch**: each level is paid with what you already make, so you naturally climb up the chain.
+- **Machines that feel alive**: spinning flywheels, stamping presses, robot arms, glowing furnaces, a green light when all is well, and a gentle hum as you walk by.
+- **An in-game wiki**: press **G** and pick "Wiki Stellar Industries". Every machine and every item has its own page.
+- **English and French**: the mod follows the game's language.
+
+Every machine plugs into the game's power grid and its contents are saved with your game. A machine only uses its ingredients at the end of a cycle, and only if it has room for the result: you never lose anything.
+
+### Getting started
+
+1. At the research table, after *Power Generation*, research **Basic Industry**.
+2. Place a **smelter** and a **workshop**, and plug the socket on the back of each one into a generator.
+3. Put iron ore in the smelter, then the ingots in the workshop: there are your first plates.
+4. Look at a machine to see what it is doing, and press **N** to change its recipe.
+
+Everything else is explained in the in-game wiki (G key).
+
+### Keys
+
+| Key | What it does |
+|---|---|
+| Look at a machine | its state, recipe, power and contents |
+| `N` | change recipe (Shift+N: go back) |
+| `K` | spot the minable rocks around you |
+| `F7` | the whole factory at a glance |
+| `G` | the game's guide, with the mod's wiki |
+
+### Installing
+
+1. Install **SDModKit** from StellarModManager.
+2. Install **Stellar Industries** from StellarModManager.
+3. Optional but recommended: **Item Lines**, to link machines together.
+
+In multiplayer everyone needs the mod. Playing together hasn't been tested much yet, so please report any trouble.
+
+To uninstall cleanly, empty and recycle your machines before removing the mod (and keep a copy of your save).
+
+### Good to know
+
+- Each machine has 10 slots, like the game's chests.
+- No fluids, trains or drones: the game doesn't allow them. For transport, a piloted cargo ship and two transfer docks do the job nicely.
+- A cycle in progress restarts when you reload your game (no items are lost).
+
+---
+
+Made by **Romalaure**. Building the mod yourself, adding content or running the tests: see [docs/](docs/GUIDE-CONTENU.md).

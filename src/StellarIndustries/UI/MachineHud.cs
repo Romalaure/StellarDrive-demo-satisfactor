@@ -115,38 +115,38 @@ namespace StellarIndustries.UI
         {
             MachineSimulation.Read(state, Slots);
             Text.Clear();
-            Text.Append("<b>").Append(def.Name).Append("</b>\n");
+            Text.Append("<b>").Append(Lang.MachineName(def)).Append("</b>\n");
             MachineReport? report = InstanceFinder.IsServerStarted ? MachineControl.HostReport(shipId, partId) : MachineControl.ClientReport(shipId, partId, 2f);
             RecipeDef[] recipes = RecipeBook.ForMachine(def.PartId);
             if (report != null)
             {
                 MachineReport r = report.Value;
                 if (def.IsLogistics)
-                    Text.Append(def.Dock ? (r.Status == MachineStatus.Producing ? "<color=#6f8>Transfert en cours</color>" : "<color=#9aa>Pas de transfert</color>") : "<color=#9aa>Stockage</color>");
+                    Text.Append(def.Dock ? (r.Status == MachineStatus.Producing ? Lang.T("<color=#6f8>Transfert en cours</color>", "<color=#6f8>Transferring</color>") : Lang.T("<color=#9aa>Pas de transfert</color>", "<color=#9aa>Not transferring</color>")) : Lang.T("<color=#9aa>Stockage</color>", "<color=#9aa>Storage</color>"));
                 else
                     Text.Append(StatusText(r.Status));
                 RecipeDef running = r.RecipeId != null ? RecipeBook.Get(r.RecipeId) : null;
                 if (running != null)
                 {
-                    Text.Append("\nRecette : ").Append(running.Name).Append(" (").Append(Mathf.FloorToInt(Mathf.Clamp01(r.Progress) * 100f)).Append(" %)");
+                    Text.Append(Lang.T("\nRecette : ", "\nRecipe: ")).Append(Lang.RecipeName(running)).Append(" (").Append(Mathf.FloorToInt(Mathf.Clamp01(r.Progress) * 100f)).Append(" %)");
                     Text.Append("\n  ").Append(Describe(running));
-                    Text.Append("\nÉnergie : ").Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
+                    Text.Append(Lang.T("\nÉnergie : ", "\nPower: ")).Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
                 }
                 if (running == null && def.Generates)
-                    Text.Append("\nProduction : ").Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
+                    Text.Append(Lang.T("\nProduction : ", "\nOutput: ")).Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
                 if (r.Detail != null)
                     Text.Append('\n').Append(r.Detail);
                 if (recipes.Length > 1)
                 {
                     RecipeDef chosen = r.ChosenId != null ? RecipeBook.Get(r.ChosenId) : null;
-                    Text.Append("\nMode : ").Append(chosen != null ? "<color=#8cf>" + chosen.Name + " uniquement</color>" : "automatique");
+                    Text.Append(Lang.T("\nMode : ", "\nMode: ")).Append(chosen != null ? "<color=#8cf>" + Lang.RecipeName(chosen) + Lang.T(" uniquement</color>", " only</color>") : Lang.T("automatique", "automatic"));
                 }
                 if (!Settings.Enabled.Value && InstanceFinder.IsServerStarted)
-                    Text.Append("\n(production désactivée dans les réglages)");
+                    Text.Append(Lang.T("\n(production désactivée dans les réglages)", "\n(production turned off in the settings)"));
             }
             else
             {
-                Text.Append("<color=#9aa>En attente de l'hôte...</color>");
+                Text.Append(Lang.T("<color=#9aa>En attente de l'hôte...</color>", "<color=#9aa>Waiting for the host...</color>"));
             }
             foreach (Stack s in Slots)
             {
@@ -154,9 +154,9 @@ namespace StellarIndustries.UI
                     Text.Append("\n  ").Append(s.Count).Append(" × ").Append(IndustrialItems.NameOf(s.Item));
             }
             if (def.Dock)
-                Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] arrêt / envoi / réception</color>");
+                Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append(Lang.T("] arrêt / envoi / réception</color>", "] off / send / receive</color>"));
             if (recipes.Length > 1)
-                Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] recette suivante, Maj+[").Append(_key == Key.None ? "N" : _key.ToString()).Append("] précédente</color>");
+                Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append(Lang.T("] recette suivante, Maj+[", "] next recipe, Shift+[")).Append(_key == Key.None ? "N" : _key.ToString()).Append(Lang.T("] précédente</color>", "] previous</color>"));
             return Text.ToString();
         }
 
@@ -175,17 +175,17 @@ namespace StellarIndustries.UI
         {
             switch (status)
             {
-                case MachineStatus.Idle: return "<color=#9aa>Vide</color>";
-                case MachineStatus.WaitingInputs: return "<color=#fc6>En attente de ressources</color>";
-                case MachineStatus.OutputBlocked: return "<color=#f84>Sortie bloquée (plus de place)</color>";
-                case MachineStatus.Unpowered: return "<color=#f66>Hors tension (aucun câble)</color>";
-                case MachineStatus.NoPower: return "<color=#f66>Pas d'énergie sur le réseau</color>";
-                case MachineStatus.Underpowered: return "<color=#fd6>En production (énergie insuffisante)</color>";
-                case MachineStatus.Producing: return "<color=#6f8>En production</color>";
-                case MachineStatus.NoDeposit: return "<color=#f84>Aucun gisement à portée</color>";
-                case MachineStatus.NoFuel: return "<color=#f84>Plus de combustible</color>";
-                case MachineStatus.Standby: return "<color=#9cf>En veille (le réseau ne demande rien)</color>";
-                default: return "<color=#f44>Erreur</color>";
+                case MachineStatus.Idle: return Lang.T("<color=#9aa>Vide</color>", "<color=#9aa>Empty</color>");
+                case MachineStatus.WaitingInputs: return Lang.T("<color=#fc6>En attente de ressources</color>", "<color=#fc6>Waiting for materials</color>");
+                case MachineStatus.OutputBlocked: return Lang.T("<color=#f84>Sortie bloquée (plus de place)</color>", "<color=#f84>Output blocked (no room left)</color>");
+                case MachineStatus.Unpowered: return Lang.T("<color=#f66>Hors tension (aucun câble)</color>", "<color=#f66>Unpowered (no cable)</color>");
+                case MachineStatus.NoPower: return Lang.T("<color=#f66>Pas d'énergie sur le réseau</color>", "<color=#f66>No power on the grid</color>");
+                case MachineStatus.Underpowered: return Lang.T("<color=#fd6>En production (énergie insuffisante)</color>", "<color=#fd6>Producing (not enough power)</color>");
+                case MachineStatus.Producing: return Lang.T("<color=#6f8>En production</color>", "<color=#6f8>Producing</color>");
+                case MachineStatus.NoDeposit: return Lang.T("<color=#f84>Aucun gisement à portée</color>", "<color=#f84>No deposit in reach</color>");
+                case MachineStatus.NoFuel: return Lang.T("<color=#f84>Plus de combustible</color>", "<color=#f84>Out of fuel</color>");
+                case MachineStatus.Standby: return Lang.T("<color=#9cf>En veille (le réseau ne demande rien)</color>", "<color=#9cf>Standby (the grid needs nothing)</color>");
+                default: return Lang.T("<color=#f44>Erreur</color>", "<color=#f44>Error</color>");
             }
         }
 

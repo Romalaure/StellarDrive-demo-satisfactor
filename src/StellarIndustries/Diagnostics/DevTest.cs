@@ -535,6 +535,8 @@ namespace StellarIndustries.Diagnostics
         /// <summary>Every wiki page renders and every link leads to a page; the guide opens on the wiki (screenshots).</summary>
         private static IEnumerator CheckWiki()
         {
+            PartSettings label = SDModKit.Game.CustomParts.Get(MachineCatalog.Workshop);
+            Log($"language: {(Lang.English ? "English" : "French")}; item 7720 '{IndustrialItems.NameOf(ResourceCatalog.Rotor)}', item 7701 '{IndustrialItems.NameOf(ResourceCatalog.IronPlate)}', part 7601 '{label?.fullLabel}', tech 7801 '{Lang.TechName(7801, "?")}', recipe '{Lang.RecipeName(Recipes.RecipeBook.Get("workshop.iron_plate_raw"))}'");
             var names = Wiki.WikiPages.Names.ToList();
             var broken = new List<string>();
             var link = new System.Text.RegularExpressions.Regex("\\[([^\\]]+)\\]\\(([^)]+)\\)");

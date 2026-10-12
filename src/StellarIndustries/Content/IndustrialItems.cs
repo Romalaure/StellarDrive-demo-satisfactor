@@ -58,11 +58,21 @@ namespace StellarIndustries.Content
                 settings.name = "SI_Item" + def.Id;
                 settings.hideFlags = HideFlags.DontUnloadUnusedAsset;
                 settings.id = def.Id;
-                settings.itemName = def.Name;
+                settings.itemName = Lang.ItemName(def);
                 settings.mass = def.Mass;
                 settings.maxStackSize = (byte)Mathf.Clamp(def.MaxStack, 1, 255);
                 settings.isFluid = def.Category == ResourceCategory.Fluid;
                 Settings[def.Id] = settings;
+            }
+        }
+
+        /// <summary>The game language changed: the items are renamed in place.</summary>
+        public static void Rename()
+        {
+            foreach (ResourceDef def in ResourceCatalog.All)
+            {
+                if (Settings.TryGetValue(def.Id, out ItemSettings settings))
+                    settings.itemName = Lang.ItemName(def);
             }
         }
 

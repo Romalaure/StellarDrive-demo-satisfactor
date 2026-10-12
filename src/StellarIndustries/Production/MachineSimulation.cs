@@ -151,11 +151,11 @@ namespace StellarIndustries.Production
                     rt.Progress = 0f;
                     rt.Watts = 0f;
                     rt.Status = MachineStatus.NoDeposit;
-                    rt.Detail = $"Aucun rocher minable à moins de {def.ExtractRadius:0} m";
+                    rt.Detail = Lang.T($"Aucun rocher minable à moins de {def.ExtractRadius:0} m", $"No minable rock within {def.ExtractRadius:0} m");
                     return;
                 }
                 Deposits.Deposit d = deposit.Value;
-                rt.Detail = $"Gisement : {d.Name} à {d.Distance:0.0} m";
+                rt.Detail = Lang.T($"Gisement : {d.Name} à {d.Distance:0.0} m", $"Deposit: {d.Name} at {d.Distance:0.0} m");
                 RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds, IndustrialItems.NameOf(d.Item));
                 recipe = RecipeSelector.Pick(Buffer, new[] { extraction }, rt.Recipe, IndustrialItems.MaxStack, out status);
             }
@@ -225,7 +225,7 @@ namespace StellarIndustries.Production
             rt.Recipe = null;
             rt.Offered = rt.Request = 0f;
             rt.Watts = def.Watts;
-            rt.Detail = $"Charge : {rt.Stored / 1e6f:0.0} / {def.StoreJoules / 1e6f:0} MJ ({rt.Stored / def.StoreJoules * 100f:0} %)";
+            rt.Detail = Lang.T("Charge : ", "Charge: ") + $"{rt.Stored / 1e6f:0.0} / {def.StoreJoules / 1e6f:0} MJ ({rt.Stored / def.StoreJoules * 100f:0} %)";
             if (!power.TryGetGroupFromSocket(new EntityPartSocket(entry.Ship.Id, entry.Part.Id, PowerSocket), out PowerGroupServerState group))
             {
                 rt.Status = MachineStatus.Unpowered;
@@ -258,7 +258,7 @@ namespace StellarIndustries.Production
                 rt.Stored = Mathf.Clamp(rt.Stored + taken - given, 0f, entry.Def.StoreJoules);
                 rt.PowerRate = Mathf.Clamp01((given + taken) / (entry.Def.Watts * deltaTime));
                 rt.Status = given > 0f || taken > 0f ? MachineStatus.Producing : MachineStatus.Standby;
-                rt.Detail = (given > 0f ? "Décharge" : taken > 0f ? "Charge" : "En attente") +
+                rt.Detail = (given > 0f ? Lang.T("Décharge", "Discharging") : taken > 0f ? Lang.T("Charge", "Charging") : Lang.T("En attente", "Idle")) +
                             $" — {rt.Stored / 1e6f:0.0} / {entry.Def.StoreJoules / 1e6f:0} MJ ({rt.Stored / entry.Def.StoreJoules * 100f:0} %)";
             }
         }
@@ -322,9 +322,10 @@ namespace StellarIndustries.Production
                     count += s.Count;
             }
             if (count == 0)
-                return "Combustible : aucun (bois ou briquettes)";
+                return Lang.T("Combustible : aucun (bois ou briquettes)", "Fuel: none (logs or bricks)");
             float seconds = watts > 0f ? joules / watts : 0f;
-            return $"Combustible : {count} objet(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s à pleine charge)";
+            return Lang.T($"Combustible : {count} objet(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s à pleine charge)",
+                $"Fuel: {count} item(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s at full load)");
         }
 
         public static void AfterTransfers(float deltaTime)

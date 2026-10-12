@@ -2,7 +2,7 @@
     "id": "StellarIndustries",
     "name": "Stellar Industries",
     "author": "Romalaure",
-    "version": "0.10.0",
-    "description": "Industrie automatisee pour StellarDrive : 14 machines (atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accelerateur de particules, extracteur, generateur, accumulateur, quai de transfert, conteneur), 53 objets, 59 recettes, branche de recherche Industrie. Modeles detailles et animes, prises a l'arriere, wiki dans le Guide (touche G). Choix de recette (N), scanner (K), tableau de bord (F7). Convoyeurs avec Item Lines (facultatif). Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste a deux.",
+    "version": "0.11.0",
+    "description": "Build your own factory in StellarDrive! Dig ore, smelt it, shape it and assemble it with 14 machines, power them with the game's grid and move everything around with item lines. 53 items, from iron plates to quantum processors, a research branch, animated machines and an in-game wiki (press G). English and French. Needs SDModKit; Item Lines recommended. / Montez votre usine dans StellarDrive : 14 machines pour extraire, fondre, faconner et assembler, 53 objets, une branche de recherche, des machines animees et un wiki dans le jeu (touche G). Necessite SDModKit.",
     "thumbnail": "thumbnail.png"
 }

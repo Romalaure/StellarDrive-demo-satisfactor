@@ -150,7 +150,7 @@ namespace StellarIndustries.Wiki
                 ? "<b>" + WikiPages.Title(p) + "</b>"
                 : $"<link=\"{p}\"><color=#5fc8ff>{WikiPages.Title(p)}</color></link>")));
             if (History.Count > 0)
-                text.Append("    <link=\"back\"><color=#ffb060>« Retour</color></link>");
+                text.Append("    <link=\"back\"><color=#ffb060>« " + Lang.T("Retour", "Back") + "</color></link>");
             text.Append("</size>\n\n");
             text.Append(WikiPages.Render(Current));
             _text.text = text.ToString();
@@ -198,11 +198,13 @@ namespace StellarIndustries.Wiki
                 foreach (KeyValuePair<string, string> generated in WikiContent.Generate())
                     _pages[generated.Key] = generated.Value;
                 var assembly = typeof(WikiPages).Assembly;
-                foreach (string name in assembly.GetManifestResourceNames().Where(n => n.StartsWith("Wiki.") && n.EndsWith(".md")))
+                // Written pages: French ones are "Wiki.<page>.md", English ones "Wiki.en.<page>.md"
+                string prefix = Lang.English ? "Wiki.en." : "Wiki.";
+                foreach (string name in assembly.GetManifestResourceNames().Where(n => n.StartsWith(prefix) && n.EndsWith(".md") && (Lang.English || !n.StartsWith("Wiki.en."))))
                 {
                     using (Stream stream = assembly.GetManifestResourceStream(name))
                     using (var reader = new StreamReader(stream, Encoding.UTF8))
-                        _pages[name.Substring(5, name.Length - 8)] = reader.ReadToEnd();
+                        _pages[name.Substring(prefix.Length, name.Length - prefix.Length - 3)] = reader.ReadToEnd();
                 }
                 return _pages;
             }
@@ -210,13 +212,16 @@ namespace StellarIndustries.Wiki
 
         public static IEnumerable<string> Names => Pages.Keys;
 
+        /// <summary>The language changed: pages are built again on next use.</summary>
+        public static void Reset() => _pages = null;
+
         public static bool Exists(string page) => page != null && Pages.ContainsKey(page);
 
         /// <summary>The page's first heading.</summary>
         public static string Title(string page)
         {
             if (page == "Home")
-                return "Accueil";
+                return Lang.T("Accueil", "Home");
             string first = Pages.TryGetValue(page, out string md) ? md.Split('\n').FirstOrDefault(l => l.StartsWith("# ")) : null;
             return first != null ? first.Substring(2).Trim() : page;
         }

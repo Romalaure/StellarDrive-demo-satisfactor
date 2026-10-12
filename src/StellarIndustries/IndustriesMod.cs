@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.10.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.11.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -26,6 +26,8 @@ namespace StellarIndustries
         {
             Log = LoggerInstance;
             Settings.Load();
+            Lang.Refresh(force: true);
+            Lang.Changed += OnLanguageChanged;
             ValidateContent();
             IndustrialItems.Create();
             SINet.InstallSerializers();
@@ -125,6 +127,7 @@ namespace StellarIndustries
         public override void OnUpdate()
         {
             SINet.Update();
+            Lang.Refresh();
             if (_inGame)
                 MachineActivity.Update();
             if (_inGame && _partsRegistered)
@@ -141,6 +144,29 @@ namespace StellarIndustries
                 UI.DepositScanner.OnGUI();
                 Diagnostics.FactoryOverview.OnGUI();
             }
+        }
+
+        private static void OnLanguageChanged()
+        {
+            try
+            {
+                IndustrialItems.Rename();
+                Wiki.WikiPages.Reset();
+                if (_partsRegistered)
+                    RenameParts();
+                Log.Msg("language: " + (Lang.English ? "English" : "French"));
+            }
+            catch (Exception e)
+            {
+                ErrorLog.Report("language", e);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void RenameParts()
+        {
+            Parts.MachineParts.Rename();
+            Parts.IndustryResearch.Rename();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

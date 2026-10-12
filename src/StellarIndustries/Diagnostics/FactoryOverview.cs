@@ -125,10 +125,10 @@ namespace StellarIndustries.Diagnostics
             while (Made.Count > 0 && now - Made.Peek().Time > 60f)
                 _madeTotal -= Made.Dequeue().Cycles;
             var text = new StringBuilder();
-            text.Append("<b>Tableau de bord industriel</b>");
+            text.Append(Lang.T("<b>Tableau de bord industriel</b>", "<b>Factory overview</b>"));
             ShipsServerTracker ships = ServiceLocator.GetService<ShipsServerTracker>();
             if (ships == null)
-                return text.Append("\nIndisponible (pas dans un monde).").ToString();
+                return text.Append(Lang.T("\nIndisponible (pas dans un monde).", "\nNot available (not in a world).")).ToString();
             var byStatus = new Dictionary<MachineStatus, int>();
             var problems = new List<string>();
             int machines = 0;
@@ -150,25 +150,26 @@ namespace StellarIndustries.Diagnostics
                     else if (rt.Status == MachineStatus.Producing || rt.Status == MachineStatus.Underpowered)
                         drawn += rt.Watts * rt.PowerRate;
                     if (IsProblem(rt.Status) && problems.Count < 12)
-                        problems.Add($"{def.Name} (vaisseau {ship.Id}, pièce {part.Id}) : {UI.MachineHud.StatusText(rt.Status)}");
+                        problems.Add(Lang.T($"{def.Name} (vaisseau {ship.Id}, pièce {part.Id}) : ", $"{Lang.MachineName(def)} (ship {ship.Id}, part {part.Id}): ") + UI.MachineHud.StatusText(rt.Status));
                 }
             }
-            text.Append("\nMachines simulées : ").Append(machines);
+            text.Append(Lang.T("\nMachines simulées : ", "\nMachines running: ")).Append(machines);
             foreach (var pair in byStatus.OrderBy(p => p.Key))
                 text.Append("\n  ").Append(UI.MachineHud.StatusText(pair.Key)).Append(" : ").Append(pair.Value);
-            text.Append("\nÉnergie consommée par les machines : ").Append(Mathf.RoundToInt(drawn)).Append(" W");
-            text.Append("\nÉnergie donnée par les générateurs du mod : ").Append(Mathf.RoundToInt(given)).Append(" W");
-            text.Append("\nCycles terminés (dernière minute) : ").Append(_madeTotal);
+            text.Append(Lang.T("\nÉnergie consommée par les machines : ", "\nPower used by the machines: ")).Append(Mathf.RoundToInt(drawn)).Append(" W");
+            text.Append(Lang.T("\nÉnergie donnée par les générateurs du mod : ", "\nPower given by the mod's generators: ")).Append(Mathf.RoundToInt(given)).Append(" W");
+            text.Append(Lang.T("\nCycles terminés (dernière minute) : ", "\nCycles done (last minute): ")).Append(_madeTotal);
             if (problems.Count > 0)
             {
-                text.Append("\n<b>À vérifier</b>");
+                text.Append(Lang.T("\n<b>À vérifier</b>", "\n<b>Needs attention</b>"));
                 foreach (string p in problems)
                     text.Append("\n  ").Append(p);
             }
-            text.Append($"\n<color=#aaa>Simulation : {_tickMs:0.000} ms par tick en moyenne ({_ticks} ticks / 5 s), pic {_peakMs:0.000} ms</color>");
+            text.Append(Lang.T($"\n<color=#aaa>Simulation : {_tickMs:0.000} ms par tick en moyenne ({_ticks} ticks / 5 s), pic {_peakMs:0.000} ms</color>",
+                $"\n<color=#aaa>Simulation: {_tickMs:0.000} ms per tick on average ({_ticks} ticks / 5 s), peak {_peakMs:0.000} ms</color>"));
             if (!Settings.Enabled.Value)
-                text.Append("\n<color=#f84>Production désactivée (Enabled = false)</color>");
-            text.Append($"\n<color=#aaa>[{(_key == Key.None ? "F7" : _key.ToString())}] fermer</color>");
+                text.Append(Lang.T("\n<color=#f84>Production désactivée (Enabled = false)</color>", "\n<color=#f84>Production turned off (Enabled = false)</color>"));
+            text.Append($"\n<color=#aaa>[{(_key == Key.None ? "F7" : _key.ToString())}] {Lang.T("fermer", "close")}</color>");
             return text.ToString();
         }
 

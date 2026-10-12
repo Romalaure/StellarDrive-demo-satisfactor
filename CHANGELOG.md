@@ -1,5 +1,12 @@
 # Journal des changements
 
+## 0.11.0 — anglais
+
+- Le mod parle maintenant anglais : noms et descriptions des objets et des machines, recettes,
+  recherche, panneau d'état, scanner, tableau de bord et tout le wiki. Il suit la langue du jeu
+  (réglage `Language` : `auto`, `fr` ou `en`) et se met à jour sans relancer le jeu.
+- README, description du mod et pages du wiki réécrits, plus simples à lire.
+
 ## 0.10.0 — contenu étendu et wiki dans le jeu
 
 - Comparaison avec les jeux d'automatisation (liste des bâtiments et objets d'un wiki de
