@@ -1,5 +1,15 @@
 # Journal des changements
 
+## 0.3.0 — phase B (extraction)
+
+- **Extracteur** (7606, 700 W) : produit 1 objet toutes les 6 s du rocher minable le plus
+  proche à moins de 6 m (fer, cuivre, aluminium, cristaux de verre, glace, minerais d'autres
+  mods...). Le rocher n'est pas épuisé ; s'il est miné par un joueur, l'extracteur s'arrête
+  (« Aucun gisement à portée »). Les arbres et les outils posés au sol ne comptent pas.
+- **Scanner de gisements** : touche `K`, liste pendant 8 s les rochers par type autour du
+  joueur (nombre, distance, direction). Réglages `ScanKey`, `ScanRadius` (80 m).
+- Le panneau de l'extracteur indique le gisement et sa distance.
+
 ## 0.2.0 — phase C (transformation)
 
 - Machines : **Fonderie** (7602, 400 W), **Presse** (7603, 600 W), **Broyeur** (7604, 350 W),

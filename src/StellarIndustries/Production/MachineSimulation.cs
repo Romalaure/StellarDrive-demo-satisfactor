@@ -113,8 +113,31 @@ namespace StellarIndustries.Production
         {
             var state = (StorageState)part.State;
             Read(state, Buffer);
-            RecipeDef chosen = MachineControl.Chosen(ship.Id, part.Id, def.PartId);
-            RecipeDef recipe = RecipeSelector.Pick(Buffer, RecipeBook.ForMachine(def.PartId), rt.Recipe, chosen, IndustrialItems.MaxStack, out MachineStatus status);
+            RecipeDef recipe;
+            MachineStatus status;
+            if (def.Extracts)
+            {
+                // An extractor's only "recipe" is one item of the rock within its reach
+                Deposits.Deposit? deposit = Deposits.Find(ship.Id, part, def);
+                if (deposit == null)
+                {
+                    rt.Recipe = null;
+                    rt.Progress = 0f;
+                    rt.Watts = 0f;
+                    rt.Status = MachineStatus.NoDeposit;
+                    rt.Detail = $"Aucun rocher minable à moins de {def.ExtractRadius:0} m";
+                    return;
+                }
+                Deposits.Deposit d = deposit.Value;
+                rt.Detail = $"Gisement : {d.Name} à {d.Distance:0.0} m";
+                RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds, IndustrialItems.NameOf(d.Item));
+                recipe = RecipeSelector.Pick(Buffer, new[] { extraction }, rt.Recipe, IndustrialItems.MaxStack, out status);
+            }
+            else
+            {
+                RecipeDef chosen = MachineControl.Chosen(ship.Id, part.Id, def.PartId);
+                recipe = RecipeSelector.Pick(Buffer, RecipeBook.ForMachine(def.PartId), rt.Recipe, chosen, IndustrialItems.MaxStack, out status);
+            }
             if (recipe != rt.Recipe)
                 rt.Progress = 0f;
             rt.Recipe = recipe;

@@ -40,6 +40,12 @@ B sans câble et C plein inchangés ; contenu identique après rechargement ; **
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
 
+0.3.0 (12/10/2026), extracteur (pièce 14, câblé à son générateur) : PASS sans rocher à
+portée (« aucun gisement », rien produit) ; un rocher de test (composant MinablePlanetObject du
+jeu donnant du fer, créé par le test à 3 m) : PASS 5 fers extraits en ~30 s. Le scanner, lui,
+a trouvé les **vrais** rochers du monde (« Iron : 6 rocher(s), le plus proche à 39 m ») ;
+l'extraction depuis un vrai rocher n'a pas été testée (aucun à moins de 6 m du vaisseau de test).
+
 Résultat 0.1.0 (11/10/2026) :
 
 | Vérification | Résultat |
@@ -62,4 +68,6 @@ Résultat 0.1.0 (11/10/2026) :
 | Icônes et modèles 3D des objets dans l'inventaire | non testé |
 | Recycler un atelier plein | non testé |
 | Touche N pour changer de recette | non testé à la main (le choix lui-même est testé) |
+| Poser un extracteur à côté d'un vrai rocher | non testé |
+| Touche K du scanner | non testée à la main (le scan est testé) |
 | Deux joueurs (hôte + client) | non testé |

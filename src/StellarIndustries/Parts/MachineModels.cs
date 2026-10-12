@@ -29,6 +29,7 @@ namespace StellarIndustries.Parts
                 case MachineModel.Press: Press(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Crusher: Crusher(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Assembler: Assembler(o, body, accent, screen, glow, dark); break;
+                case MachineModel.Extractor: Extractor(o, body, accent, screen, glow, dark); break;
                 default: Workshop(o, body, accent, screen, glow, dark); break;
             }
             string name = "SI_" + model;
@@ -140,6 +141,32 @@ namespace StellarIndustries.Parts
             Corners(o, accent, 1.6f, 1.2f);
             screen.Box(o + new Vector3(-0.45f, 0.45f, 0.51f), new Vector3(0.3f, 0.18f, 0.02f));
             glow.Box(o + new Vector3(0.5f, 0.45f, 0.51f), new Vector3(0.06f, 0.06f, 0.02f));
+        }
+
+        // A drilling rig: braced tower, motor head on top, drill string and bit down through the base
+        private static void Extractor(Vector3 o, MeshBuilder body, MeshBuilder accent, MeshBuilder screen, MeshBuilder glow, MeshBuilder dark)
+        {
+            body.Box(o + new Vector3(0f, 0.08f, 0f), new Vector3(1.4f, 0.16f, 1.2f));
+            body.Box(o + new Vector3(-0.42f, 0.4f, -0.1f), new Vector3(0.45f, 0.5f, 0.8f));
+            // Four legs leaning in, and cross braces
+            foreach (float x in new[] { -0.45f, 0.45f })
+            {
+                foreach (float z in new[] { -0.4f, 0.4f })
+                    body.Box(o + new Vector3(x * 0.8f, 1.1f, z * 0.8f), new Vector3(0.08f, 1.9f, 0.08f), Quaternion.Euler(z > 0 ? 6f : -6f, 0f, x > 0 ? -6f : 6f));
+                accent.Box(o + new Vector3(x * 0.8f, 0.9f, 0f), new Vector3(0.05f, 0.05f, 0.75f));
+                accent.Box(o + new Vector3(x * 0.72f, 1.5f, 0f), new Vector3(0.05f, 0.05f, 0.65f));
+            }
+            // Motor head
+            body.Box(o + new Vector3(0f, 2.05f, 0f), new Vector3(0.6f, 0.3f, 0.6f));
+            accent.Cylinder(o + new Vector3(0f, 2.2f, 0f), o + new Vector3(0f, 2.3f, 0f), 0.22f, 0.15f, 12);
+            // Drill string and bit
+            dark.Cylinder(o + new Vector3(0f, 1.9f, 0f), o + new Vector3(0f, 0.3f, 0f), 0.07f, 0.07f, 10);
+            dark.Cylinder(o + new Vector3(0f, 0.3f, 0f), o + new Vector3(0f, 0.02f, 0f), 0.16f, 0.04f, 8);
+            dark.Box(o + new Vector3(0f, 0.17f, 0f), new Vector3(0.5f, 0.04f, 0.5f));
+            // Ore bin at the front, with its glowing level light
+            body.Box(o + new Vector3(0.4f, 0.4f, 0.25f), new Vector3(0.5f, 0.5f, 0.55f));
+            glow.Box(o + new Vector3(0.4f, 0.55f, 0.53f), new Vector3(0.3f, 0.05f, 0.02f));
+            screen.Box(o + new Vector3(-0.42f, 0.5f, 0.31f), new Vector3(0.26f, 0.18f, 0.02f));
         }
 
         private static void Corners(Vector3 o, MeshBuilder accent, float width, float depth)

@@ -14,6 +14,8 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<bool> MachineHud { get; private set; }
         public static MelonPreferences_Entry<float> MachineHudDistance { get; private set; }
         public static MelonPreferences_Entry<string> RecipeKey { get; private set; }
+        public static MelonPreferences_Entry<string> ScanKey { get; private set; }
+        public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
 
         public static void Load()
         {
@@ -32,6 +34,10 @@ namespace StellarIndustries.Core
                 description: "Distance (meters) up to which a machine you look at shows its state.");
             RecipeKey = _category.CreateEntry("RecipeKey", "N",
                 description: "Key that changes the recipe of the machine you look at (Shift + key: previous). A Unity Input System key name: N, B, Y, F6...");
+            ScanKey = _category.CreateEntry("ScanKey", "K",
+                description: "Key of the deposit scanner: lists the minable rocks around you for a few seconds.");
+            ScanRadius = _category.CreateEntry("ScanRadius", 80f,
+                description: "Reach of the deposit scanner (meters).");
             Diagnostics.DevTest.Load(_category);
         }
 

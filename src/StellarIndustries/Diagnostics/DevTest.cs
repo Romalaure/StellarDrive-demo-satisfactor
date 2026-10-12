@@ -50,7 +50,7 @@ namespace StellarIndustries.Diagnostics
         private const string GameScene = "MainGame";
         private const ushort WoodGenerator = 60, IronFloor = 1;
         private const ushort GeneratorPart = 1, WorkshopA = 2, WorkshopB = 3, WorkshopC = 4;
-        private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12;
+        private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12, Gen6 = 13, ExtractorPart = 14;
 
         private static MelonPreferences_Entry<string> _world;
         private static MelonPreferences_Entry<int> _phase;
@@ -206,7 +206,7 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(WorkshopB, new StorageState { InventorySlots = Slots((GameItems.Iron, 6)) });
             var full = Enumerable.Repeat((GameItems.Iron, IndustrialItems.MaxStack(GameItems.Iron)), 10).ToArray();
             ship.UpdatePartState(WorkshopC, new StorageState { InventorySlots = Slots(full) });
-            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5 })
+            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6 })
                 ship.UpdatePartState(generator, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
             ship.UpdatePartState(SmelterPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.StellarDust, 4)) });
             ship.UpdatePartState(CrusherPart, new StorageState { InventorySlots = Slots((GameItems.StellarShard, 2)) });
@@ -226,6 +226,8 @@ namespace StellarIndustries.Diagnostics
                     yield break;
                 }
                 Log($"t={2 * i} s: {Describe(ship)}");
+                if (i == 1)
+                    PlaceDevRock(ship);
                 if (i == 3)
                     yield return Photograph(shipId, "machines");
                 if (i == 4)
@@ -241,6 +243,9 @@ namespace StellarIndustries.Diagnostics
             Check(ship, CrusherPart, (ResourceCatalog.StellarDust, 6), (GameItems.Glass, 2));
             Check(ship, AssemblerPart, (ResourceCatalog.ReinforcedPlate, 1));
             Check(ship, PressPart, (ResourceCatalog.IronRod, 3), (ResourceCatalog.Cable, 2));
+            CheckExtractor(ship);
+            if (_devRock != null)
+                Object.Destroy(_devRock);
             Check(ship, WorkshopB, (GameItems.Iron, 6));
             Check(ship, WorkshopC, full);
             // A last change just before saving, so the save holds a mid-production state
@@ -301,6 +306,58 @@ namespace StellarIndustries.Diagnostics
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
+        }
+
+        // ---- Extraction
+
+        private static GameObject _devRock;
+        private static string _devRockItem;
+
+        /// <summary>
+        /// The scanner's report, then: with no rock in reach the extractor must stay idle; a test
+        /// rock (a game MinablePlanetObject giving iron, on this PC only) is then set 3 m from it.
+        /// </summary>
+        private static void PlaceDevRock(TrackedShipServer ship)
+        {
+            Log("scanner: " + UI.DepositScanner.Scan().Replace("\n", " | "));
+            var real = Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None);
+            Log($"{real.Length} minable rock(s) loaded: " + string.Join(", ", real.GroupBy(r => r.dropRate.item != null ? r.dropRate.item.itemName : "?").Select(g => g.Count() + " " + g.Key)));
+            ship.TryGetStatefulPart(ExtractorPart, out StatefulPart part);
+            MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
+            Log($"extractor before the test rock: {rt?.Status.ToString() ?? "-"} ({rt?.Detail ?? "-"})");
+            if (rt != null && rt.Status == MachineStatus.NoDeposit)
+                Log("PASS extractor without a rock in reach: no deposit, nothing produced");
+            Vector3? at = part != null ? Deposits.WorldPosition(ship.Id, part) : null;
+            if (at == null)
+            {
+                Log("FAIL extractor position unknown");
+                return;
+            }
+            _devRock = new GameObject("SI_DevRock");
+            _devRock.transform.position = at.Value + new Vector3(0f, 0f, 3f);
+            var minable = _devRock.AddComponent<Planets.Objects.MinablePlanetObject>();
+            minable.dropRate = new Planets.Objects.Common.Model.ItemDropRate { item = IndustrialItems.Find(GameItems.Iron), amountMin = 1, amountMax = 2 };
+            _devRockItem = minable.dropRate.item != null ? minable.dropRate.item.itemName : "?";
+            Deposits.Rescan();
+            Log($"test rock ({_devRockItem}) set 3 m from the extractor at {at.Value}");
+        }
+
+        private static void CheckExtractor(TrackedShipServer ship)
+        {
+            StatefulPart part = ship.GetAllStatefulParts<StorageState>().FirstOrDefault(p => p.Id == ExtractorPart);
+            if (part == null)
+            {
+                Log("FAIL extractor missing");
+                return;
+            }
+            var slots = new Production.Stack[10];
+            MachineSimulation.Read((StorageState)part.State, slots);
+            int iron = Crafting.CountOf(slots, GameItems.Iron);
+            int all = slots.Sum(x => x.Count);
+            MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
+            // About 28 s with the rock at 1 item per 6 s
+            bool ok = iron >= 3 && iron <= 6 && all == iron;
+            Log($"{(ok ? "PASS" : "FAIL")} extractor: {iron} iron extracted ({all} items), {rt?.Status} {rt?.Detail}");
         }
 
         // ---- Helpers
@@ -405,12 +462,13 @@ namespace StellarIndustries.Diagnostics
                 Part(Gen2, WoodGenerator, -4f, 0f), Part(SmelterPart, MachineCatalog.Smelter, -2f, 0f),
                 Part(Gen3, WoodGenerator, 0.5f, 0f), Part(CrusherPart, MachineCatalog.Crusher, 2.5f, 0f),
                 Part(Gen4, WoodGenerator, -4f, 2.2f), Part(AssemblerPart, MachineCatalog.Assembler, -2f, 2.2f),
-                Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f));
+                Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f),
+                Part(Gen6, WoodGenerator, 4.5f, 2.2f), Part(ExtractorPart, MachineCatalog.Extractor, 4.3f, 0f));
             // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
             string Cable(int id, ushort from, ushort to) =>
                 $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";
             string cables = string.Join(",", Cable(1, GeneratorPart, WorkshopA), Cable(2, Gen2, SmelterPart), Cable(3, Gen3, CrusherPart),
-                Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart));
+                Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart), Cable(6, Gen6, ExtractorPart));
             var sb = new StringBuilder();
             sb.Append("{\"rootShipId\":1,\"cables\":[").Append(cables).Append("],\"ships\":[{");
             sb.Append("\"id\":1,\"relativeSpaceId\":0,\"spaceId\":0,\"position\":{\"x\":0,\"y\":0,\"z\":0},\"velocity\":{\"x\":0,\"y\":0,\"z\":0},\"rotation\":{\"x\":0,\"y\":0,\"z\":0,\"w\":1},");

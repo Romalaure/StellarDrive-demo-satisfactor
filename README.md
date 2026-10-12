@@ -4,7 +4,7 @@ Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisati
 transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
 déclare opérationnel que ce qui a été vérifié dans le jeu.
 
-**Version 0.2.0 — phases A et C.** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
+**Version 0.3.0 — phases A, C et B.** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
 pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
 
 ![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
@@ -20,6 +20,8 @@ pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE
 | Sauvegarde : contenu identique après rechargement, production qui reprend | ✅ testé en jeu |
 | **Fonderie, Presse, Broyeur, Assembleuse** : lingots, tiges, vis, câbles, tôles, plaques renforcées, minerai broyé (meilleur rendement) | ✅ testé en jeu |
 | **Choix de recette** (touche `N` en visant la machine), conservé dans la sauvegarde | ✅ testé en jeu (touche : non testée à la main) |
+| **Extracteur** : à moins de 6 m d'un rocher minable, en tire son minerai (1 / 6 s) sans l'épuiser | ✅ testé en jeu (avec un rocher de test) |
+| **Scanner de gisements** (touche `K`) : rochers autour du joueur par type, distance, direction | ✅ testé en jeu (vrais rochers détectés) |
 | Panneau d'état en visant une machine (état, recette, progression, énergie, contenu, mode) | ✅ affichage vérifié par capture |
 | Multijoueur | ⚠️ conçu pour (l'hôte seul simule), **non testé** |
 
@@ -36,7 +38,7 @@ minerai avant la fonderie (+33 % de lingots).
 - Le cycle en cours repart de zéro après un rechargement (aucun objet perdu).
 - 10 emplacements par machine (limite du stockage du jeu).
 - Chez un client, le panneau dépend des réponses de l'hôte (non testé à deux joueurs).
-- Pas encore d'extraction, de convoyeurs, de recherche ni de fluides (phases suivantes).
+- L'extracteur ne voit que les rochers chargés par le jeu de l'hôte (près d'un joueur).
 
 ## Installation
 

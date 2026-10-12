@@ -12,7 +12,8 @@ namespace StellarIndustries.Production
         Smelter,
         Press,
         Crusher,
-        Assembler
+        Assembler,
+        Extractor
     }
 
     /// <summary>
@@ -33,6 +34,10 @@ namespace StellarIndustries.Production
         public int Slots = 10;
         public float Mass;
         public int Tier;
+        /// <summary>Extractor: produces the item of the nearest minable rock instead of running recipes.</summary>
+        public bool Extracts;
+        /// <summary>Extractor: seconds per item at speed 1, and how far (meters) it reaches for a rock.</summary>
+        public float ExtractSeconds = 6f, ExtractRadius = 6f;
         /// <summary>Placement box (meters): width (x), height (y), depth (z).</summary>
         public float Width = 1.4f, Height = 1.5f, Depth = 1.2f;
         public (uint Item, int Count)[] BuildCost;
@@ -45,6 +50,7 @@ namespace StellarIndustries.Production
         public const ushort Press = 7603;
         public const ushort Crusher = 7604;
         public const ushort Assembler = 7605;
+        public const ushort Extractor = 7606;
 
         public static readonly MachineDef[] All =
         {
@@ -79,6 +85,14 @@ namespace StellarIndustries.Production
                 PartId = Assembler, Name = "Assembleuse", Model = MachineModel.Assembler, Tier = 1, Watts = 800f, Mass = 220f, Width = 1.6f, Height = 1.6f,
                 Description = "Assemble plusieurs pièces en composants : plaques renforcées.",
                 BuildCost = new[] { (ResourceCatalog.IronPlate, 12), (ResourceCatalog.Screws, 40), (ResourceCatalog.Cable, 6) }
+            },
+            new MachineDef
+            {
+                PartId = Extractor, Name = "Extracteur", Model = MachineModel.Extractor, Tier = 0, Watts = 700f, Mass = 250f, Height = 2.2f,
+                Extracts = true, ExtractSeconds = 6f, ExtractRadius = 6f,
+                Description = "Fore le rocher minable le plus proche (à moins de 6 m) et en tire son minerai sans l'épuiser : " +
+                              "1 objet toutes les 6 s. Posez-le sur un vaisseau ou une base au sol, à côté d'un rocher, et alimentez-le.",
+                BuildCost = new[] { (GameItems.Iron, 20), (GameItems.Copper, 8), (GameItems.Glass, 2) }
             }
         };
 

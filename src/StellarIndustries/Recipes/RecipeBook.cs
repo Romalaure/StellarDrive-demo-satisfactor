@@ -109,6 +109,27 @@ namespace StellarIndustries.Recipes
             return _byMachine.TryGetValue(machine, out RecipeDef[] recipes) ? recipes : new RecipeDef[0];
         }
 
-        public static RecipeDef Get(string id) => All.FirstOrDefault(r => r.Id == id);
+        public static RecipeDef Get(string id) => All.FirstOrDefault(r => r.Id == id) ?? (id != null && Extractions.TryGetValue(id, out RecipeDef e) ? e : null);
+
+        private static readonly Dictionary<string, RecipeDef> Extractions = new Dictionary<string, RecipeDef>();
+
+        /// <summary>
+        /// An extractor's work as a recipe without inputs: one item of its deposit per cycle. Made on
+        /// demand (deposits are found in the world), never listed in <see cref="All"/>.
+        /// </summary>
+        public static RecipeDef Extraction(ushort machine, uint item, float seconds, string itemName)
+        {
+            string id = "extract." + machine + "." + item;
+            if (!Extractions.TryGetValue(id, out RecipeDef recipe))
+            {
+                recipe = new RecipeDef
+                {
+                    Id = id, Name = "Extraction : " + itemName, Machine = machine, Seconds = seconds,
+                    Inputs = new ItemAmount[0], Outputs = new[] { new ItemAmount(item, 1) }
+                };
+                Extractions[id] = recipe;
+            }
+            return recipe;
+        }
     }
 }

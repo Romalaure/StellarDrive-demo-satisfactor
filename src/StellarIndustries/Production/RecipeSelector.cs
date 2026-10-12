@@ -18,6 +18,8 @@ namespace StellarIndustries.Production
         Producing,
         /// <summary>Producing slower: its network gives part of what it needs.</summary>
         Underpowered,
+        /// <summary>Extractor without a minable rock within reach.</summary>
+        NoDeposit,
         Error
     }
 

@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.2.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.3.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -106,6 +106,7 @@ namespace StellarIndustries
         {
             MachineSimulation.Forget();
             MachineControl.Forget();
+            Deposits.Forget();
             _inGame = sceneName == "MainGame";
             Diagnostics.DevTest.OnSceneLoaded(sceneName);
         }
@@ -122,7 +123,10 @@ namespace StellarIndustries
         public override void OnGUI()
         {
             if (_inGame && _partsRegistered)
+            {
                 UI.MachineHud.OnGUI();
+                UI.DepositScanner.OnGUI();
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -131,6 +135,7 @@ namespace StellarIndustries
             try
             {
                 UI.MachineHud.Update();
+                UI.DepositScanner.Update();
             }
             catch (Exception e)
             {

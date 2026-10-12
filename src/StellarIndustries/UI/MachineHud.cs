@@ -165,6 +165,7 @@ namespace StellarIndustries.UI
                 case MachineStatus.NoPower: return "<color=#f66>Pas d'énergie sur le réseau</color>";
                 case MachineStatus.Underpowered: return "<color=#fd6>En production (énergie insuffisante)</color>";
                 case MachineStatus.Producing: return "<color=#6f8>En production</color>";
+                case MachineStatus.NoDeposit: return "<color=#f84>Aucun gisement à portée</color>";
                 default: return "<color=#f44>Erreur</color>";
             }
         }
