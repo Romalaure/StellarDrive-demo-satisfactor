@@ -13,6 +13,7 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<bool> RequirePower { get; private set; }
         public static MelonPreferences_Entry<bool> MachineHud { get; private set; }
         public static MelonPreferences_Entry<float> MachineHudDistance { get; private set; }
+        public static MelonPreferences_Entry<string> RecipeKey { get; private set; }
 
         public static void Load()
         {
@@ -29,6 +30,8 @@ namespace StellarIndustries.Core
                 description: "Shows a machine's state, recipe and progress when you look at it.");
             MachineHudDistance = _category.CreateEntry("MachineHudDistance", 4f,
                 description: "Distance (meters) up to which a machine you look at shows its state.");
+            RecipeKey = _category.CreateEntry("RecipeKey", "N",
+                description: "Key that changes the recipe of the machine you look at (Shift + key: previous). A Unity Input System key name: N, B, Y, F6...");
             Diagnostics.DevTest.Load(_category);
         }
 

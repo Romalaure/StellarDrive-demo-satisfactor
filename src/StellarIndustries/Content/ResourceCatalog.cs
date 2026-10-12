@@ -19,7 +19,12 @@ namespace StellarIndustries.Content
         Plate,
         Coil,
         Rod,
-        Chunk
+        Chunk,
+        Ingot,
+        Screws,
+        Powder,
+        HeavyPlate,
+        Brick
     }
 
     /// <summary>
@@ -52,9 +57,21 @@ namespace StellarIndustries.Content
     {
         public const uint IronPlate = 7701;
         public const uint CopperWire = 7702;
+        public const uint IronIngot = 7703;
+        public const uint CopperIngot = 7704;
+        public const uint AluminumIngot = 7705;
+        public const uint IronRod = 7706;
+        public const uint Screws = 7707;
+        public const uint ReinforcedPlate = 7708;
+        public const uint AluminumSheet = 7709;
+        public const uint Cable = 7710;
+        public const uint CrushedIron = 7711;
+        public const uint CrushedCopper = 7712;
+        public const uint StellarDust = 7713;
 
         public static readonly ResourceDef[] All =
         {
+            // ---- Intermediates (phase A)
             new ResourceDef
             {
                 Id = IronPlate, Name = "Plaque de fer", Category = ResourceCategory.Intermediate, Mass = 1.5f, Tier = 0,
@@ -66,6 +83,75 @@ namespace StellarIndustries.Content
                 Id = CopperWire, Name = "Fil de cuivre", Category = ResourceCategory.Intermediate, Mass = 0.5f, Tier = 0,
                 Description = "Cuivre étiré en bobine. Base des composants électriques.",
                 MaterialFrom = GameItems.Copper, Tint = new[] { 1f, 0.75f, 0.5f }, Shape = ResourceShape.Coil
+            },
+            // ---- Smelted (phase C)
+            new ResourceDef
+            {
+                Id = IronIngot, Name = "Lingot de fer", Category = ResourceCategory.Intermediate, Mass = 2f, Tier = 0,
+                Description = "Fer fondu et coulé. Se travaille mieux que le minerai brut.",
+                MaterialFrom = GameItems.Iron, Tint = new[] { 0.7f, 0.72f, 0.78f }, Shape = ResourceShape.Ingot
+            },
+            new ResourceDef
+            {
+                Id = CopperIngot, Name = "Lingot de cuivre", Category = ResourceCategory.Intermediate, Mass = 2f, Tier = 0,
+                Description = "Cuivre fondu et coulé.",
+                MaterialFrom = GameItems.Copper, Tint = new[] { 1.1f, 0.7f, 0.45f }, Shape = ResourceShape.Ingot
+            },
+            new ResourceDef
+            {
+                Id = AluminumIngot, Name = "Lingot d'aluminium", Category = ResourceCategory.Intermediate, Mass = 1f, Tier = 1,
+                Description = "Aluminium affiné, léger et résistant.",
+                MaterialFrom = GameItems.Aluminum, Tint = new[] { 1.05f, 1.05f, 1.1f }, Shape = ResourceShape.Ingot
+            },
+            // ---- Shaped parts (phase C)
+            new ResourceDef
+            {
+                Id = IronRod, Name = "Tige de fer", Category = ResourceCategory.Intermediate, Mass = 1f, Tier = 0,
+                Description = "Barre de fer étirée. Donne les vis et les armatures.",
+                MaterialFrom = GameItems.Iron, Tint = new[] { 0.8f, 0.82f, 0.86f }, Shape = ResourceShape.Rod
+            },
+            new ResourceDef
+            {
+                Id = Screws, Name = "Vis", Category = ResourceCategory.Component, Mass = 0.1f, Tier = 0, MaxStack = 200,
+                Description = "Petites vis d'assemblage, par poignées.",
+                MaterialFrom = GameItems.Iron, Tint = new[] { 0.75f, 0.75f, 0.7f }, Shape = ResourceShape.Screws
+            },
+            new ResourceDef
+            {
+                Id = Cable, Name = "Câble", Category = ResourceCategory.Component, Mass = 0.8f, Tier = 0,
+                Description = "Fils de cuivre torsadés et gainés.",
+                MaterialFrom = GameItems.Copper, Tint = new[] { 0.35f, 0.35f, 0.38f }, Shape = ResourceShape.Coil
+            },
+            new ResourceDef
+            {
+                Id = AluminumSheet, Name = "Tôle d'aluminium", Category = ResourceCategory.Component, Mass = 1f, Tier = 1,
+                Description = "Tôle fine et légère pour les coques et les machines avancées.",
+                MaterialFrom = GameItems.Aluminum, Tint = new[] { 1.1f, 1.1f, 1.15f }, Shape = ResourceShape.Plate
+            },
+            new ResourceDef
+            {
+                Id = ReinforcedPlate, Name = "Plaque renforcée", Category = ResourceCategory.Component, Mass = 6f, Tier = 1, MaxStack = 50,
+                Description = "Plaques de fer vissées en sandwich. Structure des machines lourdes.",
+                MaterialFrom = GameItems.Iron, Tint = new[] { 0.6f, 0.62f, 0.68f }, Shape = ResourceShape.HeavyPlate
+            },
+            // ---- Crushed (phase C)
+            new ResourceDef
+            {
+                Id = CrushedIron, Name = "Fer broyé", Category = ResourceCategory.Ore, Mass = 1f, Tier = 1,
+                Description = "Minerai de fer concassé : la fonderie en tire plus de métal.",
+                MaterialFrom = GameItems.Iron, Tint = new[] { 0.55f, 0.45f, 0.42f }, Shape = ResourceShape.Powder
+            },
+            new ResourceDef
+            {
+                Id = CrushedCopper, Name = "Cuivre broyé", Category = ResourceCategory.Ore, Mass = 1f, Tier = 1,
+                Description = "Minerai de cuivre concassé : la fonderie en tire plus de métal.",
+                MaterialFrom = GameItems.Copper, Tint = new[] { 0.9f, 0.55f, 0.35f }, Shape = ResourceShape.Powder
+            },
+            new ResourceDef
+            {
+                Id = StellarDust, Name = "Poussière stellaire", Category = ResourceCategory.Ore, Mass = 0.3f, Tier = 1, MaxStack = 200,
+                Description = "Éclats stellaires réduits en poudre scintillante. Fondue, elle donne du verre.",
+                MaterialFrom = GameItems.StellarShard, Tint = new[] { 1f, 1f, 1f }, Shape = ResourceShape.Powder
             }
         };
 

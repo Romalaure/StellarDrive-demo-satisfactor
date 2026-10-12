@@ -11,7 +11,8 @@ namespace StellarIndustries.Tests
     {
         private static int Max20(uint item) => 20;
 
-        private static readonly RecipeDef Plate = RecipeBook.Get("workshop.iron_plate");
+        // 2 iron -> 1 plate; 1 copper ingot -> 2 wire
+        private static readonly RecipeDef Plate = RecipeBook.Get("workshop.iron_plate_raw");
         private static readonly RecipeDef Wire = RecipeBook.Get("workshop.copper_wire");
 
         private static Stack[] Slots(params Stack[] first)
@@ -85,7 +86,7 @@ namespace StellarIndustries.Tests
         [Fact]
         public void OutputsJoinAnExistingStackFirst()
         {
-            Stack[] slots = Slots(new Stack(GameItems.Copper, 3), new Stack(ResourceCatalog.CopperWire, 5));
+            Stack[] slots = Slots(new Stack(ResourceCatalog.CopperIngot, 3), new Stack(ResourceCatalog.CopperWire, 5));
             Assert.Equal(CraftResult.Ok, Crafting.TryCraft(slots, Wire, Max20, out Stack[] after));
             Assert.Equal(7, after[1].Count);
             Assert.True(after[9].IsEmpty);
@@ -94,7 +95,7 @@ namespace StellarIndustries.Tests
         [Fact]
         public void StackLimitSplitsOutputs()
         {
-            Stack[] slots = Slots(new Stack(GameItems.Copper, 3), new Stack(ResourceCatalog.CopperWire, 19));
+            Stack[] slots = Slots(new Stack(ResourceCatalog.CopperIngot, 3), new Stack(ResourceCatalog.CopperWire, 19));
             Assert.Equal(CraftResult.Ok, Crafting.TryCraft(slots, Wire, Max20, out Stack[] after));
             Assert.Equal(20, after[1].Count);
             Assert.Equal(new Stack(ResourceCatalog.CopperWire, 1), after[9]);
@@ -189,9 +190,9 @@ namespace StellarIndustries.Tests
             var slots = new Stack[10];
             slots[0] = new Stack(GameItems.Iron, 10);
             slots[1] = new Stack(GameItems.Copper, 10);
-            RecipeDef wire = RecipeBook.Get("workshop.copper_wire");
+            RecipeDef wire = RecipeBook.Get("workshop.copper_wire_raw");
             Assert.Same(wire, RecipeSelector.Pick(slots, Recipes, wire, Max20, out _));
-            Assert.Same(RecipeBook.Get("workshop.iron_plate"), RecipeSelector.Pick(slots, Recipes, null, Max20, out _));
+            Assert.Same(RecipeBook.Get("workshop.iron_plate_raw"), RecipeSelector.Pick(slots, Recipes, null, Max20, out _));
         }
 
         [Fact]

@@ -43,6 +43,7 @@ namespace StellarIndustries.Production
             public PowerGroupServerState Group;
             public float LastSeen;
             public int Cycles;
+            public string Detail;
         }
 
         private struct Entry
@@ -62,6 +63,16 @@ namespace StellarIndustries.Production
 
         /// <summary>Host only: what a machine is doing now (null if the host does not simulate it).</summary>
         public static Runtime Get(uint shipId, ushort partId) => Runtimes.TryGetValue((shipId, partId), out Runtime rt) ? rt : null;
+
+        /// <summary>The machine's recipe was changed: its cycle starts over (nothing was taken yet).</summary>
+        public static void Restart(uint shipId, ushort partId)
+        {
+            if (Runtimes.TryGetValue((shipId, partId), out Runtime rt))
+            {
+                rt.Progress = 0f;
+                rt.Recipe = null;
+            }
+        }
 
         public static void Forget()
         {
@@ -102,7 +113,8 @@ namespace StellarIndustries.Production
         {
             var state = (StorageState)part.State;
             Read(state, Buffer);
-            RecipeDef recipe = RecipeSelector.Pick(Buffer, RecipeBook.ForMachine(def.PartId), rt.Recipe, IndustrialItems.MaxStack, out MachineStatus status);
+            RecipeDef chosen = MachineControl.Chosen(ship.Id, part.Id, def.PartId);
+            RecipeDef recipe = RecipeSelector.Pick(Buffer, RecipeBook.ForMachine(def.PartId), rt.Recipe, chosen, IndustrialItems.MaxStack, out MachineStatus status);
             if (recipe != rt.Recipe)
                 rt.Progress = 0f;
             rt.Recipe = recipe;

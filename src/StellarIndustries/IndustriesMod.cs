@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.1.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.2.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -28,6 +28,8 @@ namespace StellarIndustries
             Settings.Load();
             ValidateContent();
             IndustrialItems.Create();
+            SINet.InstallSerializers();
+            MachineControl.Install();
             ApplyPatches();
             Log.Msg("ready");
         }
@@ -103,12 +105,14 @@ namespace StellarIndustries
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             MachineSimulation.Forget();
+            MachineControl.Forget();
             _inGame = sceneName == "MainGame";
             Diagnostics.DevTest.OnSceneLoaded(sceneName);
         }
 
         public override void OnUpdate()
         {
+            SINet.Update();
             if (_inGame && _partsRegistered)
                 UpdateHud();
             if (Diagnostics.DevTest.Active)

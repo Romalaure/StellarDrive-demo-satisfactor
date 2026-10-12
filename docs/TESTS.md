@@ -11,7 +11,7 @@ dotnet test tests/StellarIndustries.Tests
 Couvrent la logique pure (compilée telle quelle dans le projet de test) : craft
 transactionnel, coproduits, piles pleines, choix de recette, validateur de contenu.
 
-Dernier résultat (0.1.0) : **21 réussis, 0 échec**.
+Dernier résultat (0.2.0) : **34 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production).
 
 ## 2. Test d'acceptation en jeu (automatique, jeu lancé)
 
@@ -28,7 +28,19 @@ Phase 1 : un vaisseau de test apparaît près du joueur — générateur à bois
 l'atelier A (9 fer, 3 cuivre), atelier B sans câble (6 fer), atelier C plein (10 × 255 fer).
 Phase 2 : production gelée jusqu'au contrôle du contenu rechargé, puis 4 fer ajoutés à A.
 
-Dernier résultat (0.1.0, 11/10/2026) :
+Depuis 0.2.0, le vaisseau de test porte aussi fonderie, broyeur, assembleuse et presse, chacun
+câblé à son générateur ; la presse est réglée sur « câble uniquement » ; une capture d'écran du
+panneau de la presse est écrite dans `UserData/StellarIndustries/dev/hud_press.png`.
+
+Dernier résultat (0.2.0, 12/10/2026) : tout PASS —
+fonderie 6 fer + 4 poussière → 6 lingots + 2 verre ; broyeur 2 éclats → 6 poussière + 2 verre
+(coproduit) ; assembleuse 4 plaques + 8 vis → 1 plaque renforcée ; presse réglée sur câble :
+4 fils → 2 câbles, les 3 tiges intactes ; atelier A 9 fer + 3 cuivre → 1 fer, 4 plaques, 3 fils ;
+B sans câble et C plein inchangés ; contenu identique après rechargement ; **choix de recette
+relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
+capture (état, recette, énergie 600/600 W, mode, contenu, touche).
+
+Résultat 0.1.0 (11/10/2026) :
 
 | Vérification | Résultat |
 |---|---|
@@ -46,7 +58,8 @@ Dernier résultat (0.1.0, 11/10/2026) :
 |---|---|
 | Atelier visible dans l'onglet « Industrie » et posable avec l'outil de construction | non testé |
 | Ouvrir l'atelier (touche utiliser), y déposer/retirer des objets | non testé |
-| Panneau d'état en visant l'atelier | non testé |
+| Panneau d'état en visant l'atelier | affichage vérifié par capture en jeu (0.2.0) ; visée à la main non testée |
 | Icônes et modèles 3D des objets dans l'inventaire | non testé |
 | Recycler un atelier plein | non testé |
+| Touche N pour changer de recette | non testé à la main (le choix lui-même est testé) |
 | Deux joueurs (hôte + client) | non testé |

@@ -43,19 +43,51 @@ namespace StellarIndustries.Recipes
     {
         public static readonly RecipeDef[] All =
         {
+            // ---- Workshop: shapes metal (ingots first: the raw recipes are the fallback)
+            R("workshop.iron_plate", "Plaque de fer", MachineCatalog.Workshop, 4f, In(ResourceCatalog.IronIngot, 3), Out(ResourceCatalog.IronPlate, 2)),
+            R("workshop.iron_rod", "Tige de fer", MachineCatalog.Workshop, 3f, In(ResourceCatalog.IronIngot, 1), Out(ResourceCatalog.IronRod, 1)),
+            R("workshop.copper_wire", "Fil de cuivre", MachineCatalog.Workshop, 3f, In(ResourceCatalog.CopperIngot, 1), Out(ResourceCatalog.CopperWire, 2)),
+            R("workshop.iron_plate_raw", "Plaque de fer (minerai brut)", MachineCatalog.Workshop, 4f, In(GameItems.Iron, 2), Out(ResourceCatalog.IronPlate, 1)),
+            R("workshop.copper_wire_raw", "Fil de cuivre (minerai brut)", MachineCatalog.Workshop, 3f, In(GameItems.Copper, 1), Out(ResourceCatalog.CopperWire, 1)),
+
+            // ---- Smelter
+            R("smelter.iron_ingot", "Lingot de fer", MachineCatalog.Smelter, 2f, In(GameItems.Iron, 1), Out(ResourceCatalog.IronIngot, 1)),
+            R("smelter.copper_ingot", "Lingot de cuivre", MachineCatalog.Smelter, 2f, In(GameItems.Copper, 1), Out(ResourceCatalog.CopperIngot, 1)),
+            R("smelter.aluminum_ingot", "Lingot d'aluminium", MachineCatalog.Smelter, 4f, In(GameItems.Aluminum, 2), Out(ResourceCatalog.AluminumIngot, 1), tier: 1),
+            R("smelter.crushed_iron", "Lingot de fer (minerai broyé)", MachineCatalog.Smelter, 3f, In(ResourceCatalog.CrushedIron, 3), Out(ResourceCatalog.IronIngot, 2), tier: 1),
+            R("smelter.crushed_copper", "Lingot de cuivre (minerai broyé)", MachineCatalog.Smelter, 3f, In(ResourceCatalog.CrushedCopper, 3), Out(ResourceCatalog.CopperIngot, 2), tier: 1),
+            R("smelter.glass", "Verre", MachineCatalog.Smelter, 3f, In(ResourceCatalog.StellarDust, 2), Out(GameItems.Glass, 1), tier: 1),
+
+            // ---- Press
+            R("press.screws", "Vis", MachineCatalog.Press, 4f, In(ResourceCatalog.IronRod, 1), Out(ResourceCatalog.Screws, 4), tier: 1),
+            R("press.cable", "Câble", MachineCatalog.Press, 4f, In(ResourceCatalog.CopperWire, 2), Out(ResourceCatalog.Cable, 1), tier: 1),
+            R("press.aluminum_sheet", "Tôle d'aluminium", MachineCatalog.Press, 6f, In(ResourceCatalog.AluminumIngot, 2), Out(ResourceCatalog.AluminumSheet, 1), tier: 1),
+
+            // ---- Crusher (the shard gives a co-product)
+            R("crusher.iron", "Fer broyé", MachineCatalog.Crusher, 3f, In(GameItems.Iron, 1), Out(ResourceCatalog.CrushedIron, 2), tier: 1),
+            R("crusher.copper", "Cuivre broyé", MachineCatalog.Crusher, 3f, In(GameItems.Copper, 1), Out(ResourceCatalog.CrushedCopper, 2), tier: 1),
             new RecipeDef
             {
-                Id = "workshop.iron_plate", Name = "Plaque de fer", Machine = MachineCatalog.Workshop, Seconds = 4f,
-                Inputs = new[] { new ItemAmount(GameItems.Iron, 2) },
-                Outputs = new[] { new ItemAmount(ResourceCatalog.IronPlate, 1) }
+                Id = "crusher.shard", Name = "Poussière stellaire", Machine = MachineCatalog.Crusher, Seconds = 4f, Tier = 1,
+                Inputs = new[] { new ItemAmount(GameItems.StellarShard, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarDust, 3), new ItemAmount(GameItems.Glass, 1) }
             },
+
+            // ---- Assembler (several inputs)
             new RecipeDef
             {
-                Id = "workshop.copper_wire", Name = "Fil de cuivre", Machine = MachineCatalog.Workshop, Seconds = 3f,
-                Inputs = new[] { new ItemAmount(GameItems.Copper, 1) },
-                Outputs = new[] { new ItemAmount(ResourceCatalog.CopperWire, 2) }
+                Id = "assembler.reinforced_plate", Name = "Plaque renforcée", Machine = MachineCatalog.Assembler, Seconds = 12f, Tier = 1,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.IronPlate, 4), new ItemAmount(ResourceCatalog.Screws, 8) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.ReinforcedPlate, 1) }
             }
         };
+
+        private static ItemAmount[] In(uint item, int count) => new[] { new ItemAmount(item, count) };
+
+        private static ItemAmount[] Out(uint item, int count) => new[] { new ItemAmount(item, count) };
+
+        private static RecipeDef R(string id, string name, ushort machine, float seconds, ItemAmount[] inputs, ItemAmount[] outputs, int tier = 0) =>
+            new RecipeDef { Id = id, Name = name, Machine = machine, Seconds = seconds, Inputs = inputs, Outputs = outputs, Tier = tier };
 
         private static Dictionary<ushort, RecipeDef[]> _byMachine;
         private static HashSet<string> _disabled = new HashSet<string>();

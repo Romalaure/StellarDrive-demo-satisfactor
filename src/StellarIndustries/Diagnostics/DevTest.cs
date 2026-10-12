@@ -50,6 +50,7 @@ namespace StellarIndustries.Diagnostics
         private const string GameScene = "MainGame";
         private const ushort WoodGenerator = 60, IronFloor = 1;
         private const ushort GeneratorPart = 1, WorkshopA = 2, WorkshopB = 3, WorkshopC = 4;
+        private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12;
 
         private static MelonPreferences_Entry<string> _world;
         private static MelonPreferences_Entry<int> _phase;
@@ -186,6 +187,11 @@ namespace StellarIndustries.Diagnostics
             Log("build menu: " + string.Join("; ", SDModKit.Game.CustomParts.BuildMenuReport.Where(r => r.StartsWith("SI_"))));
             var research = ServiceLocator.GetService<Research.ResearchClientProxy>();
             PartSettings workshop = SDModKit.Game.CustomParts.Get(MachineCatalog.Workshop);
+            foreach (MachineDef m in MachineCatalog.All)
+            {
+                PartSettings settings = SDModKit.Game.CustomParts.Get(m.PartId);
+                Log($"part {m.PartId} {(settings != null ? settings.fullLabel : "MISSING")}: unlocked {(research != null && settings != null ? research.IsPartUnlocked(settings).ToString() : "unknown")}, cost {(settings != null ? string.Join(", ", settings.BuildingCost.Select(c => c.Quantity + " x " + IndustrialItems.NameOf(c.ItemId))) : "-")}");
+            }
             Log($"workshop part settings {(workshop != null ? workshop.fullLabel : "missing")}, unlocked {(research != null && workshop != null ? research.IsPartUnlocked(workshop).ToString() : "unknown")}, cost {(workshop != null ? string.Join(", ", workshop.BuildingCost.Select(c => c.Quantity + " x " + c.ItemId)) : "-")}");
             yield return Wait(1f);
             TrackedShipServer ship = ships.GetShip(shipId);
@@ -200,6 +206,15 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(WorkshopB, new StorageState { InventorySlots = Slots((GameItems.Iron, 6)) });
             var full = Enumerable.Repeat((GameItems.Iron, IndustrialItems.MaxStack(GameItems.Iron)), 10).ToArray();
             ship.UpdatePartState(WorkshopC, new StorageState { InventorySlots = Slots(full) });
+            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5 })
+                ship.UpdatePartState(generator, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
+            ship.UpdatePartState(SmelterPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.StellarDust, 4)) });
+            ship.UpdatePartState(CrusherPart, new StorageState { InventorySlots = Slots((GameItems.StellarShard, 2)) });
+            ship.UpdatePartState(AssemblerPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronPlate, 4), (ResourceCatalog.Screws, 8)) });
+            ship.UpdatePartState(PressPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronRod, 3), (ResourceCatalog.CopperWire, 4)) });
+            // The press would make screws on its own (first recipe): it is set to cables only
+            Log($"press set to cables: {MachineControl.SetChoice(shipId, PressPart, "press.cable")}");
+            UI.MachineHud.Forced = (shipId, PressPart);
             Log($"contents set (iron stack limit {IndustrialItems.MaxStack(GameItems.Iron)}): {Describe(ship)}");
             for (int i = 1; i <= 16; i++)
             {
@@ -213,12 +228,23 @@ namespace StellarIndustries.Diagnostics
                 Log($"t={2 * i} s: {Describe(ship)}");
                 if (i == 3)
                     yield return Photograph(shipId, "machines");
+                if (i == 4)
+                {
+                    Directory.CreateDirectory(Folder);
+                    ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "hud_press.png"));
+                    Log("hud screenshot requested");
+                }
             }
-            Check(ship, WorkshopA, (GameItems.Iron, 1), (ResourceCatalog.IronPlate, 4), (ResourceCatalog.CopperWire, 6));
+            UI.MachineHud.Forced = null;
+            Check(ship, WorkshopA, (GameItems.Iron, 1), (ResourceCatalog.IronPlate, 4), (ResourceCatalog.CopperWire, 3));
+            Check(ship, SmelterPart, (ResourceCatalog.IronIngot, 6), (GameItems.Glass, 2));
+            Check(ship, CrusherPart, (ResourceCatalog.StellarDust, 6), (GameItems.Glass, 2));
+            Check(ship, AssemblerPart, (ResourceCatalog.ReinforcedPlate, 1));
+            Check(ship, PressPart, (ResourceCatalog.IronRod, 3), (ResourceCatalog.Cable, 2));
             Check(ship, WorkshopB, (GameItems.Iron, 6));
             Check(ship, WorkshopC, full);
             // A last change just before saving, so the save holds a mid-production state
-            ship.UpdatePartState(WorkshopA, new StorageState { InventorySlots = Slots((ResourceCatalog.IronPlate, 4), (ResourceCatalog.CopperWire, 6), (GameItems.Copper, 2)) });
+            ship.UpdatePartState(WorkshopA, new StorageState { InventorySlots = Slots((ResourceCatalog.IronPlate, 4), (ResourceCatalog.CopperWire, 3), (GameItems.Copper, 2)) });
             yield return Wait(0.5f);
             Log($"before save: {Describe(ship)}");
             GameSaver saver = Object.FindObjectsByType<GameSaver>(FindObjectsSortMode.None).FirstOrDefault();
@@ -262,14 +288,19 @@ namespace StellarIndustries.Diagnostics
             string now = Contents(test);
             Log(now == saved ? "PASS contents identical after reload: " + now : "FAIL contents differ after reload: " + now);
             _checked = true;
+            // The press's recipe choice came back from the companion file
+            string choice = MachineControl.Choices.Get(test.Id, PressPart);
+            Log(choice == "press.cable" ? "PASS press recipe choice kept after reload: " + choice : "FAIL press recipe choice after reload: " + (choice ?? "automatic"));
             // Production starts again after the reload
             test.UpdatePartState(WorkshopA, new StorageState { InventorySlots = Slots((GameItems.Iron, 4)) });
+            test.UpdatePartState(PressPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronRod, 2), (ResourceCatalog.CopperWire, 2)) });
             for (int i = 1; i <= 6; i++)
             {
                 yield return Wait(2f);
                 Log($"reloaded t={2 * i} s: {Describe(test)}");
             }
             Check(test, WorkshopA, (ResourceCatalog.IronPlate, 2));
+            Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
         }
 
         // ---- Helpers
@@ -350,13 +381,16 @@ namespace StellarIndustries.Diagnostics
 
         private static void Log(string message) => IndustriesMod.Log.Msg("dev: " + message);
 
-        /// <summary>A 5 x 3 iron floor with the generator and three workshops; a power cable from the generator to workshop A.</summary>
+        /// <summary>
+        /// An 11 x 7 iron floor: row 1 the generator wired to workshop A, workshop B (no cable) and C
+        /// (full); rows 2 and 3 a generator wired to each of the smelter, crusher, assembler and press.
+        /// </summary>
         private static string ShipJson()
         {
             var hull = new StringBuilder();
-            for (int x = -2; x <= 2; x++)
+            for (int x = -5; x <= 5; x++)
             {
-                for (int z = -1; z <= 1; z++)
+                for (int z = -3; z <= 3; z++)
                 {
                     if (hull.Length > 0)
                         hull.Append(',');
@@ -365,12 +399,20 @@ namespace StellarIndustries.Diagnostics
             }
             string Part(int id, int settings, float x, float z) => string.Format(CultureInfo.InvariantCulture,
                 "{{\"id\":{0},\"settingsId\":{1},\"coord\":{{\"x\":{2},\"y\":-0.46,\"z\":{3}}},\"forwardOrientationId\":2,\"upOrientationId\":4}}", id, settings, x, z);
-            string parts = string.Join(",", Part(GeneratorPart, WoodGenerator, -2f, 0f), Part(WorkshopA, MachineCatalog.Workshop, 0f, 0f),
-                Part(WorkshopB, MachineCatalog.Workshop, 2f, -0.8f), Part(WorkshopC, MachineCatalog.Workshop, 2f, 0.8f));
-            // Power cable (type 2): generator socket 0 -> workshop A socket 0
-            string cable = $"{{\"id\":1,\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{GeneratorPart},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{WorkshopA},\"socketId\":{MachineSimulation.PowerSocket}}}}}";
+            string parts = string.Join(",",
+                Part(GeneratorPart, WoodGenerator, -4f, -2.2f), Part(WorkshopA, MachineCatalog.Workshop, -2f, -2.2f),
+                Part(WorkshopB, MachineCatalog.Workshop, 0.5f, -2.2f), Part(WorkshopC, MachineCatalog.Workshop, 3f, -2.2f),
+                Part(Gen2, WoodGenerator, -4f, 0f), Part(SmelterPart, MachineCatalog.Smelter, -2f, 0f),
+                Part(Gen3, WoodGenerator, 0.5f, 0f), Part(CrusherPart, MachineCatalog.Crusher, 2.5f, 0f),
+                Part(Gen4, WoodGenerator, -4f, 2.2f), Part(AssemblerPart, MachineCatalog.Assembler, -2f, 2.2f),
+                Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f));
+            // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
+            string Cable(int id, ushort from, ushort to) =>
+                $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";
+            string cables = string.Join(",", Cable(1, GeneratorPart, WorkshopA), Cable(2, Gen2, SmelterPart), Cable(3, Gen3, CrusherPart),
+                Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart));
             var sb = new StringBuilder();
-            sb.Append("{\"rootShipId\":1,\"cables\":[").Append(cable).Append("],\"ships\":[{");
+            sb.Append("{\"rootShipId\":1,\"cables\":[").Append(cables).Append("],\"ships\":[{");
             sb.Append("\"id\":1,\"relativeSpaceId\":0,\"spaceId\":0,\"position\":{\"x\":0,\"y\":0,\"z\":0},\"velocity\":{\"x\":0,\"y\":0,\"z\":0},\"rotation\":{\"x\":0,\"y\":0,\"z\":0,\"w\":1},");
             sb.Append("\"rooms\":[],\"hullParts\":[").Append(hull).Append("],\"statefulFloatingParts\":[").Append(parts).Append("],\"statefulHullParts\":[],");
             foreach (string empty in new[] { "thrustersStates", "storageStates", "fluidTankStates", "constantStates", "beaconStates", "leverStates", "warpDriveStates",

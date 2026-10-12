@@ -1,9 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
+using StellarIndustries.Content;
 using StellarIndustries.Core;
 
 namespace StellarIndustries.Production
 {
+    /// <summary>The look of a machine (its model is built by <see cref="Parts.MachineModels"/>).</summary>
+    internal enum MachineModel
+    {
+        Workshop,
+        Smelter,
+        Press,
+        Crusher,
+        Assembler
+    }
+
     /// <summary>
     /// One production machine. Pure data: the build part is made from it by
     /// <see cref="Parts.MachineParts"/>, its behaviour is <see cref="MachineSimulation"/>.
@@ -13,6 +24,7 @@ namespace StellarIndustries.Production
         public ushort PartId;
         public string Name;
         public string Description;
+        public MachineModel Model;
         /// <summary>Power drawn while producing (watts). The game's wood generator gives 4000 W.</summary>
         public float Watts;
         /// <summary>Recipe durations are divided by this.</summary>
@@ -21,21 +33,52 @@ namespace StellarIndustries.Production
         public int Slots = 10;
         public float Mass;
         public int Tier;
+        /// <summary>Placement box (meters): width (x), height (y), depth (z).</summary>
+        public float Width = 1.4f, Height = 1.5f, Depth = 1.2f;
         public (uint Item, int Count)[] BuildCost;
     }
 
     internal static class MachineCatalog
     {
         public const ushort Workshop = 7601;
+        public const ushort Smelter = 7602;
+        public const ushort Press = 7603;
+        public const ushort Crusher = 7604;
+        public const ushort Assembler = 7605;
 
         public static readonly MachineDef[] All =
         {
             new MachineDef
             {
-                PartId = Workshop, Name = "Atelier industriel", Tier = 0, Watts = 300f, Mass = 120f,
-                Description = "Presse et étire les métaux bruts. Mettez le fer ou le cuivre dedans, branchez-le au réseau électrique : " +
-                              "il produit tant qu'il a de l'énergie, de la matière et de la place. Les produits s'empilent dans les derniers emplacements.",
+                PartId = Workshop, Name = "Atelier industriel", Model = MachineModel.Workshop, Tier = 0, Watts = 300f, Mass = 120f,
+                Description = "Façonne les métaux : plaques et tiges de fer, fil de cuivre. Accepte aussi le minerai brut (moins rentable). " +
+                              "Branchez sa prise arrière au réseau électrique ; il produit tant qu'il a de l'énergie, de la matière et de la place.",
                 BuildCost = new[] { (GameItems.Iron, 10), (GameItems.Copper, 4), (GameItems.Glass, 2) }
+            },
+            new MachineDef
+            {
+                PartId = Smelter, Name = "Fonderie", Model = MachineModel.Smelter, Tier = 0, Watts = 400f, Mass = 160f, Height = 1.7f,
+                Description = "Fond le minerai en lingots (fer, cuivre, aluminium) et la poussière stellaire en verre. " +
+                              "Le minerai broyé donne plus de lingots.",
+                BuildCost = new[] { (GameItems.Iron, 14), (GameItems.Copper, 4), (GameItems.Glass, 4) }
+            },
+            new MachineDef
+            {
+                PartId = Press, Name = "Presse", Model = MachineModel.Press, Tier = 1, Watts = 600f, Mass = 200f, Height = 1.9f,
+                Description = "Presse et coupe : vis, câbles, tôles d'aluminium.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 8), (ResourceCatalog.IronRod, 6), (ResourceCatalog.CopperWire, 6) }
+            },
+            new MachineDef
+            {
+                PartId = Crusher, Name = "Broyeur", Model = MachineModel.Crusher, Tier = 1, Watts = 350f, Mass = 180f,
+                Description = "Concasse le minerai de fer et de cuivre (la fonderie en tire plus de lingots) et réduit les éclats stellaires en poussière.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 10), (ResourceCatalog.IronRod, 4), (ResourceCatalog.CopperWire, 4) }
+            },
+            new MachineDef
+            {
+                PartId = Assembler, Name = "Assembleuse", Model = MachineModel.Assembler, Tier = 1, Watts = 800f, Mass = 220f, Width = 1.6f, Height = 1.6f,
+                Description = "Assemble plusieurs pièces en composants : plaques renforcées.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 12), (ResourceCatalog.Screws, 40), (ResourceCatalog.Cable, 6) }
             }
         };
 

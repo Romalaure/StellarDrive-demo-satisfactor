@@ -4,7 +4,7 @@ Extension industrielle pour StellarDrive Demo, inspirée des jeux d'automatisati
 transformer, fabriquer, alimenter, transporter. Développée par étapes ; chaque version ne
 déclare opérationnel que ce qui a été vérifié dans le jeu.
 
-**Version 0.1.0 — phase A (prototype).** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
+**Version 0.2.0 — phases A et C.** Voir le [rapport de faisabilité](docs/FAISABILITE.md)
 pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE.md#f-stratégie-de-livraison).
 
 ![Ateliers industriels et générateur à bois](Mods/thumbnail.png)
@@ -14,22 +14,28 @@ pour ce que le jeu permet réellement, et la [feuille de route](docs/FAISABILITE
 | Fonction | État |
 |---|---|
 | **Atelier industriel** (onglet « Industrie ») : 10 emplacements, prise électrique à l'arrière, 300 W | ✅ testé en jeu |
-| Recettes : 2 fer → 1 **plaque de fer** (4 s), 1 cuivre → 2 **fils de cuivre** (3 s) | ✅ testé en jeu |
+| Recettes de l'atelier : plaques, tiges, fil de cuivre (lingots, ou minerai brut moins rentable) | ✅ testé en jeu |
 | Ne produit que s'il a de l'énergie, de la matière **et** de la place ; rien n'est consommé sans être produit | ✅ testé en jeu |
 | Énergie : consomme sur le réseau électrique du jeu (le générateur brûle plus de bois), ralentit si le réseau manque de puissance | ✅ testé en jeu (énergie insuffisante : non testé) |
 | Sauvegarde : contenu identique après rechargement, production qui reprend | ✅ testé en jeu |
-| Panneau d'état en visant l'atelier (état, recette, progression, énergie, contenu) | ⚠️ non testé à la main |
+| **Fonderie, Presse, Broyeur, Assembleuse** : lingots, tiges, vis, câbles, tôles, plaques renforcées, minerai broyé (meilleur rendement) | ✅ testé en jeu |
+| **Choix de recette** (touche `N` en visant la machine), conservé dans la sauvegarde | ✅ testé en jeu (touche : non testée à la main) |
+| Panneau d'état en visant une machine (état, recette, progression, énergie, contenu, mode) | ✅ affichage vérifié par capture |
 | Multijoueur | ⚠️ conçu pour (l'hôte seul simule), **non testé** |
 
-Utilisation : posez l'atelier, reliez sa prise arrière à un générateur avec un câble électrique,
-ouvrez-le (touche utiliser) et déposez du fer ou du cuivre. Les produits s'empilent dans les
-derniers emplacements.
+Utilisation : posez une machine, reliez sa prise arrière à un générateur avec un câble électrique,
+ouvrez-la (touche utiliser) et déposez la matière. Les produits s'empilent dans les derniers
+emplacements. En visant la machine, `N` choisit sa recette (automatique ou une seule).
+
+Chaîne de base : minerai → **Fonderie** → lingots → **Atelier** → plaques, tiges, fil →
+**Presse** → vis, câbles → **Assembleuse** → plaques renforcées. Le **Broyeur** double le
+minerai avant la fonderie (+33 % de lingots).
 
 ## Limitations connues
 
 - Le cycle en cours repart de zéro après un rechargement (aucun objet perdu).
 - 10 emplacements par machine (limite du stockage du jeu).
-- Chez un client, le panneau ne connaît pas l'énergie ni la progression (seulement le contenu).
+- Chez un client, le panneau dépend des réponses de l'hôte (non testé à deux joueurs).
 - Pas encore d'extraction, de convoyeurs, de recherche ni de fluides (phases suivantes).
 
 ## Installation
