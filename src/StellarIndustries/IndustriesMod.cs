@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.3.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.4.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -108,6 +108,8 @@ namespace StellarIndustries
             MachineControl.Forget();
             Deposits.Forget();
             _inGame = sceneName == "MainGame";
+            if (_inGame && _partsRegistered)
+                InstallConveyors();
             Diagnostics.DevTest.OnSceneLoaded(sceneName);
         }
 
@@ -126,6 +128,19 @@ namespace StellarIndustries
             {
                 UI.MachineHud.OnGUI();
                 UI.DepositScanner.OnGUI();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void InstallConveyors()
+        {
+            try
+            {
+                Logistics.ItemLinesBridge.TryInstall(HarmonyInstance);
+            }
+            catch (Exception e)
+            {
+                Log.Error("conveyors: Item Lines bridge not installed: " + e.GetBaseException().Message);
             }
         }
 

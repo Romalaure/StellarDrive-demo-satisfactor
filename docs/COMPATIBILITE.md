@@ -34,6 +34,6 @@ recycler les machines, sauvegarder, puis retirer la DLL. Faire une copie de la s
 | Mod | Interaction |
 |---|---|
 | SDModKit | Requis pour les pièces |
-| ItemLines (Krunk) | Ajoute un port d'objets à nos machines (comme à toute pièce à inventaire) : on peut les alimenter/vider par ligne d'objets. Compatible (constaté en jeu, transport non testé) |
+| ItemLines (Krunk) | Convoyeurs du mod (facultatif). Nos règles d'entrée/sortie s'appliquent par un patch sur `SDModKit.Game.ItemMove.Transfer` et sur `AttachedPortBehaviour.CanReceive` (par réflexion, absent = ignoré). Transport testé en jeu (0.4.0) |
 | ExpandedStacks | Piles à 255 : les machines respectent la taille de pile de chaque objet |
 | TF Advanced | Patche aussi le tick électrique et la liste d'objets : patchs indépendants, ids disjoints, testé ensemble |

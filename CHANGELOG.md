@@ -1,5 +1,19 @@
 # Journal des changements
 
+## 0.4.0 — phase D (convoyeurs)
+
+- **Décision** : les convoyeurs passent par le mod **Item Lines** (Krunk, facultatif), qui
+  donne un port d'objets à toute pièce à inventaire et déplace les objets le long de câbles
+  d'objets SDModKit. Pas de second système de convoyeurs concurrent sur le même type de câble.
+- Règles des machines sur les lignes (`Logistics/ConveyorRules.cs`) : une machine n'envoie que
+  ses produits (jamais un ingrédient de sa recette en cours ou choisie ; l'extracteur envoie
+  tout) ; elle ne reçoit que les ingrédients de ses recettes (de la recette choisie si elle est
+  réglée), jusqu'à 4 cycles d'avance, et un nouvel objet seulement s'il reste 2 emplacements
+  libres pour les produits. L'extracteur ne reçoit rien.
+- Les machines reçoivent par défaut depuis une ligne (Item Lines ne le fait d'office que pour
+  les machines du jeu) ; le réglage « Receives » du port, s'il est changé, est respecté.
+- Sans Item Lines : rien ne change, les machines se remplissent à la main.
+
 ## 0.3.0 — phase B (extraction)
 
 - **Extracteur** (7606, 700 W) : produit 1 objet toutes les 6 s du rocher minable le plus

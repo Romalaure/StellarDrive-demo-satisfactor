@@ -11,7 +11,7 @@ dotnet test tests/StellarIndustries.Tests
 Couvrent la logique pure (compilée telle quelle dans le projet de test) : craft
 transactionnel, coproduits, piles pleines, choix de recette, validateur de contenu.
 
-Dernier résultat (0.3.0) : **36 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction).
+Dernier résultat (0.4.0) : **42 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction, règles des convoyeurs).
 
 ## 2. Test d'acceptation en jeu (automatique, jeu lancé)
 
@@ -39,6 +39,11 @@ fonderie 6 fer + 4 poussière → 6 lingots + 2 verre ; broyeur 2 éclats → 6 
 B sans câble et C plein inchangés ; contenu identique après rechargement ; **choix de recette
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
+
+0.4.0 (12/10/2026), convoyeur : une ligne d'objets Item Lines (câble type 3, port 1 greffé
+par Item Lines) relie la fonderie à un atelier D réglé sur « plaques » : PASS fonderie 6 fer +
+4 poussière → il lui reste 2 verres (ni fer ni verre envoyés), atelier D → 4 plaques (les 6
+lingots sont passés par la ligne). Choix des deux machines relus après rechargement.
 
 0.3.0 (12/10/2026), extracteur (pièce 14, câblé à son générateur) : PASS sans rocher à
 portée (« aucun gisement », rien produit) ; un rocher de test (composant MinablePlanetObject du
@@ -70,4 +75,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Touche N pour changer de recette | non testé à la main (le choix lui-même est testé) |
 | Poser un extracteur à côté d'un vrai rocher | non testé |
 | Touche K du scanner | non testée à la main (le scan est testé) |
+| Poser une ligne Item Lines à la main entre deux machines | non testé |
 | Deux joueurs (hôte + client) | non testé |
