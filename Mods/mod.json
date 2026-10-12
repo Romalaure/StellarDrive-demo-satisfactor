@@ -2,7 +2,7 @@
     "id": "StellarIndustries",
     "name": "Stellar Industries",
     "author": "Romalaure",
-    "version": "0.8.0",
-    "description": "Industrie automatisee pour StellarDrive. Onglet Industrie, branche de recherche Industrie : atelier, fonderie, presse, broyeur, assembleuse (minerai -> lingots -> plaques, tiges, fil -> vis, cables -> plaques renforcees), extracteur sur rocher minable + scanner (K), generateur a combustion (bois, briquettes), quai de transfert entre vaisseaux, conteneur. Choix de recette (N), tableau de bord (F7). Machines alimentees par le reseau electrique du jeu, contenus sauvegardes par le jeu. Convoyeurs avec Item Lines (facultatif). Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste a deux.",
+    "version": "0.10.0",
+    "description": "Industrie automatisee pour StellarDrive : 14 machines (atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accelerateur de particules, extracteur, generateur, accumulateur, quai de transfert, conteneur), 53 objets, 59 recettes, branche de recherche Industrie. Modeles detailles et animes, prises a l'arriere, wiki dans le Guide (touche G). Choix de recette (N), scanner (K), tableau de bord (F7). Convoyeurs avec Item Lines (facultatif). Necessite SDModKit. Tous les joueurs doivent avoir le mod. Multijoueur non teste a deux.",
     "thumbnail": "thumbnail.png"
 }
