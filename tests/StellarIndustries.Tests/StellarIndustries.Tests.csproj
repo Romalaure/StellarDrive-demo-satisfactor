@@ -26,6 +26,7 @@
     <Compile Include="..\..\src\StellarIndustries\Production\Crafting.cs" Link="Linked\Crafting.cs" />
     <Compile Include="..\..\src\StellarIndustries\Production\RecipeSelector.cs" Link="Linked\RecipeSelector.cs" />
     <Compile Include="..\..\src\StellarIndustries\Production\MachineChoices.cs" Link="Linked\MachineChoices.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Production\FuelBurner.cs" Link="Linked\FuelBurner.cs" />
     <Compile Include="..\..\src\StellarIndustries\Production\MachineReport.cs" Link="Linked\MachineReport.cs" />
     <Compile Include="..\..\src\StellarIndustries\Logistics\ConveyorRules.cs" Link="Linked\ConveyorRules.cs" />
     <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeBook.cs" Link="Linked\RecipeBook.cs" />

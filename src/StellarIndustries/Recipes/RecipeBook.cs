@@ -61,6 +61,7 @@ namespace StellarIndustries.Recipes
             // ---- Press
             R("press.screws", "Vis", MachineCatalog.Press, 4f, In(ResourceCatalog.IronRod, 1), Out(ResourceCatalog.Screws, 4), tier: 1),
             R("press.cable", "Câble", MachineCatalog.Press, 4f, In(ResourceCatalog.CopperWire, 2), Out(ResourceCatalog.Cable, 1), tier: 1),
+            R("press.briquette", "Briquette de biomasse", MachineCatalog.Press, 6f, In(GameItems.Wood, 4), Out(ResourceCatalog.BiomassBrick, 1), tier: 1),
             R("press.aluminum_sheet", "Tôle d'aluminium", MachineCatalog.Press, 6f, In(ResourceCatalog.AluminumIngot, 2), Out(ResourceCatalog.AluminumSheet, 1), tier: 1),
 
             // ---- Crusher (the shard gives a co-product)

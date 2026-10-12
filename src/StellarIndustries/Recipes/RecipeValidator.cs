@@ -51,7 +51,9 @@ namespace StellarIndustries.Recipes
                     Error(issues, $"machine {m.Name}: puissance ou vitesse invalide");
                 if (m.Extracts && !(m.ExtractSeconds > 0f && m.ExtractRadius > 0f))
                     Error(issues, $"machine {m.Name}: extraction invalide");
-                if (!m.Extracts && !recipeList.Any(r => r.Machine == m.PartId))
+                if (m.Generates && MachineCatalog.Fuels.Length == 0)
+                    Error(issues, $"machine {m.Name}: aucun combustible");
+                if (!m.Extracts && !m.Generates && !recipeList.Any(r => r.Machine == m.PartId))
                     Warn(issues, $"machine {m.Name}: aucune recette");
             }
 

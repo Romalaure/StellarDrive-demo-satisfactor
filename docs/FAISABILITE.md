@@ -61,6 +61,7 @@ prototyper · ❌ indisponible proprement.
 | Tension/intensité électrique réalistes | Le jeu ne simule qu'une puissance abstraite (W) | Puissance + priorités + batteries |
 | Véhicules terrestres autonomes, trajets automatiques de vaisseaux | Pas de navigation automatique fiable | Transferts par arrimage/conteneurs, pas de fausse automatisation |
 | Sons originaux via Unity | L'audio Unity est désactivé ; tout passe par FMOD | Sons via FMOD (WAV/OGG) en phase H |
+| Fluides industriels (machines qui pompent, mélangent, remplissent des réservoirs) | Les fluides du jeu sont l'oxygène (108) et l'éthanol (111) ; un emplacement de stockage n'accepte pas un objet fluide et nos machines (état `StorageState`) n'ont pas de logique de réservoir ; un nouvel état fluide est impossible (voir ligne 1) | Non fait (0.5.0). Pistes : condenseur de TF Advanced (prise fluide sur `ConstantState`) |
 | Lumières dynamiques des machines | Les shaders du jeu n'éclairent qu'avec le soleil | Matériaux émissifs |
 
 ## D. Architecture retenue

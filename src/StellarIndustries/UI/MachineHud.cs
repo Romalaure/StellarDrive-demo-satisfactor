@@ -119,6 +119,8 @@ namespace StellarIndustries.UI
                     Text.Append("\n  ").Append(Describe(running));
                     Text.Append("\nÉnergie : ").Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
                 }
+                if (running == null && def.Generates)
+                    Text.Append("\nProduction : ").Append(Mathf.RoundToInt(r.Watts * r.PowerRate)).Append(" / ").Append(Mathf.RoundToInt(r.Watts)).Append(" W");
                 if (r.Detail != null)
                     Text.Append('\n').Append(r.Detail);
                 if (recipes.Length > 1)
@@ -166,6 +168,8 @@ namespace StellarIndustries.UI
                 case MachineStatus.Underpowered: return "<color=#fd6>En production (énergie insuffisante)</color>";
                 case MachineStatus.Producing: return "<color=#6f8>En production</color>";
                 case MachineStatus.NoDeposit: return "<color=#f84>Aucun gisement à portée</color>";
+                case MachineStatus.NoFuel: return "<color=#f84>Plus de combustible</color>";
+                case MachineStatus.Standby: return "<color=#9cf>En veille (le réseau ne demande rien)</color>";
                 default: return "<color=#f44>Erreur</color>";
             }
         }

@@ -20,6 +20,10 @@ namespace StellarIndustries.Production
         Underpowered,
         /// <summary>Extractor without a minable rock within reach.</summary>
         NoDeposit,
+        /// <summary>Generator without anything to burn.</summary>
+        NoFuel,
+        /// <summary>Generator: its network asks for nothing right now.</summary>
+        Standby,
         Error
     }
 

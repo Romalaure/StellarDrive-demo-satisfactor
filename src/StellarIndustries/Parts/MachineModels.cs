@@ -30,6 +30,7 @@ namespace StellarIndustries.Parts
                 case MachineModel.Crusher: Crusher(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Assembler: Assembler(o, body, accent, screen, glow, dark); break;
                 case MachineModel.Extractor: Extractor(o, body, accent, screen, glow, dark); break;
+                case MachineModel.Generator: Generator(o, body, accent, screen, glow, dark); break;
                 default: Workshop(o, body, accent, screen, glow, dark); break;
             }
             string name = "SI_" + model;
@@ -167,6 +168,28 @@ namespace StellarIndustries.Parts
             body.Box(o + new Vector3(0.4f, 0.4f, 0.25f), new Vector3(0.5f, 0.5f, 0.55f));
             glow.Box(o + new Vector3(0.4f, 0.55f, 0.53f), new Vector3(0.3f, 0.05f, 0.02f));
             screen.Box(o + new Vector3(-0.42f, 0.5f, 0.31f), new Vector3(0.26f, 0.18f, 0.02f));
+        }
+
+        // A generator: firebox with a glowing grate, horizontal boiler drum, alternator, two exhausts
+        private static void Generator(Vector3 o, MeshBuilder body, MeshBuilder accent, MeshBuilder screen, MeshBuilder glow, MeshBuilder dark)
+        {
+            body.Box(o + new Vector3(0f, 0.06f, 0f), new Vector3(1.4f, 0.12f, 1.2f));
+            dark.Box(o + new Vector3(-0.35f, 0.42f, 0f), new Vector3(0.65f, 0.6f, 0.9f));
+            glow.Box(o + new Vector3(-0.35f, 0.38f, 0.46f), new Vector3(0.4f, 0.22f, 0.02f));
+            dark.Box(o + new Vector3(-0.35f, 0.38f, 0.47f), new Vector3(0.44f, 0.03f, 0.02f));
+            body.Cylinder(o + new Vector3(-0.62f, 0.95f, 0f), o + new Vector3(0.45f, 0.95f, 0f), 0.36f, 0.36f, 18);
+            accent.Cylinder(o + new Vector3(0.45f, 0.95f, 0f), o + new Vector3(0.52f, 0.95f, 0f), 0.38f, 0.38f, 18);
+            // Alternator and its cooling fins
+            body.Cylinder(o + new Vector3(0.35f, 0.35f, 0f), o + new Vector3(0.65f, 0.35f, 0f), 0.24f, 0.24f, 16);
+            for (int i = 0; i < 4; i++)
+                dark.Cylinder(o + new Vector3(0.39f + i * 0.07f, 0.35f, 0f), o + new Vector3(0.41f + i * 0.07f, 0.35f, 0f), 0.28f, 0.28f, 16);
+            // Exhausts
+            body.Cylinder(o + new Vector3(-0.3f, 1.25f, -0.2f), o + new Vector3(-0.3f, 1.75f, -0.2f), 0.08f, 0.08f, 10);
+            body.Cylinder(o + new Vector3(-0.05f, 1.25f, -0.2f), o + new Vector3(-0.05f, 1.65f, -0.2f), 0.08f, 0.08f, 10);
+            dark.Cylinder(o + new Vector3(-0.3f, 1.72f, -0.2f), o + new Vector3(-0.3f, 1.78f, -0.2f), 0.1f, 0.1f, 10);
+            dark.Cylinder(o + new Vector3(-0.05f, 1.62f, -0.2f), o + new Vector3(-0.05f, 1.68f, -0.2f), 0.1f, 0.1f, 10);
+            Corners(o, accent, 1.4f, 1.2f);
+            screen.Box(o + new Vector3(0.38f, 0.75f, 0.42f), new Vector3(0.24f, 0.16f, 0.02f));
         }
 
         private static void Corners(Vector3 o, MeshBuilder accent, float width, float depth)

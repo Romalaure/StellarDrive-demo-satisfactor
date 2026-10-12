@@ -68,6 +68,7 @@ namespace StellarIndustries.Content
         public const uint CrushedIron = 7711;
         public const uint CrushedCopper = 7712;
         public const uint StellarDust = 7713;
+        public const uint BiomassBrick = 7714;
 
         public static readonly ResourceDef[] All =
         {
@@ -152,6 +153,13 @@ namespace StellarIndustries.Content
                 Id = StellarDust, Name = "Poussière stellaire", Category = ResourceCategory.Ore, Mass = 0.3f, Tier = 1, MaxStack = 200,
                 Description = "Éclats stellaires réduits en poudre scintillante. Fondue, elle donne du verre.",
                 MaterialFrom = GameItems.StellarShard, Tint = new[] { 1f, 1f, 1f }, Shape = ResourceShape.Powder
+            },
+            // ---- Fuel (phase E)
+            new ResourceDef
+            {
+                Id = BiomassBrick, Name = "Briquette de biomasse", Category = ResourceCategory.Component, Mass = 1.5f, Tier = 1,
+                Description = "Bois broyé et pressé. Brûle cinq fois plus longtemps qu'une bûche dans le générateur à combustion.",
+                MaterialFrom = GameItems.Wood, Tint = new[] { 0.6f, 0.45f, 0.3f }, Shape = ResourceShape.Brick
             }
         };
 

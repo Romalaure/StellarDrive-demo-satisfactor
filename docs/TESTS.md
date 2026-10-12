@@ -11,7 +11,7 @@ dotnet test tests/StellarIndustries.Tests
 Couvrent la logique pure (compilée telle quelle dans le projet de test) : craft
 transactionnel, coproduits, piles pleines, choix de recette, validateur de contenu.
 
-Dernier résultat (0.4.0) : **42 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction, règles des convoyeurs).
+Dernier résultat (0.5.0) : **46 réussis, 0 échec** (dont choix de recette, fichier compagnon, chaînes de production, extraction, convoyeurs, combustible et conservation de l'énergie).
 
 ## 2. Test d'acceptation en jeu (automatique, jeu lancé)
 
@@ -39,6 +39,10 @@ fonderie 6 fer + 4 poussière → 6 lingots + 2 verre ; broyeur 2 éclats → 6 
 B sans câble et C plein inchangés ; contenu identique après rechargement ; **choix de recette
 relu après rechargement** ; production relancée (atelier et presse). Panneau vérifié sur la
 capture (état, recette, énergie 600/600 W, mode, contenu, touche).
+
+0.5.0 (12/10/2026), générateur à combustion (pièce 15, 2 bûches) câblé à l'atelier D : PASS
+l'atelier a produit ses 4 plaques sur ce seul générateur ; 2 412 J tirés de la bûche en cours
+(≈ 8 s × 300 W), aucune bûche encore entièrement brûlée, « En veille » une fois l'atelier arrêté.
 
 0.4.0 (12/10/2026), convoyeur : une ligne d'objets Item Lines (câble type 3, port 1 greffé
 par Item Lines) relie la fonderie à un atelier D réglé sur « plaques » : PASS fonderie 6 fer +

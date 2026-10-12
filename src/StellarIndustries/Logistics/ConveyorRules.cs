@@ -22,10 +22,15 @@ namespace StellarIndustries.Logistics
         /// <summary>Slots kept free for products when a new ingredient arrives.</summary>
         public const int FreeSlotsKept = 2;
 
+        /// <summary>Fuel a generator is fed ahead (items).</summary>
+        public const int FuelAhead = 20;
+
         public static bool CanSend(MachineDef def, RecipeDef[] recipes, RecipeDef active, uint item)
         {
             if (def.Extracts)
                 return true;
+            if (def.Generates)
+                return false;
             if (!recipes.Any(r => r.Outputs.Any(o => o.Item == item)))
                 return false;
             return active == null || active.Inputs.All(i => i.Item != item);
@@ -35,6 +40,8 @@ namespace StellarIndustries.Logistics
         {
             if (def.Extracts)
                 return false;
+            if (def.Generates)
+                return MachineCatalog.FuelEnergy(item) > 0f && Crafting.CountOf(slots, item) < Math.Min(FuelAhead, maxStack(item));
             RecipeDef[] candidates = chosen != null ? new[] { chosen } : recipes;
             int need = 0;
             foreach (RecipeDef r in candidates)

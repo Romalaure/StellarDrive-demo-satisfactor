@@ -209,7 +209,7 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(WorkshopB, new StorageState { InventorySlots = Slots((GameItems.Iron, 6)) });
             var full = Enumerable.Repeat((GameItems.Iron, IndustrialItems.MaxStack(GameItems.Iron)), 10).ToArray();
             ship.UpdatePartState(WorkshopC, new StorageState { InventorySlots = Slots(full) });
-            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6, Gen7 })
+            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6 })
                 ship.UpdatePartState(generator, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
             ship.UpdatePartState(SmelterPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.StellarDust, 4)) });
             ship.UpdatePartState(CrusherPart, new StorageState { InventorySlots = Slots((GameItems.StellarShard, 2)) });
@@ -217,6 +217,8 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(PressPart, new StorageState { InventorySlots = Slots((ResourceCatalog.IronRod, 3), (ResourceCatalog.CopperWire, 4)) });
             // The press would make screws on its own (first recipe): it is set to cables only
             Log($"press set to cables: {MachineControl.SetChoice(shipId, PressPart, "press.cable")}");
+            // Workshop D runs on the mod's combustion generator, fed with 2 logs
+            ship.UpdatePartState(Gen7, new StorageState { InventorySlots = Slots((GameItems.Wood, 2)) });
             // Workshop D would make rods from single ingots as they arrive: it is set to plates
             Log($"workshop D set to plates: {MachineControl.SetChoice(shipId, WorkshopD, "workshop.iron_plate")}");
             UI.MachineHud.Forced = (shipId, PressPart);
@@ -258,6 +260,8 @@ namespace StellarIndustries.Diagnostics
             Check(ship, AssemblerPart, (ResourceCatalog.ReinforcedPlate, 1));
             Check(ship, PressPart, (ResourceCatalog.IronRod, 3), (ResourceCatalog.Cable, 2));
             CheckExtractor(ship);
+            MachineSimulation.Runtime gen = MachineSimulation.Get(ship.Id, Gen7);
+            Log($"{(gen != null && (gen.Status == MachineStatus.Producing || gen.Status == MachineStatus.Standby) && gen.Burned > 0f ? "PASS" : "FAIL")} combustion generator: {gen?.Status}, {gen?.Burned:0} J drawn from the log being burnt, {gen?.Detail}");
             if (_devRock != null)
                 Object.Destroy(_devRock);
             Check(ship, WorkshopB, (GameItems.Iron, 6));
@@ -496,7 +500,7 @@ namespace StellarIndustries.Diagnostics
                 Part(Gen4, WoodGenerator, -4f, 2.2f), Part(AssemblerPart, MachineCatalog.Assembler, -2f, 2.2f),
                 Part(Gen5, WoodGenerator, 0.5f, 2.2f), Part(PressPart, MachineCatalog.Press, 2.5f, 2.2f),
                 Part(Gen6, WoodGenerator, 4.5f, 2.2f), Part(ExtractorPart, MachineCatalog.Extractor, 4.3f, 0f),
-                Part(Gen7, WoodGenerator, -4f, 4.4f), Part(WorkshopD, MachineCatalog.Workshop, -2f, 4.4f));
+                Part(Gen7, MachineCatalog.CombustionGenerator, -4f, 4.4f), Part(WorkshopD, MachineCatalog.Workshop, -2f, 4.4f));
             // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
             string Cable(int id, ushort from, ushort to) =>
                 $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";

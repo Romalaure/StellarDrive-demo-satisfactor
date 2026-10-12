@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Services;
 using HarmonyLib;
@@ -44,6 +45,8 @@ namespace StellarIndustries.Production
             public float LastSeen;
             public int Cycles;
             public string Detail;
+            /// <summary>Generator: energy already drawn from the fuel item being burnt, and offered this tick (joules).</summary>
+            public float Burned, Offered;
         }
 
         private struct Entry
@@ -56,6 +59,7 @@ namespace StellarIndustries.Production
 
         private static readonly Dictionary<(uint, ushort), Runtime> Runtimes = new Dictionary<(uint, ushort), Runtime>();
         private static readonly List<Entry> Running = new List<Entry>();
+        private static readonly List<Entry> Burning = new List<Entry>();
         private static readonly List<(uint, ushort)> Stale = new List<(uint, ushort)>();
         private static readonly Stack[] Buffer = new Stack[10];
         private static ShipsServerTracker _ships;
@@ -84,6 +88,7 @@ namespace StellarIndustries.Production
         public static void BeforeTransfers(PowerServerTracker power, float deltaTime)
         {
             Running.Clear();
+            Burning.Clear();
             if (deltaTime <= 0f || !Settings.Enabled.Value || Diagnostics.DevTest.HoldProduction)
                 return;
             if (_ships == null)
@@ -102,7 +107,10 @@ namespace StellarIndustries.Production
                     rt.LastSeen = now;
                     rt.Group = null;
                     rt.PowerRate = 0f;
-                    Prepare(power, ship, part, def, rt, deltaTime);
+                    if (def.Generates)
+                        PrepareGenerator(power, ship, part, def, rt, deltaTime);
+                    else
+                        Prepare(power, ship, part, def, rt, deltaTime);
                 }
             }
             if (now >= _nextPrune)
@@ -161,10 +169,78 @@ namespace StellarIndustries.Production
             Running.Add(new Entry { Ship = ship, Part = part, Def = def, Runtime = rt });
         }
 
+        // ---- Generators
+
+        private static readonly Func<uint, float> FuelEnergy = MachineCatalog.FuelEnergy;
+
+        /// <summary>A generator offers its network what its fuel can give this tick, up to its rating.</summary>
+        private static void PrepareGenerator(PowerServerTracker power, TrackedShipServer ship, StatefulPart part, MachineDef def, Runtime rt, float deltaTime)
+        {
+            rt.Recipe = null;
+            rt.Offered = 0f;
+            Read((StorageState)part.State, Buffer);
+            float available = FuelBurner.Available(Buffer, rt.Burned, FuelEnergy);
+            rt.Detail = FuelText(Buffer, available, def.Watts);
+            if (available <= 0f)
+            {
+                rt.Status = MachineStatus.NoFuel;
+                rt.Watts = 0f;
+                return;
+            }
+            if (!power.TryGetGroupFromSocket(new EntityPartSocket(ship.Id, part.Id, PowerSocket), out PowerGroupServerState group))
+            {
+                rt.Status = MachineStatus.Unpowered;
+                rt.Watts = 0f;
+                return;
+            }
+            rt.Offered = Mathf.Min(def.Watts * deltaTime, available);
+            group.TotalPowerProductionCapacity += rt.Offered;
+            rt.Group = group;
+            Burning.Add(new Entry { Ship = ship, Part = part, Def = def, Runtime = rt });
+        }
+
+        /// <summary>After the split: the energy the network really took is burnt.</summary>
+        private static void AfterGenerators(float deltaTime)
+        {
+            foreach (Entry entry in Burning)
+            {
+                Runtime rt = entry.Runtime;
+                float delivered = rt.Offered * Mathf.Clamp01(rt.Group.NormalizedGeneratorRate);
+                rt.Watts = entry.Def.Watts;
+                rt.PowerRate = Mathf.Clamp01(delivered / (entry.Def.Watts * deltaTime));
+                rt.Status = delivered > 0f ? MachineStatus.Producing : MachineStatus.Standby;
+                if (delivered <= 0f || !(entry.Part.State is StorageState state))
+                    continue;
+                rt.Burned += delivered;
+                Read(state, Buffer);
+                if (FuelBurner.Consume(Buffer, ref rt.Burned, FuelEnergy))
+                    entry.Ship.UpdatePartState(entry.Part.Id, state with { InventorySlots = Write(Buffer) });
+            }
+            Burning.Clear();
+        }
+
+        private static string FuelText(Stack[] slots, float joules, float watts)
+        {
+            int count = 0;
+            foreach (Stack s in slots)
+            {
+                if (!s.IsEmpty && FuelEnergy(s.Item) > 0f)
+                    count += s.Count;
+            }
+            if (count == 0)
+                return "Combustible : aucun (bois ou briquettes)";
+            float seconds = watts > 0f ? joules / watts : 0f;
+            return $"Combustible : {count} objet(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s à pleine charge)";
+        }
+
         public static void AfterTransfers(float deltaTime)
         {
             if (deltaTime <= 0f)
+            {
+                Burning.Clear();
                 return;
+            }
+            AfterGenerators(deltaTime);
             foreach (Entry entry in Running)
             {
                 Runtime rt = entry.Runtime;

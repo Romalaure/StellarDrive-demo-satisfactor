@@ -13,7 +13,8 @@ namespace StellarIndustries.Production
         Press,
         Crusher,
         Assembler,
-        Extractor
+        Extractor,
+        Generator
     }
 
     /// <summary>
@@ -38,6 +39,8 @@ namespace StellarIndustries.Production
         public bool Extracts;
         /// <summary>Extractor: seconds per item at speed 1, and how far (meters) it reaches for a rock.</summary>
         public float ExtractSeconds = 6f, ExtractRadius = 6f;
+        /// <summary>Generator: burns the fuels of <see cref="Fuels"/> from its slots and gives up to <see cref="Watts"/> to its network.</summary>
+        public bool Generates;
         /// <summary>Placement box (meters): width (x), height (y), depth (z).</summary>
         public float Width = 1.4f, Height = 1.5f, Depth = 1.2f;
         public (uint Item, int Count)[] BuildCost;
@@ -51,6 +54,7 @@ namespace StellarIndustries.Production
         public const ushort Crusher = 7604;
         public const ushort Assembler = 7605;
         public const ushort Extractor = 7606;
+        public const ushort CombustionGenerator = 7607;
 
         public static readonly MachineDef[] All =
         {
@@ -93,8 +97,33 @@ namespace StellarIndustries.Production
                 Description = "Fore le rocher minable le plus proche (à moins de 6 m) et en tire son minerai sans l'épuiser : " +
                               "1 objet toutes les 6 s. Posez-le sur un vaisseau ou une base au sol, à côté d'un rocher, et alimentez-le.",
                 BuildCost = new[] { (GameItems.Iron, 20), (GameItems.Copper, 8), (GameItems.Glass, 2) }
+            },
+            new MachineDef
+            {
+                PartId = CombustionGenerator, Name = "Générateur à combustion", Model = MachineModel.Generator, Tier = 1, Watts = 6000f, Mass = 260f,
+                Generates = true,
+                Description = "Brûle bois ou briquettes de biomasse et alimente son réseau électrique jusqu'à 6 000 W. " +
+                              "Ne brûle que ce que le réseau consomme. Une briquette (presse : 4 bois) vaut 5 bois.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 10), (ResourceCatalog.Cable, 6), (ResourceCatalog.IronRod, 6) }
             }
         };
+
+        /// <summary>What a generator burns: item and energy per item (joules). The game's wood generator gets 40 kJ from a log.</summary>
+        public static readonly (uint Item, float Joules)[] Fuels =
+        {
+            (GameItems.Wood, 40000f),
+            (ResourceCatalog.BiomassBrick, 200000f)
+        };
+
+        public static float FuelEnergy(uint item)
+        {
+            foreach (var fuel in Fuels)
+            {
+                if (fuel.Item == item)
+                    return fuel.Joules;
+            }
+            return 0f;
+        }
 
         private static Dictionary<ushort, MachineDef> _byId;
 

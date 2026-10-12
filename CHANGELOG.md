@@ -1,5 +1,18 @@
 # Journal des changements
 
+## 0.5.0 — phase E (énergie)
+
+- **Générateur à combustion** (7607, jusqu'à 6 000 W) : brûle bois (40 kJ, comme le générateur
+  du jeu) ou **briquettes de biomasse** (7714, 200 kJ ; presse : 4 bois → 1 briquette). Il
+  s'ajoute à la capacité de son réseau dans le tick électrique du jeu et ne brûle que ce que le
+  réseau a réellement pris. Un objet ne quitte son emplacement qu'une fois toute son énergie
+  donnée : un rechargement ne fait jamais perdre de combustible.
+- États : « En veille » (le réseau ne demande rien), « Plus de combustible ».
+- Convoyeurs : un générateur reçoit du combustible (20 d'avance) et n'envoie rien.
+- **Batteries** : non ajoutées ici, celles de *TF Advanced* (même tick électrique, ids
+  disjoints) fonctionnent avec les machines du mod.
+- **Fluides industriels** : non disponibles (voir FAISABILITE.md, section C).
+
 ## 0.4.0 — phase D (convoyeurs)
 
 - **Décision** : les convoyeurs passent par le mod **Item Lines** (Krunk, facultatif), qui
