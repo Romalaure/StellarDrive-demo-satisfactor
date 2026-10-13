@@ -27,7 +27,9 @@ namespace StellarIndustries.Parts
     /// </summary>
     internal static class IndustrialSkin
     {
-        private const int Version = 1;
+        private const int Version = 2;
+        /// <summary>Border of each tile repeating its edge, so mipmaps never mix two tiles (fraction of a tile).</summary>
+        private const float Gutter = 8f / 256f;
         private const int Grid = 8;
         private const int AlbedoSize = 2048, NormalSize = 1024, EmissionSize = 512;
 
@@ -40,7 +42,7 @@ namespace StellarIndustries.Parts
         public static Rect Uv(Tile tile)
         {
             int i = (int)tile;
-            float size = 1f / Grid, inset = size * 0.012f;
+            float size = 1f / Grid, inset = size * (Gutter + 0.004f);
             float x = (i % Grid) * size, y = 1f - (i / Grid + 1) * size;
             return new Rect(x + inset, y + inset, size - 2f * inset, size - 2f * inset);
         }
@@ -164,11 +166,11 @@ namespace StellarIndustries.Parts
             for (int y = 0; y < size; y++)
             {
                 int row = Grid - 1 - y / tilePx;
-                float v = (y % tilePx + 0.5f) / tilePx;
+                float v = Inner((y % tilePx + 0.5f) / tilePx);
                 for (int x = 0; x < size; x++)
                 {
                     int col = x / tilePx;
-                    float u = (x % tilePx + 0.5f) / tilePx;
+                    float u = Inner((x % tilePx + 0.5f) / tilePx);
                     var tile = (Tile)(row * Grid + col);
                     pixels[y * size + x] = (int)tile <= (int)Tile.Winding ? (Color32)sample(tile, u, v) : (Color32)Color.black;
                 }
@@ -177,6 +179,9 @@ namespace StellarIndustries.Parts
             texture.SetPixels32(pixels);
             return texture;
         }
+
+        /// <summary>A position in a tile, with the gutter clamped to the tile's edge.</summary>
+        private static float Inner(float t) => (Mathf.Clamp(t, Gutter, 1f - Gutter) - Gutter) / (1f - 2f * Gutter);
 
         /// <summary>Normals from the tiles' height (x, y, z in R, G, B and full alpha: read the same whether the shader unpacks RGB or AG).</summary>
         private static Texture2D RenderNormal(int size)

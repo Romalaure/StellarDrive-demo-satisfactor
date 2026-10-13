@@ -16,6 +16,6 @@ You start out with a workshop, a smelter and a few iron ingots… and you end up
 - [Limits](Limites): what the mod does not do (yet)
 
 ## The chain at a glance
-Ore » **Smelter** » ingots » **Workshop** » plates, rods, wire » **Press** » screws, cables » **Assembler** » reinforced plates, rotors, stators » **Fabricator** » motors, computers » **Particle Accelerator** » quantum processors.
+Ore » **Smelter** » ingots » **Workshop** » plates, rods, wire » **Press** » screws, cables » **Assembler** » reinforced plates, rotors, stators » **Fabricator** » motors, computers » **Particle Accelerator** » quantum processors » **Quantum Encoder** » time crystals, neuro-quantum processors.
 
 The Machines, Items, Recipes and Research pages are built straight from the mod's content, so they are always up to date.

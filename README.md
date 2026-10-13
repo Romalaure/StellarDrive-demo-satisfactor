@@ -2,14 +2,17 @@
 
 *[English below](#english)*
 
-Un mod d'industrie pour **StellarDrive Demo**. Vous partez de quelques lingots de fer, et petit à petit vous montez une vraie usine : des machines qui extraient le minerai, le fondent, le façonnent et l'assemblent, des générateurs pour tout alimenter, des lignes d'objets pour faire circuler la production… jusqu'aux supercalculateurs et à l'accélérateur de particules.
+Un mod d'industrie pour **StellarDrive Demo**. Vous partez de quelques lingots de fer, et petit à petit vous montez une vraie usine : des machines qui extraient le minerai, le fondent, le façonnent et l'assemblent, des générateurs pour tout alimenter, des lignes d'objets pour faire circuler la production… jusqu'à l'accélérateur de particules et au réacteur stellaire.
 
 ![Les machines de Stellar Industries](Mods/thumbnail.png)
 
 ## Ce que vous y trouverez
 
-- **14 machines** dans l'onglet de construction « Industrie » : atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accélérateur de particules, extracteur, générateur à combustion, accumulateur, conteneur et quai de transfert.
-- **53 objets et 59 recettes**, des plaques de fer aux processeurs quantiques.
+- **22 machines** dans deux onglets de construction :
+  - « Industrie » : atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accélérateur de particules, encodeur quantique et convertisseur ;
+  - « Industrie+ » : brûleur à biomasse, générateur à combustion, réacteur stellaire, accumulateur, extracteur, condenseur d'eau, tour radar, conteneur, quai de transfert, recycleur et comptoir d'échange.
+- **59 objets et 72 recettes**, des plaques de fer aux cristaux temporels.
+- **Recycler et échanger** : le recycleur paie vos surplus en bons, le comptoir les échange contre des ressources.
 - **Une branche de recherche** : chaque niveau se paie avec ce que vous fabriquez déjà, ce qui vous fait remonter la chaîne naturellement.
 - **Des machines vivantes** : volants qui tournent, presses qui frappent, bras robotisés, fours qui rougeoient, voyant vert quand tout va bien, et un léger ronronnement quand on passe à côté.
 - **Un wiki dans le jeu** : appuyez sur **G**, entrée « Wiki Stellar Industries ». Chaque machine et chaque objet a sa fiche.
@@ -49,19 +52,23 @@ Pour désinstaller proprement, videz et recyclez vos machines avant de retirer l
 ## À savoir
 
 - Chaque machine a 10 emplacements, comme les coffres du jeu.
-- Pas de fluides, de trains ni de drones : le jeu ne le permet pas. Pour transporter, un cargo piloté et deux quais de transfert font très bien l'affaire.
+- Pas de fluides en tuyaux, de trains ni de drones : le jeu ne le permet pas (le condenseur d'eau remplace la pompe). Pour transporter, un cargo piloté et deux quais de transfert font très bien l'affaire.
 - Un cycle commencé repart de zéro quand on recharge la partie (sans perte d'objets).
+- Depuis 0.12, certaines machines sont plus grandes : dans une ancienne partie, une machine peut chevaucher sa voisine. Déplacez-la si besoin.
 
 ---
 
 ## English
 
-An industry mod for **StellarDrive Demo**. You start with a handful of iron ingots and slowly build up a real factory: machines that dig ore, smelt it, shape it and put it together, generators to keep everything running, item lines to move your production around… all the way to supercomputers and a particle accelerator.
+An industry mod for **StellarDrive Demo**. You start with a handful of iron ingots and slowly build up a real factory: machines that dig ore, smelt it, shape it and put it together, generators to keep everything running, item lines to move your production around… all the way to a particle accelerator and a stellar reactor.
 
 ### What's inside
 
-- **14 machines** in the "Industrie" build tab: workshop, smelter, press, crusher, assembler, fabricator, blast furnace, refinery, particle accelerator, extractor, combustion generator, accumulator, container and transfer dock.
-- **53 items and 59 recipes**, from iron plates to quantum processors.
+- **22 machines** in two build tabs:
+  - "Industrie": workshop, smelter, press, crusher, assembler, fabricator, blast furnace, refinery, particle accelerator, quantum encoder and converter;
+  - "Industrie+": biomass burner, combustion generator, stellar reactor, accumulator, extractor, water condenser, radar tower, container, transfer dock, recycler and exchange counter.
+- **59 items and 72 recipes**, from iron plates to time crystals.
+- **Recycle and trade**: the recycler pays for your surplus in vouchers, the exchange counter trades them for resources.
 - **A research branch**: each level is paid with what you already make, so you naturally climb up the chain.
 - **Machines that feel alive**: spinning flywheels, stamping presses, robot arms, glowing furnaces, a green light when all is well, and a gentle hum as you walk by.
 - **An in-game wiki**: press **G** and pick "Wiki Stellar Industries". Every machine and every item has its own page.
@@ -101,8 +108,9 @@ To uninstall cleanly, empty and recycle your machines before removing the mod (a
 ### Good to know
 
 - Each machine has 10 slots, like the game's chests.
-- No fluids, trains or drones: the game doesn't allow them. For transport, a piloted cargo ship and two transfer docks do the job nicely.
+- No piped fluids, trains or drones: the game doesn't allow them (the water condenser stands in for a pump). For transport, a piloted cargo ship and two transfer docks do the job nicely.
 - A cycle in progress restarts when you reload your game (no items are lost).
+- Since 0.12 some machines are bigger: in an older save a machine may overlap its neighbour. Move it if needed.
 
 ---
 

@@ -24,6 +24,8 @@ namespace StellarIndustries.Parts
     internal static class PartTools
     {
         public const string Tab = "Industrie";
+        /// <summary>Second tab: power, extraction and logistics.</summary>
+        public const string UtilityTab = "Industrie+";
 
         /// <summary>Every part id this mod adds.</summary>
         public static readonly HashSet<ushort> Ids = new HashSet<ushort>();
@@ -31,7 +33,9 @@ namespace StellarIndustries.Parts
         private static readonly AccessTools.FieldRef<PartSettings, List<ItemInstance>> BuildingCost =
             AccessTools.FieldRefAccess<PartSettings, List<ItemInstance>>("buildingCost");
 
-        public static void Register(ushort id, string donor, int row, Action<PartSettings, GameObject> configure)
+        public static void Register(ushort id, string donor, int row, Action<PartSettings, GameObject> configure) => Register(id, donor, Tab, row, configure);
+
+        public static void Register(ushort id, string donor, string tab, int row, Action<PartSettings, GameObject> configure)
         {
             Ids.Add(id);
             CustomParts.Register(new CustomPartDefinition
@@ -39,7 +43,7 @@ namespace StellarIndustries.Parts
                 Id = id,
                 Name = "SI_" + id,
                 Donor = donor,
-                BuildTab = Tab,
+                BuildTab = tab,
                 BuildRow = row,
                 Configure = (settings, prefab) =>
                 {

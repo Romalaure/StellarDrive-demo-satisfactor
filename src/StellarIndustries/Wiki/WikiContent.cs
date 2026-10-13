@@ -114,7 +114,7 @@ namespace StellarIndustries.Wiki
                 t.Append(Number(m.Watts)).Append(T(" W pendant la production", " W while producing"));
             t.Append("\n- **").Append(T("Coût de construction", "Build cost")).Append("**").Append(Colon).Append(string.Join(" + ", m.BuildCost.Select(c => c.Count + " " + ItemLink(c.Item))));
             t.Append("\n- **").Append(T("Recherche", "Research")).Append("**").Append(Colon).Append(tech != null ? $"[{TechName(tech)}](Recherche)" : T("disponible d'office", "available from the start"));
-            t.Append("\n- **").Append(T("Taille", "Size")).Append("**").Append(Colon).Append(Number(m.Width)).Append(" × ").Append(Number(m.Depth)).Append(" m, ").Append(Number(m.Height)).Append(T(" m de haut", " m tall"));
+            t.Append("\n- **").Append(T("Taille", "Size")).Append("**").Append(Colon).Append(Number(m.SizeX)).Append(" × ").Append(Number(m.SizeZ)).Append(" m, ").Append(Number(m.SizeY)).Append(T(" m de haut", " m tall"));
             if (!m.IsLogistics)
                 t.Append(T("\n- **Prises** (à l'arrière, de gauche à droite) : port d'objets, port d'objets, prise électrique (boîtier jaune et noir). Les ports d'objets viennent du mod Item Lines.",
                     "\n- **Sockets** (on the back, left to right): item port, item port, power socket (yellow and black box). The item ports come from the Item Lines mod."));

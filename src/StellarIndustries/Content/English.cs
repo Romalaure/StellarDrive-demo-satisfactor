@@ -63,6 +63,12 @@ namespace StellarIndustries.Content
             [7751] = ("Turbo Motor", "An engine block, cooled and radio-controlled: the ultimate power."),
             [7752] = ("Quantum Processor", "Computing on condensed stellar matter, straight out of the accelerator."),
             [7753] = ("Condensed Stellar Matter", "Stellar dust squeezed into a glowing particle in the accelerator."),
+            [7754] = ("Stellar Fuel Rod", "Condensed stellar matter sheathed in aluminum and concrete: the stellar reactor's fuel."),
+            [7755] = ("Stellar Waste", "What's left of a spent rod. The quantum encoder can still get matter out of it."),
+            [7756] = ("Recycling Voucher", "A voucher earned at the recycler. The exchange counter takes it as money."),
+            [7757] = ("Neuro-Quantum Processor", "A quantum processor paired with logic modules: the brain of tomorrow's machines."),
+            [7758] = ("Time Crystal", "A crystal that ticks outside of time, grown in the quantum encoder."),
+            [7759] = ("Logic Module", "A small board of fine wire and copper that makes simple decisions."),
         };
 
         public static readonly Dictionary<ushort, (string Name, string Description)> Machines = new Dictionary<ushort, (string, string)>
@@ -81,6 +87,14 @@ namespace StellarIndustries.Content
             [7612] = ("Refinery", "Biomass chemistry: charcoal, resin, plastic and rubber (with by-products)."),
             [7613] = ("Accumulator", "Stores 60 MJ: it charges from its grid's spare power and gives it back when the grid runs short (up to 3 kW). The charge is kept in the save."),
             [7614] = ("Particle Accelerator", "An acceleration ring: condenses stellar dust into matter and makes quantum processors. A big consumer (8 kW)."),
+            [7615] = ("Biomass Burner", "A small industrial stove to get you started: it burns logs, biomass, bricks or charcoal and gives up to 1,500 W."),
+            [7616] = ("Water Condenser", "Chills the air and pulls ice out of it, anywhere: one ice every 8 s as long as it has power and room."),
+            [7617] = ("Stellar Reactor", "The ultimate power plant: 25 kW from stellar fuel rods (5 minutes each at full power). Each spent rod leaves a piece of stellar waste that has to be taken out."),
+            [7618] = ("Quantum Encoder", "The top of the chain: time crystals, neuro-quantum processors and recycling of stellar waste."),
+            [7619] = ("Converter", "Turns one ore into another with stellar dust: iron into copper, copper into aluminum, dust into stellar shards."),
+            [7620] = ("Recycler", "Destroys what you no longer need and pays you in recycling vouchers: the more refined an item, the more it's worth. Spend the vouchers at the exchange counter."),
+            [7621] = ("Exchange Counter", "Trades your recycling vouchers for resources: ores, stellar shards, even stellar matter."),
+            [7622] = ("Radar Tower", "An antenna that sweeps the area: within 60 m of a tower, the deposit scanner (K key) reaches up to 400 m."),
         };
 
         /// <summary>Recipes whose English name is not simply their first product's.</summary>
@@ -92,6 +106,14 @@ namespace StellarIndustries.Content
             ["smelter.crushed_copper"] = "Copper Ingot (crushed ore)",
             ["foundry.steel"] = "Steel Ingot (charcoal)",
             ["smelter.glass"] = "Glass",
+            ["encoder.waste"] = "Stellar Matter (from waste)",
+            ["converter.copper"] = "Copper (converted iron)",
+            ["converter.aluminum"] = "Aluminum (converted copper)",
+            ["converter.shard"] = "Stellar Shards (converted dust)",
+            ["exchange.iron"] = "Iron",
+            ["exchange.copper"] = "Copper",
+            ["exchange.aluminum"] = "Aluminum",
+            ["exchange.shards"] = "Stellar Shards",
         };
 
         public static readonly Dictionary<ushort, string> Techs = new Dictionary<ushort, string>
@@ -105,6 +127,12 @@ namespace StellarIndustries.Content
             [7807] = "Metallurgy and Chemistry",
             [7808] = "Energy Storage",
             [7809] = "Particle Physics",
+            [7810] = "Bioenergy",
+            [7811] = "Condensation",
+            [7812] = "Recycling",
+            [7813] = "Industrial Mapping",
+            [7814] = "Quantum Physics",
+            [7815] = "Stellar Energy",
         };
     }
 }

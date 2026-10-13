@@ -3,7 +3,7 @@
 Here is how to set up your very first factory. It takes about ten minutes.
 
 ## 1. Unlock the first machines
-Head to the research table. Once you have *Power Generation*, the **Industrie** branch shows up: research **Basic Industry** (20 iron and 10 copper). That unlocks the [Workshop](Machine-7601), the [Smelter](Machine-7602) and the [Extractor](Machine-7606), all in the "Industrie" build tab.
+Head to the research table. Once you have *Power Generation*, the **Industrie** branch shows up: research **Basic Industry** (20 iron and 10 copper). That unlocks the [Workshop](Machine-7601), the [Smelter](Machine-7602) and the [Extractor](Machine-7606), all in the "Industrie" build tab (production machines) and the "Industrie+" tab (power, extraction, logistics).
 
 ## 2. Bring power
 Place a wood generator and your two machines. Every machine has its power socket on the back, in the small yellow and black box: run a power cable to the generator. Until it is plugged in, the machine tells you so ("Unpowered") when you look at it.

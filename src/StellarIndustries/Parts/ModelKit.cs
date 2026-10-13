@@ -14,7 +14,10 @@ namespace StellarIndustries.Parts
     /// </summary>
     internal sealed class ModelKit
     {
-        private readonly MeshBuilder _mesh = new MeshBuilder();
+        /// <summary>Faces larger than this show the tile several times (riveted plates instead of one stretched panel).</summary>
+        public const float TileSize = 0.45f;
+
+        private readonly MeshBuilder _mesh = new MeshBuilder { PanelSize = TileSize };
         private readonly List<ModelKit> _children = new List<ModelKit>();
         private readonly string _name;
         private readonly Vector3 _pivot;
@@ -37,11 +40,24 @@ namespace StellarIndustries.Parts
         public ModelKit Cylinder(Tile tile, Vector3 a, Vector3 b, float ra, float rb, int sides = 16, bool capA = true, bool capB = true)
         {
             _mesh.Panel = IndustrialSkin.Uv(tile);
+            // An open end (funnel, hopper, tube) is seen from inside too
+            _mesh.DoubleSided = !capA || !capB;
             _mesh.Cylinder(a - _pivot, b - _pivot, ra, rb, sides, capA, capB);
+            _mesh.DoubleSided = false;
             return this;
         }
 
         public ModelKit Tube(Tile tile, Vector3 a, Vector3 b, float r, int sides = 10) => Cylinder(tile, a, b, r, r, sides);
+
+        /// <summary>A square beam from point a to point b (its ends exactly there: linked pieces stay linked).</summary>
+        public ModelKit Beam(Tile tile, Vector3 a, Vector3 b, float width, float depth = -1f)
+        {
+            Vector3 dir = b - a;
+            if (dir.sqrMagnitude < 1e-8f)
+                return this;
+            Quaternion r = Quaternion.FromToRotation(Vector3.up, dir.normalized);
+            return Box(tile, (a + b) * 0.5f, new Vector3(width, dir.magnitude, depth > 0f ? depth : width), r);
+        }
 
         /// <summary>A bent pipe through several points, with a collar at each bend.</summary>
         public ModelKit Pipe(Tile tile, float r, params Vector3[] points)
@@ -119,7 +135,7 @@ namespace StellarIndustries.Parts
         // ---- Build
 
         /// <summary>Creates the objects under <paramref name="parent"/>; <paramref name="parentPivot"/> is the parent's pivot in the part frame.</summary>
-        public void Build(Transform parent, int layer, Material material, Vector2? palette, Vector3 parentPivot)
+        public Transform Build(Transform parent, int layer, Material material, Vector2? palette, Vector3 parentPivot)
         {
             var go = new GameObject(_name) { layer = layer };
             go.transform.SetParent(parent, false);
@@ -133,6 +149,7 @@ namespace StellarIndustries.Parts
             }
             foreach (ModelKit child in _children)
                 child.Build(go.transform, layer, material, palette, _pivot);
+            return go.transform;
         }
     }
 }

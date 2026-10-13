@@ -32,6 +32,7 @@
     <Compile Include="..\..\src\StellarIndustries\Logistics\ItemTransfer.cs" Link="Linked\ItemTransfer.cs" />
     <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeBook.cs" Link="Linked\RecipeBook.cs" />
     <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeValidator.cs" Link="Linked\RecipeValidator.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Recipes\ItemValues.cs" Link="Linked\ItemValues.cs" />
   </ItemGroup>
 
 </Project>

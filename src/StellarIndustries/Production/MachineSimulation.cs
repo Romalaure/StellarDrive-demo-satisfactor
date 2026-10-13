@@ -121,6 +121,8 @@ namespace StellarIndustries.Production
                         Logistics.LoadingDocks.Collect(ship, part, def, rt);
                     else if (def.Container)
                         rt.Status = MachineStatus.Idle;
+                    else if (def.Radar)
+                        rt.Status = MachineStatus.Producing;
                     else if (def.Generates)
                         PrepareGenerator(power, ship, part, def, rt, deltaTime);
                     else
@@ -158,6 +160,26 @@ namespace StellarIndustries.Production
                 rt.Detail = Lang.T($"Gisement : {d.Name} à {d.Distance:0.0} m", $"Deposit: {d.Name} at {d.Distance:0.0} m");
                 RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds, IndustrialItems.NameOf(d.Item));
                 recipe = RecipeSelector.Pick(Buffer, new[] { extraction }, rt.Recipe, IndustrialItems.MaxStack, out status);
+            }
+            else if (def.FixedOutput != 0)
+            {
+                // A condenser makes its item from nothing but power
+                RecipeDef make = RecipeBook.Extraction(def.PartId, def.FixedOutput, def.ExtractSeconds, IndustrialItems.NameOf(def.FixedOutput));
+                recipe = RecipeSelector.Pick(Buffer, new[] { make }, rt.Recipe, IndustrialItems.MaxStack, out status);
+            }
+            else if (def.Sinks)
+            {
+                // The recycler takes the items in slot order, vouchers excepted
+                var sinks = new List<RecipeDef>();
+                foreach (Stack s in Buffer)
+                {
+                    if (!s.IsEmpty && s.Item != ResourceCatalog.Voucher)
+                        sinks.Add(RecipeBook.Recycling(def.PartId, s.Item, IndustrialItems.NameOf(s.Item)));
+                }
+                recipe = RecipeSelector.Pick(Buffer, sinks.ToArray(), rt.Recipe, IndustrialItems.MaxStack, out status);
+                rt.Detail = recipe != null
+                    ? Lang.T($"Valeur : {ItemValues.Of(recipe.Inputs[0].Item):0.##} point(s) par objet, 100 points = 1 bon", $"Value: {ItemValues.Of(recipe.Inputs[0].Item):0.##} point(s) per item, 100 points = 1 voucher")
+                    : null;
             }
             else
             {
@@ -267,17 +289,27 @@ namespace StellarIndustries.Production
 
         private static readonly Func<uint, float> FuelEnergy = MachineCatalog.FuelEnergy;
 
+        private static Func<uint, float> EnergyOf(MachineDef def) => item => MachineCatalog.FuelEnergy(def, item);
+
         /// <summary>A generator offers its network what its fuel can give this tick, up to its rating.</summary>
         private static void PrepareGenerator(PowerServerTracker power, TrackedShipServer ship, StatefulPart part, MachineDef def, Runtime rt, float deltaTime)
         {
             rt.Recipe = null;
             rt.Offered = 0f;
             Read((StorageState)part.State, Buffer);
-            float available = FuelBurner.Available(Buffer, rt.Burned, FuelEnergy);
-            rt.Detail = FuelText(Buffer, available, def.Watts);
+            Func<uint, float> energy = EnergyOf(def);
+            float available = FuelBurner.Available(Buffer, rt.Burned, energy);
+            rt.Detail = FuelText(def, Buffer, available, def.Watts);
             if (available <= 0f)
             {
                 rt.Status = MachineStatus.NoFuel;
+                rt.Watts = 0f;
+                return;
+            }
+            // A reactor needs room for the waste of the rod it burns
+            if (def.WasteItem != 0 && !FuelBurner.HasRoom(Buffer, def.WasteItem, IndustrialItems.MaxStack(def.WasteItem)))
+            {
+                rt.Status = MachineStatus.OutputBlocked;
                 rt.Watts = 0f;
                 return;
             }
@@ -307,22 +339,27 @@ namespace StellarIndustries.Production
                     continue;
                 rt.Burned += delivered;
                 Read(state, Buffer);
-                if (FuelBurner.Consume(Buffer, ref rt.Burned, FuelEnergy))
+                int burnt = FuelBurner.Consume(Buffer, ref rt.Burned, EnergyOf(entry.Def), out bool changed);
+                if (burnt > 0 && entry.Def.WasteItem != 0)
+                    FuelBurner.Add(Buffer, entry.Def.WasteItem, burnt, IndustrialItems.MaxStack(entry.Def.WasteItem));
+                if (changed)
                     entry.Ship.UpdatePartState(entry.Part.Id, state with { InventorySlots = Write(Buffer) });
             }
             Burning.Clear();
         }
 
-        private static string FuelText(Stack[] slots, float joules, float watts)
+        private static string FuelText(MachineDef def, Stack[] slots, float joules, float watts)
         {
             int count = 0;
             foreach (Stack s in slots)
             {
-                if (!s.IsEmpty && FuelEnergy(s.Item) > 0f)
+                if (!s.IsEmpty && MachineCatalog.FuelEnergy(def, s.Item) > 0f)
                     count += s.Count;
             }
             if (count == 0)
-                return Lang.T("Combustible : aucun (bois ou briquettes)", "Fuel: none (logs or bricks)");
+                return def.OwnFuels != null
+                    ? Lang.T("Combustible : aucune barre de combustible stellaire", "Fuel: no stellar fuel rod")
+                    : Lang.T("Combustible : aucun (bois, biomasse, briquettes, charbon de bois)", "Fuel: none (logs, biomass, bricks, charcoal)");
             float seconds = watts > 0f ? joules / watts : 0f;
             return Lang.T($"Combustible : {count} objet(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s à pleine charge)",
                 $"Fuel: {count} item(s), {Mathf.RoundToInt(joules / 1000f)} kJ (≈ {Mathf.RoundToInt(seconds)} s at full load)");

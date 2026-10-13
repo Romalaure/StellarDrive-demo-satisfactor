@@ -30,7 +30,8 @@ namespace StellarIndustries.Parts
         public static void Build(MachineModel model, Transform visuals, Vector3 o, MachineDef def)
         {
             _o = o;
-            var kit = new ModelKit("SI_Model", Vector3.zero);
+            // The model is designed at scale 1 around the bottom centre, then scaled there as a whole
+            var kit = new ModelKit("SI_Model", o);
             float w = def.Width, d = def.Depth;
             switch (model)
             {
@@ -47,11 +48,20 @@ namespace StellarIndustries.Parts
                 case MachineModel.Refinery: Refinery(kit, w, d); break;
                 case MachineModel.Accumulator: Accumulator(kit, w, d); break;
                 case MachineModel.Accelerator: Accelerator(kit, w, d); break;
+                case MachineModel.BiomassBurner: BiomassBurner(kit, w, d); break;
+                case MachineModel.Condenser: Condenser(kit, w, d); break;
+                case MachineModel.Reactor: Reactor(kit, w, d); break;
+                case MachineModel.Encoder: Encoder(kit, w, d); break;
+                case MachineModel.Converter: Converter(kit, w, d); break;
+                case MachineModel.Recycler: Recycler(kit, w, d); break;
+                case MachineModel.Exchange: Exchange(kit, w, d); break;
+                case MachineModel.Radar: Radar(kit, w, d); break;
                 default: Workshop(kit, w, d); break;
             }
             if (!def.IsLogistics)
-                ServicePanel(kit, w, d);
-            kit.Build(visuals, visuals.gameObject.layer, IndustrialSkin.Material, GameSkin.Ready ? GameSkin.Palette : (Vector2?)null, Vector3.zero);
+                ServicePanel(kit, w, d, NeedsPower(def));
+            Transform root = kit.Build(visuals, visuals.gameObject.layer, IndustrialSkin.Material, GameSkin.Ready ? GameSkin.Palette : (Vector2?)null, Vector3.zero);
+            root.localScale = Vector3.one * def.Scale;
         }
 
         // ---- Shared pieces
@@ -77,27 +87,40 @@ namespace StellarIndustries.Parts
         /// Back service row: a dark steel band, the power junction box (yellow-and-black, a conduit
         /// up into the machine) right of the centre, the item hatch in the middle.
         /// </summary>
-        private static void ServicePanel(ModelKit k, float w, float d)
+        /// <summary>Whether the part has a power socket (machines, generators, accumulators; not the radar).</summary>
+        public static bool NeedsPower(Production.MachineDef def) => !def.IsLogistics && (def.Watts > 0f || def.Generates || def.Stores);
+
+        private static void ServicePanel(ModelKit k, float w, float d, bool power)
         {
             float back = -d * 0.5f;
             float y = ServiceHeight;
             k.Box(Tile.DarkSteel, P(0f, y, back + 0.07f), new Vector3(w - 0.24f, 0.3f, 0.06f));
-            // Power junction box: its face is the part's back face, the socket comes out of it
+            // Legs down to the deck, so the row never floats behind open machines
+            foreach (float side in new[] { -1f, 1f })
+                k.Box(Tile.DarkSteel, P(side * (w * 0.5f - 0.17f), (0.1f + y - 0.15f) * 0.5f, back + 0.07f), new Vector3(0.05f, y - 0.15f - 0.1f + 0.02f, 0.05f));
             float x = SocketOffset;
-            k.Box(Tile.LabelPower, P(x, y, back + 0.05f), new Vector3(0.15f, 0.22f, 0.1f));
-            k.Box(Tile.DarkSteel, P(x, y + 0.12f, back + 0.05f), new Vector3(0.17f, 0.03f, 0.11f));
-            k.Pipe(Tile.CableJacket, 0.022f, P(x, y + 0.13f, back + 0.05f), P(x, y + 0.32f, back + 0.05f), P(x, y + 0.32f, back + 0.16f));
-            k.Box(Tile.LedGreen, P(x + 0.055f, y + 0.08f, back), new Vector3(0.025f, 0.025f, 0.01f));
-            // Item hatch: framed opening with an arrow plate, where an item line plugs in
-            k.Frame(Tile.PaintedYellow, P(0f, y, back + 0.025f), new Vector2(0.16f, 0.24f), 0.025f, Vector3.back, 0.03f);
-            k.Box(Tile.ArrowLabel, P(0f, y + 0.07f, back + 0.04f), new Vector3(0.1f, 0.08f, 0.02f));
-            k.Box(Tile.Grille, P(0f, y - 0.03f, back + 0.04f), new Vector3(0.11f, 0.1f, 0.02f));
-            // Second hatch left of the power socket (Item Lines' second port is moved there, see PortLayout)
-            k.Frame(Tile.PaintedYellow, P(-x, y, back + 0.025f), new Vector2(0.16f, 0.24f), 0.025f, Vector3.back, 0.03f);
-            k.Box(Tile.ArrowLabel, P(-x, y + 0.07f, back + 0.04f), new Vector3(0.1f, 0.08f, 0.02f));
-            k.Box(Tile.Grille, P(-x, y - 0.03f, back + 0.04f), new Vector3(0.11f, 0.1f, 0.02f));
+            if (power)
+            {
+                // Power junction box: its face is the part's back face, the socket comes out of it
+                k.Box(Tile.LabelPower, P(x, y, back + 0.05f), new Vector3(0.15f, 0.22f, 0.1f));
+                k.Box(Tile.DarkSteel, P(x, y + 0.12f, back + 0.05f), new Vector3(0.17f, 0.03f, 0.11f));
+                k.Pipe(Tile.CableJacket, 0.022f, P(x, y + 0.13f, back + 0.05f), P(x, y + 0.32f, back + 0.05f), P(x, y + 0.32f, back + 0.16f));
+                k.Box(Tile.LedGreen, P(x + 0.055f, y + 0.08f, back), new Vector3(0.025f, 0.025f, 0.01f));
+            }
+            // Item hatches in the middle and left of the power socket (Item Lines' ports are set there, see PortLayout)
+            ItemHatch(k, 0f, back);
+            ItemHatch(k, -x, back);
             // Warning plate above the row
             k.Box(Tile.LabelWarning, P(-x - 0.2f, y + 0.08f, back + 0.04f), new Vector3(0.12f, 0.1f, 0.02f));
+        }
+
+        /// <summary>A framed item hatch on a back face at <paramref name="back"/>, at the service row's height.</summary>
+        private static void ItemHatch(ModelKit k, float x, float back)
+        {
+            float y = ServiceHeight;
+            k.Frame(Tile.PaintedYellow, P(x, y, back + 0.025f), new Vector2(0.16f, 0.24f), 0.025f, Vector3.back, 0.03f);
+            k.Box(Tile.ArrowLabel, P(x, y + 0.07f, back + 0.04f), new Vector3(0.1f, 0.08f, 0.02f));
+            k.Box(Tile.Grille, P(x, y - 0.03f, back + 0.04f), new Vector3(0.11f, 0.1f, 0.02f));
         }
 
         /// <summary>A status light: green while working, red when stopped.</summary>
@@ -111,6 +134,10 @@ namespace StellarIndustries.Parts
         /// <summary>Operator console on the front: slanted panel with buttons, a screen and a status light.</summary>
         private static void Console(ModelKit k, Vector3 at, float width, Tile screen = Tile.Screen)
         {
+            // A post down to the deck: a console never floats (inside a body, the post is hidden)
+            float bottom = at.y - 0.18f, deck = _o.y + 0.08f;
+            if (bottom > deck + 0.02f)
+                k.Box(Tile.DarkSteel, new Vector3(at.x, (bottom + deck) * 0.5f, at.z - 0.02f), new Vector3(0.07f, bottom - deck, 0.07f));
             k.Box(Tile.PaintedDark, at, new Vector3(width, 0.36f, 0.12f));
             k.Box(Tile.ControlPanel, at + new Vector3(-width * 0.22f, -0.06f, 0.065f), new Vector3(width * 0.45f, 0.18f, 0.02f), Quaternion.Euler(-15f, 0f, 0f));
             k.Moving("kind=glow freq=0.7", at + new Vector3(width * 0.22f, 0.04f, 0.07f))
@@ -155,7 +182,7 @@ namespace StellarIndustries.Parts
             k.Box(Tile.Grille, P(-0.56f, 0.55f, -0.08f), new Vector3(0.02f, 0.5f, 0.5f));
             // Feed hopper on top, its funnel into the press
             k.Cylinder(Tile.Brushed, P(-0.25f, 1.03f, -0.15f), P(-0.25f, 1.38f, -0.15f), 0.16f, 0.32f, 4, capA: true, capB: false);
-            k.Box(Tile.Hazard, P(-0.25f, 1.39f, -0.15f), new Vector3(0.48f, 0.03f, 0.48f), Quaternion.Euler(0f, 45f, 0f));
+            k.Cylinder(Tile.Hazard, P(-0.25f, 1.36f, -0.15f), P(-0.25f, 1.4f, -0.15f), 0.335f, 0.335f, 4, capA: false, capB: false);
             // Press frame in front: column, head, die table
             k.Box(Tile.PaintedOrange, P(-0.32f, 0.85f, 0.42f), new Vector3(0.12f, 0.62f, 0.12f));
             k.Box(Tile.PaintedOrange, P(-0.08f, 1.12f, 0.42f), new Vector3(0.6f, 0.12f, 0.18f));
@@ -225,60 +252,72 @@ namespace StellarIndustries.Parts
                 k.Bolts(P(x, 1.62f, 0.165f), Vector3.forward, 0.07f, 4, 0.03f);
             }
             k.Box(Tile.PaintedOrange, P(0f, 1.75f, 0f), new Vector3(1.3f, 0.26f, 0.44f));
-            // Hydraulic cylinders on the crown
             foreach (float x in new[] { -0.22f, 0.22f })
             {
                 k.Tube(Tile.Pipe, P(x, 1.85f, 0f), P(x, 1.88f, 0f), 0.11f, 14);
                 k.Tube(Tile.Brushed, P(x, 1.62f, 0f), P(x, 1.86f, 0f), 0.08f, 14);
             }
-            // Ram: guided plate with its rods
             ModelKit ram = k.Moving("kind=press axis=0,1,0 amp=0.42 freq=0.45", P(0f, 1.2f, 0.02f));
             foreach (float x in new[] { -0.22f, 0.22f })
                 ram.Tube(Tile.Brushed, P(x, 1.62f, 0.02f), P(x, 1.15f, 0.02f), 0.04f, 10);
             ram.Box(Tile.PaintedYellow, P(0f, 1.1f, 0.02f), new Vector3(0.78f, 0.18f, 0.4f));
             ram.Box(Tile.DarkSteel, P(0f, 0.99f, 0.04f), new Vector3(0.36f, 0.05f, 0.3f));
-            // Hydraulic tank and hoses at the back (left, clear of the service row's socket)
-            k.Cylinder(Tile.PaintedGreen, P(-0.45f, 0.3f, -0.28f), P(-0.1f, 0.3f, -0.28f), 0.11f, 0.11f, 14);
-            k.Pipe(Tile.CableJacket, 0.025f, P(-0.2f, 0.41f, -0.28f), P(-0.2f, 0.75f, -0.24f), P(-0.4f, 1.6f, -0.2f));
-            k.Pipe(Tile.CableJacket, 0.025f, P(-0.3f, 0.41f, -0.28f), P(-0.3f, 0.72f, -0.26f), P(0.4f, 1.6f, -0.2f));
-            Console(k, P(0.75f, 0.85f, 0.3f), 0.18f);
+            // Hydraulic tank on the deck at the back, its two hoses running up behind the columns into the crown
+            k.Cylinder(Tile.PaintedGreen, P(-0.4f, 0.3f, -0.3f), P(0.05f, 0.3f, -0.3f), 0.1f, 0.1f, 14);
+            k.Bolts(P(0.05f, 0.3f, -0.3f), Vector3.right, 0.06f, 5, 0.02f);
+            k.Pipe(Tile.CableJacket, 0.025f, P(-0.3f, 0.4f, -0.3f), P(-0.3f, 0.52f, -0.22f), P(-0.48f, 0.52f, -0.22f), P(-0.48f, 1.62f, -0.22f));
+            k.Pipe(Tile.CableJacket, 0.025f, P(-0.05f, 0.4f, -0.3f), P(-0.05f, 0.56f, -0.24f), P(0.48f, 0.56f, -0.24f), P(0.48f, 1.62f, -0.24f));
+            // Control box bolted on the right column, facing the operator
+            Console(k, P(0.52f, 1.0f, 0.22f), 0.18f);
         }
 
-        // ---- Crusher: a hopper over two toothed drums, gear covers, motor and output belt
+        // ---- Crusher: a jaw crusher. Feed hopper, fixed jaw and swinging jaw driven by an
+        //      eccentric shaft between two heavy flywheels, belt drive from a motor, discharge belt
 
         private static void Crusher(ModelKit k, float w, float d)
         {
             Skid(k, w, d);
-            k.Box(Tile.PaintedYellow, P(0f, 0.45f, -0.05f), new Vector3(1.05f, 0.7f, 0.85f));
-            k.Box(Tile.DarkSteel, P(0f, 0.86f, -0.05f), new Vector3(1.0f, 0.14f, 0.78f));
-            // Drums seen through the open top, turning against each other
-            foreach ((float z, float speed) in new[] { (-0.2f, 260f), (0.1f, -260f) })
+            // Two heavy side frames
+            foreach (float x in new[] { -0.33f, 0.33f })
             {
-                ModelKit drum = k.Moving($"kind=spin axis=1,0,0 speed={speed:0}", P(0f, 0.95f, z));
-                drum.Cylinder(Tile.DarkSteel, P(-0.42f, 0.95f, z), P(0.42f, 0.95f, z), 0.12f, 0.12f, 12);
-                for (int i = 0; i < 6; i++)
-                    drum.Box(Tile.Steel, P(0f, 0.95f, z), new Vector3(0.8f, 0.3f, 0.03f), Quaternion.Euler(i * 30f, 0f, 0f));
+                k.Box(Tile.PaintedYellow, P(x, 0.58f, -0.05f), new Vector3(0.1f, 0.92f, 0.82f));
+                k.Bolts(P(x + Mathf.Sign(x) * 0.05f, 0.35f, 0.25f), Vector3.right * Mathf.Sign(x), 0.06f, 6, 0.025f);
+                k.Bolts(P(x + Mathf.Sign(x) * 0.05f, 0.35f, -0.35f), Vector3.right * Mathf.Sign(x), 0.06f, 6, 0.025f);
             }
-            // Hopper: open funnel with a hazard rim
-            k.Cylinder(Tile.Rust, P(0f, 1.0f, -0.05f), P(0f, 1.45f, -0.05f), 0.5f, 0.72f, 4, capA: false, capB: false);
-            k.Box(Tile.Hazard, P(0f, 1.46f, -0.05f), new Vector3(1.02f, 0.04f, 1.02f), Quaternion.Euler(0f, 45f, 0f));
-            // Gear covers on the right, turning with the drums
-            foreach ((float z, float speed) in new[] { (-0.2f, 260f), (0.1f, -260f) })
-            {
-                ModelKit gear = k.Moving($"kind=spin axis=1,0,0 speed={speed:0}", P(0.56f, 0.95f, z));
-                gear.Cylinder(Tile.PaintedOrange, P(0.53f, 0.95f, z), P(0.6f, 0.95f, z), 0.19f, 0.19f, 14);
-                gear.Bolts(P(0.6f, 0.95f, z), Vector3.right, 0.1f, 6, 0.025f);
-            }
-            Motor(k, P(0.56f, 0.35f, -0.4f), P(0.56f, 0.35f, -0.12f), 0.1f);
-            // Output belt at the front with its roller
-            k.Box(Tile.DarkSteel, P(0f, 0.2f, 0.52f), new Vector3(0.5f, 0.06f, 0.2f));
-            k.Moving("kind=spin axis=1,0,0 speed=180", P(0f, 0.26f, 0.52f))
-                .Cylinder(Tile.Rubber, P(-0.22f, 0.26f, 0.52f), P(0.22f, 0.26f, 0.52f), 0.05f, 0.05f, 10);
-            Console(k, P(0.32f, 0.55f, 0.4f), 0.32f);
-            k.Box(Tile.LabelWarning, P(-0.35f, 0.6f, 0.38f), new Vector3(0.16f, 0.14f, 0.02f));
+            k.Box(Tile.DarkSteel, P(0f, 0.18f, -0.05f), new Vector3(0.56f, 0.12f, 0.82f));
+            // Fixed jaw (front), slightly leaning back, with its wear plate
+            k.Box(Tile.Rust, P(0f, 0.68f, 0.24f), new Vector3(0.56f, 0.72f, 0.1f), Quaternion.Euler(-8f, 0f, 0f));
+            k.Box(Tile.Tread, P(0f, 0.68f, 0.185f), new Vector3(0.5f, 0.66f, 0.02f), Quaternion.Euler(-8f, 0f, 0f));
+            // Eccentric shaft and its bearings on top of the frames
+            k.Tube(Tile.Pipe, P(-0.6f, 1.05f, -0.15f), P(0.6f, 1.05f, -0.15f), 0.05f, 12);
+            foreach (float x in new[] { -0.33f, 0.33f })
+                k.Box(Tile.DarkSteel, P(x, 1.07f, -0.15f), new Vector3(0.14f, 0.12f, 0.2f));
+            // Swinging jaw hanging from the shaft: it rocks against the fixed jaw
+            ModelKit jaw = k.Moving("kind=swing axis=1,0,0 amp=5 freq=1.4", P(0f, 1.05f, -0.15f));
+            jaw.Box(Tile.Steel, P(0f, 0.68f, -0.08f), new Vector3(0.5f, 0.74f, 0.12f), Quaternion.Euler(12f, 0f, 0f));
+            jaw.Box(Tile.Tread, P(0f, 0.66f, -0.01f), new Vector3(0.46f, 0.66f, 0.02f), Quaternion.Euler(12f, 0f, 0f));
+            jaw.Box(Tile.DarkSteel, P(0f, 1.0f, -0.15f), new Vector3(0.3f, 0.14f, 0.16f));
+            // Flywheels on both ends of the shaft
+            Flywheel(k, P(-0.5f, 1.05f, -0.15f), 0.36f, 0.08f, 160f, Tile.DarkSteel);
+            Flywheel(k, P(0.5f, 1.05f, -0.15f), 0.36f, 0.08f, 160f, Tile.DarkSteel);
+            // Feed hopper over the jaws
+            k.Cylinder(Tile.Rust, P(0f, 1.12f, 0.05f), P(0f, 1.5f, 0.05f), 0.3f, 0.52f, 4, capA: false, capB: false);
+            k.Cylinder(Tile.Hazard, P(0f, 1.48f, 0.05f), P(0f, 1.53f, 0.05f), 0.535f, 0.535f, 4, capA: false, capB: false);
+            // Motor on the skid, V-belts up to the left flywheel
+            Motor(k, P(-0.52f, 0.26f, 0.48f), P(-0.52f, 0.26f, 0.2f), 0.1f);
+            k.Cylinder(Tile.DarkSteel, P(-0.52f, 0.26f, 0.2f), P(-0.52f, 0.26f, 0.12f), 0.07f, 0.07f, 12);
+            foreach (float dx in new[] { -0.02f, 0.02f })
+                k.Beam(Tile.Rubber, P(-0.52f + dx, 0.31f, 0.15f), P(-0.52f + dx, 0.98f, -0.07f), 0.025f);
+            // Discharge belt under the jaws, out of the front
+            k.Box(Tile.DarkSteel, P(0f, 0.3f, 0.42f), new Vector3(0.42f, 0.05f, 0.4f), Quaternion.Euler(-12f, 0f, 0f));
+            k.Box(Tile.CrushedIron, P(0.02f, 0.34f, 0.4f), new Vector3(0.2f, 0.05f, 0.16f), Quaternion.Euler(-12f, 20f, 0f));
+            k.Moving("kind=spin axis=1,0,0 speed=180", P(0f, 0.37f, 0.6f))
+                .Cylinder(Tile.Rubber, P(-0.2f, 0.37f, 0.6f), P(0.2f, 0.37f, 0.6f), 0.04f, 0.04f, 10);
+            Console(k, P(0.48f, 0.5f, 0.42f), 0.26f);
         }
 
-        // ---- Assembler: bench with a turntable, a gantry and a two-joint robot arm, part trays
+        // ---- Assembler: a bench with a turntable and a floor-mounted robot arm (turret, upper arm,
+        //      forearm, gripper: every joint where the pieces meet), parts trays, a light mast
 
         private static void Assembler(ModelKit k, float w, float d)
         {
@@ -287,71 +326,99 @@ namespace StellarIndustries.Parts
             k.Box(Tile.Brushed, P(0f, 0.74f, 0.05f), new Vector3(1.4f, 0.04f, 0.86f));
             k.Box(Tile.Grille, P(-0.3f, 0.42f, 0.505f), new Vector3(0.5f, 0.3f, 0.01f));
             // Turntable with the work piece
-            ModelKit table = k.Moving("kind=spin axis=0,1,0 speed=40", P(-0.15f, 0.78f, 0.1f));
-            table.Cylinder(Tile.DarkSteel, P(-0.15f, 0.76f, 0.1f), P(-0.15f, 0.8f, 0.1f), 0.24f, 0.24f, 18);
-            table.Box(Tile.Steel, P(-0.15f, 0.86f, 0.1f), new Vector3(0.22f, 0.1f, 0.16f));
-            table.Box(Tile.BoltHeads, P(-0.15f, 0.915f, 0.1f), new Vector3(0.2f, 0.01f, 0.14f));
-            // Gantry
-            foreach (float x in new[] { -0.7f, 0.7f })
-                k.Box(Tile.PaintedOrange, P(x, 1.15f, -0.38f), new Vector3(0.1f, 0.8f, 0.1f));
-            k.Box(Tile.PaintedOrange, P(0f, 1.56f, -0.38f), new Vector3(1.5f, 0.1f, 0.14f));
-            k.Box(Tile.Hazard, P(0f, 1.56f, -0.305f), new Vector3(1.3f, 0.06f, 0.01f));
-            // Robot arm hanging from the gantry, swinging over the turntable, its forearm nodding
-            ModelKit arm = k.Moving("kind=swing axis=0,1,0 amp=35 freq=0.35", P(-0.15f, 1.45f, -0.3f));
-            arm.Box(Tile.DarkSteel, P(-0.15f, 1.47f, -0.3f), new Vector3(0.2f, 0.1f, 0.2f));
-            arm.Box(Tile.PaintedYellow, P(-0.15f, 1.3f, -0.18f), new Vector3(0.08f, 0.36f, 0.08f), Quaternion.Euler(35f, 0f, 0f));
-            arm.Cylinder(Tile.DarkSteel, P(-0.2f, 1.17f, -0.07f), P(-0.1f, 1.17f, -0.07f), 0.05f, 0.05f, 10);
-            ModelKit forearm = arm.Moving("kind=swing axis=1,0,0 amp=18 freq=0.7", P(-0.15f, 1.17f, -0.07f));
-            forearm.Box(Tile.PaintedYellow, P(-0.15f, 1.03f, 0.03f), new Vector3(0.07f, 0.3f, 0.07f), Quaternion.Euler(-25f, 0f, 0f));
-            forearm.Cylinder(Tile.Steel, P(-0.15f, 0.9f, 0.09f), P(-0.15f, 0.84f, 0.1f), 0.04f, 0.015f, 8);
-            forearm.Box(Tile.LedGreen, P(-0.15f, 0.93f, 0.09f), new Vector3(0.03f, 0.03f, 0.03f));
-            // Parts trays
-            k.Box(Tile.DarkSteel, P(0.42f, 0.8f, 0.2f), new Vector3(0.36f, 0.08f, 0.3f));
-            k.Box(Tile.BoltHeads, P(0.42f, 0.845f, 0.2f), new Vector3(0.3f, 0.01f, 0.24f));
-            k.Box(Tile.DarkSteel, P(-0.58f, 0.8f, 0.25f), new Vector3(0.24f, 0.08f, 0.3f));
-            k.Box(Tile.Steel, P(-0.58f, 0.85f, 0.25f), new Vector3(0.2f, 0.02f, 0.24f));
+            ModelKit table = k.Moving("kind=spin axis=0,1,0 speed=40", P(-0.2f, 0.78f, 0.12f));
+            table.Cylinder(Tile.DarkSteel, P(-0.2f, 0.76f, 0.12f), P(-0.2f, 0.8f, 0.12f), 0.24f, 0.24f, 18);
+            table.Box(Tile.Steel, P(-0.2f, 0.86f, 0.12f), new Vector3(0.22f, 0.1f, 0.16f));
+            table.Box(Tile.BoltHeads, P(-0.2f, 0.915f, 0.12f), new Vector3(0.2f, 0.01f, 0.14f));
+            // Robot arm: base on the bench, turret turning around y, then shoulder and elbow
+            Vector3 dir = new Vector3(-0.86f, 0f, 0.51f);
+            Vector3 axis = new Vector3(dir.z, 0f, -dir.x);
+            string ax = ModelKit.Axis(axis);
+            Vector3 basePos = P(0.38f, 0.76f, -0.22f);
+            k.Cylinder(Tile.DarkSteel, basePos, basePos + Vector3.up * 0.06f, 0.13f, 0.13f, 16);
+            ModelKit turret = k.Moving("kind=swing axis=0,1,0 amp=35 freq=0.3", basePos + Vector3.up * 0.06f);
+            Vector3 shoulder = basePos + Vector3.up * 0.2f;
+            turret.Cylinder(Tile.PaintedYellow, basePos + Vector3.up * 0.06f, shoulder, 0.1f, 0.08f, 14);
+            turret.Cylinder(Tile.DarkSteel, shoulder - axis * 0.07f, shoulder + axis * 0.07f, 0.06f, 0.06f, 12);
+            ModelKit upper = turret.Moving($"kind=swing axis={ax} amp=10 freq=0.6", shoulder);
+            Vector3 elbow = shoulder + Vector3.up * 0.3f + dir * 0.16f;
+            upper.Beam(Tile.PaintedYellow, shoulder, elbow, 0.07f);
+            upper.Cylinder(Tile.DarkSteel, elbow - axis * 0.06f, elbow + axis * 0.06f, 0.05f, 0.05f, 12);
+            ModelKit fore = upper.Moving($"kind=swing axis={ax} amp=18 freq=0.6 phase=0.25", elbow);
+            Vector3 wrist = elbow + dir * 0.34f - Vector3.up * 0.24f;
+            fore.Beam(Tile.PaintedYellow, elbow, wrist, 0.055f);
+            fore.Cylinder(Tile.DarkSteel, wrist, wrist - Vector3.up * 0.05f, 0.035f, 0.035f, 10);
+            fore.Box(Tile.Steel, wrist - Vector3.up * 0.08f + axis * 0.025f, new Vector3(0.015f, 0.05f, 0.02f));
+            fore.Box(Tile.Steel, wrist - Vector3.up * 0.08f - axis * 0.025f, new Vector3(0.015f, 0.05f, 0.02f));
+            fore.Box(Tile.LedGreen, wrist - Vector3.up * 0.03f + dir * 0.03f, new Vector3(0.02f, 0.02f, 0.02f));
+            // Parts trays and a light mast
+            k.Box(Tile.DarkSteel, P(0.45f, 0.8f, 0.25f), new Vector3(0.34f, 0.08f, 0.28f));
+            k.Box(Tile.BoltHeads, P(0.45f, 0.845f, 0.25f), new Vector3(0.28f, 0.01f, 0.22f));
+            k.Box(Tile.DarkSteel, P(-0.6f, 0.8f, -0.25f), new Vector3(0.24f, 0.08f, 0.3f));
+            k.Box(Tile.Steel, P(-0.6f, 0.85f, -0.25f), new Vector3(0.2f, 0.02f, 0.24f));
+            k.Tube(Tile.DarkSteel, P(-0.68f, 0.74f, 0.4f), P(-0.68f, 1.35f, 0.4f), 0.02f, 8);
+            k.Status(true).Cylinder(Tile.LedGreen, P(-0.68f, 1.35f, 0.4f), P(-0.68f, 1.43f, 0.4f), 0.035f, 0.035f, 10);
+            k.Status(false).Cylinder(Tile.LedRed, P(-0.68f, 1.35f, 0.4f), P(-0.68f, 1.43f, 0.4f), 0.035f, 0.035f, 10);
             Console(k, P(0.45f, 0.45f, 0.53f), 0.4f);
         }
 
-        // ---- Fabricator: an enclosed cell with windows, two arms inside, a stack light and a cable tray
+        // ---- Fabricator: a robot cell open at the front (safety rails), closed at the back, two
+        //      floor-mounted arms working on a part carried by a belt, stack light on top
 
         private static void Fabricator(ModelKit k, float w, float d)
         {
             Skid(k, w, d);
             float half = w * 0.5f - 0.08f;
             k.Box(Tile.PaintedLight, P(0f, 0.32f, 0f), new Vector3(w - 0.1f, 0.4f, d - 0.12f));
-            // Cell frame and windows
+            k.Box(Tile.Tread, P(0f, 0.53f, 0f), new Vector3(w - 0.14f, 0.02f, d - 0.16f));
+            // Frame: four posts, top beams, a light bar under the roof at the back
             foreach (float x in new[] { -half, half })
             {
-                foreach (float z in new[] { -0.45f, 0.45f })
-                    k.Box(Tile.PaintedBlue, P(x, 1.0f, z), new Vector3(0.07f, 1.0f, 0.07f));
+                foreach (float z in new[] { -0.47f, 0.47f })
+                    k.Box(Tile.PaintedBlue, P(x, 1.02f, z), new Vector3(0.07f, 0.96f, 0.07f));
+                k.Box(Tile.PaintedBlue, P(x, 1.52f, 0f), new Vector3(0.07f, 0.06f, 1.0f));
+                // Side walls: solid low panel, mesh above
+                k.Box(Tile.PaintedLight, P(x, 0.75f, 0f), new Vector3(0.03f, 0.42f, 0.88f));
+                k.Box(Tile.Grille, P(x, 1.22f, 0f), new Vector3(0.02f, 0.52f, 0.88f));
             }
-            k.Box(Tile.PaintedBlue, P(0f, 1.53f, 0f), new Vector3(w - 0.1f, 0.08f, 0.98f));
-            k.Box(Tile.Grille, P(0f, 1.58f, 0f), new Vector3(w * 0.5f, 0.03f, 0.5f));
-            k.Box(Tile.Glass, P(0f, 1.0f, 0.46f), new Vector3(w - 0.3f, 0.9f, 0.01f));
-            k.Box(Tile.Glass, P(-half, 1.0f, 0f), new Vector3(0.01f, 0.9f, 0.82f));
-            k.Box(Tile.PaintedDark, P(half, 1.0f, 0f), new Vector3(0.02f, 0.9f, 0.82f));
-            k.Box(Tile.DarkSteel, P(0f, 0.53f, 0f), new Vector3(w - 0.3f, 0.02f, 0.82f));
-            // Work piece and two arms working on it
-            k.Box(Tile.Circuit, P(0f, 0.58f, 0.02f), new Vector3(0.3f, 0.06f, 0.24f));
+            k.Box(Tile.PaintedBlue, P(0f, 1.52f, -0.47f), new Vector3(w - 0.1f, 0.06f, 0.07f));
+            k.Box(Tile.PaintedBlue, P(0f, 1.52f, 0.47f), new Vector3(w - 0.1f, 0.06f, 0.07f));
+            // Back wall, closed
+            k.Box(Tile.PaintedDark, P(0f, 1.02f, -0.48f), new Vector3(w - 0.24f, 0.96f, 0.03f));
+            k.Moving("kind=glow freq=0.3", P(0f, 1.45f, -0.45f)).Box(Tile.Screen, P(0f, 1.45f, -0.46f), new Vector3(w - 0.4f, 0.05f, 0.02f));
+            // Front: open, with two yellow safety rails and a hazard sill
+            k.Box(Tile.PaintedYellow, P(0f, 0.8f, 0.5f), new Vector3(w - 0.24f, 0.04f, 0.04f));
+            k.Box(Tile.PaintedYellow, P(0f, 1.1f, 0.5f), new Vector3(w - 0.24f, 0.04f, 0.04f));
+            k.Box(Tile.Hazard, P(0f, 0.56f, 0.48f), new Vector3(w - 0.24f, 0.04f, 0.04f));
+            // Belt across the cell carrying the work piece
+            k.Box(Tile.DarkSteel, P(0f, 0.6f, 0.05f), new Vector3(w - 0.3f, 0.06f, 0.24f));
+            for (int i = 0; i < 4; i++)
+                k.Moving("kind=spin axis=0,0,1 speed=200", P(-0.5f + i * 0.33f, 0.65f, 0.05f))
+                    .Cylinder(Tile.Pipe, P(-0.5f + i * 0.33f, 0.65f, -0.06f), P(-0.5f + i * 0.33f, 0.65f, 0.16f), 0.03f, 0.03f, 8);
+            k.Box(Tile.Circuit, P(0f, 0.7f, 0.05f), new Vector3(0.3f, 0.05f, 0.2f));
+            // Two arms on pedestals behind the belt, reaching over the part
             foreach ((float x, float phase) in new[] { (-0.42f, 0f), (0.42f, 0.5f) })
             {
-                k.Cylinder(Tile.DarkSteel, P(x, 0.54f, 0f), P(x, 0.62f, 0f), 0.08f, 0.08f, 12);
-                ModelKit arm = k.Moving($"kind=swing axis=0,1,0 amp=40 freq=0.5 phase={phase:0.0}", P(x, 0.62f, 0f));
-                arm.Box(Tile.PaintedOrange, P(x, 0.8f, 0f), new Vector3(0.07f, 0.36f, 0.07f));
-                ModelKit fore = arm.Moving($"kind=swing axis=0,0,1 amp=20 freq=1 phase={phase:0.0}", P(x, 0.97f, 0f));
-                fore.Box(Tile.PaintedOrange, P(x * 0.7f, 0.93f, 0f), new Vector3(0.28f, 0.06f, 0.06f), Quaternion.Euler(0f, 0f, x < 0f ? -25f : 25f));
-                fore.Cylinder(Tile.Steel, P(x * 0.45f, 0.86f, 0f), P(x * 0.45f, 0.78f, 0f), 0.03f, 0.01f, 8);
+                Vector3 basePos = P(x, 0.54f, -0.28f);
+                Vector3 dir = new Vector3(-Mathf.Sign(x) * 0.6f, 0f, 0.8f);
+                Vector3 axis = new Vector3(dir.z, 0f, -dir.x);
+                k.Cylinder(Tile.DarkSteel, basePos, basePos + Vector3.up * 0.1f, 0.1f, 0.1f, 14);
+                ModelKit turret = k.Moving($"kind=swing axis=0,1,0 amp=30 freq=0.45 phase={phase:0.0}", basePos + Vector3.up * 0.1f);
+                Vector3 shoulder = basePos + Vector3.up * 0.24f;
+                turret.Cylinder(Tile.PaintedOrange, basePos + Vector3.up * 0.1f, shoulder, 0.08f, 0.07f, 12);
+                ModelKit upper = turret.Moving($"kind=swing axis={ModelKit.Axis(axis)} amp=12 freq=0.9 phase={phase:0.0}", shoulder);
+                Vector3 elbow = shoulder + Vector3.up * 0.32f + dir * 0.1f;
+                upper.Beam(Tile.PaintedOrange, shoulder, elbow, 0.06f);
+                upper.Cylinder(Tile.DarkSteel, elbow - axis * 0.05f, elbow + axis * 0.05f, 0.045f, 0.045f, 10);
+                Vector3 wrist = elbow + dir * 0.3f - Vector3.up * 0.3f;
+                upper.Beam(Tile.PaintedOrange, elbow, wrist, 0.045f);
+                upper.Cylinder(Tile.Steel, wrist, wrist - Vector3.up * 0.06f, 0.025f, 0.01f, 8);
             }
-            // Stack light on top, cable tray along the back
-            k.Tube(Tile.DarkSteel, P(half - 0.1f, 1.57f, 0.35f), P(half - 0.1f, 1.7f, 0.35f), 0.02f, 6);
-            k.Status(true).Cylinder(Tile.LedGreen, P(half - 0.1f, 1.7f, 0.35f), P(half - 0.1f, 1.78f, 0.35f), 0.04f, 0.04f, 10);
-            k.Status(false).Cylinder(Tile.LedRed, P(half - 0.1f, 1.7f, 0.35f), P(half - 0.1f, 1.78f, 0.35f), 0.04f, 0.04f, 10);
-            k.Box(Tile.DarkSteel, P(0f, 1.3f, -0.47f), new Vector3(w - 0.3f, 0.06f, 0.08f));
-            k.Pipe(Tile.CableJacket, 0.02f, P(-0.5f, 1.3f, -0.45f), P(-0.5f, 0.6f, -0.45f));
-            k.Pipe(Tile.CableJacket, 0.02f, P(0.5f, 1.3f, -0.45f), P(0.5f, 0.6f, -0.45f));
-            Console(k, P(half - 0.25f, 0.35f, 0.53f), 0.36f);
-            k.Moving("kind=glow freq=0.4", P(-0.3f, 0.35f, 0.53f)).Box(Tile.ScreenAmber, P(-0.3f, 0.35f, 0.535f), new Vector3(0.3f, 0.18f, 0.01f));
+            // Stack light on the front right post, control desk outside the front right corner
+            k.Tube(Tile.DarkSteel, P(half, 1.55f, 0.47f), P(half, 1.68f, 0.47f), 0.02f, 6);
+            k.Status(true).Cylinder(Tile.LedGreen, P(half, 1.68f, 0.47f), P(half, 1.76f, 0.47f), 0.04f, 0.04f, 10);
+            k.Status(false).Cylinder(Tile.LedRed, P(half, 1.68f, 0.47f), P(half, 1.76f, 0.47f), 0.04f, 0.04f, 10);
+            Console(k, P(half - 0.25f, 0.35f, 0.54f), 0.32f);
         }
 
         // ---- Extractor: a braced drilling tower, motor head, turning drill that bores, ore bin
@@ -395,42 +462,47 @@ namespace StellarIndustries.Parts
             StatusLight(k, P(0.5f, 0.82f, 0.41f), new Vector3(0.05f, 0.05f, 0.02f));
         }
 
-        // ---- Generator: firebox, engine block with four pistons, flywheel, alternator, radiator fan
+        // ---- Generator: firebox, engine block with four pistons, flywheel and alternator on their
+        //      bearing stand, radiator and fan against the block, exhausts
 
         private static void Generator(ModelKit k, float w, float d)
         {
             Skid(k, w, d);
-            // Firebox and fuel hopper on the left
+            // Firebox and its fuel hopper on the left
             k.Box(Tile.Rust, P(-0.45f, 0.45f, 0f), new Vector3(0.45f, 0.62f, 0.85f));
             k.Frame(Tile.DarkSteel, P(-0.45f, 0.4f, 0.43f), new Vector2(0.3f, 0.26f), 0.05f, Vector3.forward, 0.04f);
             k.Moving("kind=glow freq=1.6", P(-0.45f, 0.4f, 0.42f)).Box(Tile.Furnace, P(-0.45f, 0.4f, 0.425f), new Vector3(0.22f, 0.18f, 0.01f));
-            k.Cylinder(Tile.Brushed, P(-0.45f, 0.76f, -0.1f), P(-0.45f, 1.05f, -0.1f), 0.14f, 0.24f, 4, capA: true, capB: false);
-            // Engine block with a bank of four cylinders and pistons
+            k.Box(Tile.DarkSteel, P(-0.45f, 0.78f, -0.15f), new Vector3(0.3f, 0.04f, 0.3f));
+            k.Cylinder(Tile.Brushed, P(-0.45f, 0.8f, -0.15f), P(-0.45f, 1.05f, -0.15f), 0.12f, 0.22f, 4, capA: true, capB: false);
+            // Engine block, cylinders and pistons
             k.Box(Tile.DarkSteel, P(0.12f, 0.45f, -0.05f), new Vector3(0.55f, 0.6f, 0.6f));
             for (int i = 0; i < 4; i++)
             {
                 float z = -0.27f + i * 0.15f;
                 k.Tube(Tile.Steel, P(0.12f, 0.75f, z), P(0.12f, 0.95f, z), 0.06f, 10);
-                ModelKit piston = k.Moving($"kind=bob axis=0,1,0 amp=0.06 freq=2.2 phase={i * 0.25f:0.00}", P(0.12f, 1.0f, z));
-                piston.Tube(Tile.Brushed, P(0.12f, 0.95f, z), P(0.12f, 1.05f, z), 0.045f, 10);
-                piston.Box(Tile.DarkSteel, P(0.12f, 1.06f, z), new Vector3(0.1f, 0.02f, 0.1f));
+                ModelKit piston = k.Moving($"kind=bob axis=0,1,0 amp=0.05 freq=2.2 phase={i * 0.25f:0.00}", P(0.12f, 1.0f, z));
+                piston.Tube(Tile.Brushed, P(0.12f, 0.93f, z), P(0.12f, 1.03f, z), 0.045f, 10);
+                piston.Box(Tile.DarkSteel, P(0.12f, 1.04f, z), new Vector3(0.1f, 0.02f, 0.1f));
             }
-            // Flywheel and alternator on the right
-            Flywheel(k, P(0.46f, 0.5f, -0.05f), 0.25f, 0.06f, 320f, Tile.PaintedOrange);
-            k.Cylinder(Tile.Winding, P(0.52f, 0.5f, -0.05f), P(0.66f, 0.5f, -0.05f), 0.16f, 0.16f, 16);
-            k.Bolts(P(0.66f, 0.5f, -0.05f), Vector3.right, 0.11f, 6, 0.025f);
-            // Radiator and fan at the front, exhaust stacks at the back
-            k.Box(Tile.Grille, P(0.12f, 0.5f, 0.42f), new Vector3(0.5f, 0.5f, 0.05f));
-            k.Moving("kind=spin axis=0,0,1 speed=600", P(0.12f, 0.5f, 0.46f)).Cylinder(Tile.Fan, P(0.12f, 0.5f, 0.45f), P(0.12f, 0.5f, 0.46f), 0.21f, 0.21f, 18);
+            // Crankshaft out of the block into the flywheel and alternator, all on a bearing stand
+            k.Tube(Tile.Pipe, P(0.39f, 0.5f, -0.05f), P(0.7f, 0.5f, -0.05f), 0.04f, 10);
+            k.Box(Tile.DarkSteel, P(0.6f, 0.26f, -0.05f), new Vector3(0.18f, 0.3f, 0.36f));
+            k.Box(Tile.DarkSteel, P(0.6f, 0.43f, -0.05f), new Vector3(0.22f, 0.06f, 0.36f));
+            Flywheel(k, P(0.45f, 0.5f, -0.05f), 0.22f, 0.06f, 320f, Tile.PaintedOrange);
+            k.Cylinder(Tile.Winding, P(0.52f, 0.5f, -0.05f), P(0.68f, 0.5f, -0.05f), 0.15f, 0.15f, 16);
+            k.Bolts(P(0.68f, 0.5f, -0.05f), Vector3.right, 0.1f, 6, 0.025f);
+            // Radiator against the front of the block, fan in front of it
+            k.Box(Tile.Grille, P(0.12f, 0.48f, 0.28f), new Vector3(0.5f, 0.5f, 0.06f));
+            k.Moving("kind=spin axis=0,0,1 speed=600", P(0.12f, 0.48f, 0.32f)).Cylinder(Tile.Fan, P(0.12f, 0.48f, 0.31f), P(0.12f, 0.48f, 0.325f), 0.2f, 0.2f, 18);
             foreach (float x in new[] { -0.05f, 0.29f })
             {
-                k.Pipe(Tile.Pipe, 0.05f, P(x, 0.78f, -0.3f), P(x, 1.4f, -0.3f));
+                k.Pipe(Tile.Pipe, 0.05f, P(x, 0.75f, -0.3f), P(x, 1.4f, -0.3f));
                 k.Tube(Tile.DarkSteel, P(x, 1.38f, -0.3f), P(x, 1.45f, -0.3f), 0.065f, 10);
             }
-            Console(k, P(-0.45f, 0.9f, 0.34f), 0.3f, Tile.ScreenAmber);
+            Console(k, P(-0.45f, 0.95f, 0.36f), 0.3f, Tile.ScreenAmber);
         }
 
-        // ---- Container: ribbed crate, corner castings, door bars
+        // ---- Container: ribbed crate, corner castings, door bars, item hatches at the back
 
         private static void Container(ModelKit k, float w, float d, float h)
         {
@@ -439,7 +511,8 @@ namespace StellarIndustries.Parts
             {
                 float x = -0.55f + i * 0.22f;
                 k.Box(Tile.PaintedBlue, P(x, 0.6f, 0.55f), new Vector3(0.05f, 0.98f, 0.03f));
-                k.Box(Tile.PaintedBlue, P(x, 0.6f, -0.55f), new Vector3(0.05f, 0.98f, 0.03f));
+                if (x > 0.1f || x < -0.35f)
+                    k.Box(Tile.PaintedBlue, P(x, 0.6f, -0.55f), new Vector3(0.05f, 0.98f, 0.03f));
             }
             foreach (float x in new[] { -0.62f, 0.62f })
             {
@@ -457,25 +530,32 @@ namespace StellarIndustries.Parts
                 k.Box(Tile.DarkSteel, P(x, 0.55f, 0.6f), new Vector3(0.06f, 0.12f, 0.03f));
             }
             k.Box(Tile.LabelWarning, P(0.42f, 0.85f, 0.57f), new Vector3(0.16f, 0.14f, 0.02f));
+            ItemHatch(k, 0f, -0.555f);
+            ItemHatch(k, -SocketOffset, -0.555f);
         }
 
-        // ---- Loading dock: deck with rollers, an arch with a beacon and a chute
+        // ---- Loading dock: deck with rollers, an arch with a beacon and a chute, a service cabinet
+        //      at the back holding the item ports
 
         private static void Dock(ModelKit k, float w, float d)
         {
             Skid(k, w, d, 0.2f);
             for (int i = 0; i < 5; i++)
             {
-                float z = -0.4f + i * 0.2f;
+                float z = -0.3f + i * 0.18f;
                 k.Moving("kind=spin axis=1,0,0 speed=-240", P(0f, 0.3f, z)).Tube(Tile.Pipe, P(-0.5f, 0.3f, z), P(0.5f, 0.3f, z), 0.045f, 10);
             }
             foreach (float x in new[] { -0.56f, 0.56f })
-                k.Box(Tile.PaintedYellow, P(x, 0.32f, 0f), new Vector3(0.06f, 0.1f, 1.1f));
+                k.Box(Tile.PaintedYellow, P(x, 0.32f, 0.05f), new Vector3(0.06f, 0.1f, 0.95f));
             foreach (float x in new[] { -0.62f, 0.62f })
                 k.Box(Tile.Hazard, P(x, 0.8f, -0.42f), new Vector3(0.12f, 1.1f, 0.12f));
             k.Box(Tile.PaintedDark, P(0f, 1.38f, -0.42f), new Vector3(1.38f, 0.16f, 0.2f));
             k.Box(Tile.DarkSteel, P(0f, 1.1f, -0.35f), new Vector3(0.44f, 0.4f, 0.3f));
             k.Box(Tile.ArrowLabel, P(0f, 1.1f, -0.195f), new Vector3(0.24f, 0.24f, 0.01f));
+            // Service cabinet at the back: the item lines plug into its hatches
+            k.Box(Tile.PaintedDark, P(-0.1f, 0.4f, -0.5f), new Vector3(0.62f, 0.44f, 0.16f));
+            ItemHatch(k, 0f, -0.6f);
+            ItemHatch(k, -SocketOffset, -0.6f);
             k.Cylinder(Tile.DarkSteel, P(0.45f, 1.46f, -0.42f), P(0.45f, 1.5f, -0.42f), 0.07f, 0.07f, 10);
             ModelKit beacon = k.Moving("kind=spin axis=0,1,0 speed=300", P(0.45f, 1.55f, -0.42f));
             beacon.Cylinder(Tile.Glass, P(0.45f, 1.5f, -0.42f), P(0.45f, 1.62f, -0.42f), 0.06f, 0.05f, 10);

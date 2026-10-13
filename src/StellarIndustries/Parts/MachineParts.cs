@@ -20,10 +20,11 @@ namespace StellarIndustries.Parts
         public static void Register()
         {
             BuildTabs.Declare(PartTools.Tab, 60, TabIcon());
+            BuildTabs.Declare(PartTools.UtilityTab, 61, TabIcon(new Color(0.3f, 0.75f, 1f, 1f)));
             foreach (MachineDef def in MachineCatalog.All)
             {
                 MachineDef machine = def;
-                PartTools.Register(machine.PartId, Donor, BuildRow(machine), (settings, prefab) => Configure(machine, settings, prefab));
+                PartTools.Register(machine.PartId, Donor, Utility(machine) ? PartTools.UtilityTab : PartTools.Tab, BuildRow(machine), (settings, prefab) => Configure(machine, settings, prefab));
             }
             IndustriesMod.Log.Msg($"registered {MachineCatalog.All.Length} machine(s)");
         }
@@ -41,19 +42,35 @@ namespace StellarIndustries.Parts
             }
         }
 
-        /// <summary>Build menu row (the menu shows about three): basic production, advanced production, power and logistics.</summary>
+        /// <summary>Power, extraction and logistics parts go to the second tab.</summary>
+        public static bool Utility(MachineDef def) =>
+            def.UtilityTab || def.Generates || def.Stores || def.IsLogistics || def.Extracts || def.Radar || def.Sinks || def.FixedOutput != 0;
+
+        /// <summary>
+        /// Build menu row (the menu shows about three per tab). Production tab: basic, advanced, top
+        /// tier. Second tab: power, extraction, logistics.
+        /// </summary>
         private static int BuildRow(MachineDef def)
         {
-            if (def.Generates || def.Stores || def.IsLogistics)
+            if (Utility(def))
+            {
+                if (def.Generates || def.Stores)
+                    return 0;
+                if (def.Extracts || def.FixedOutput != 0 || def.Radar)
+                    return 1;
                 return 2;
+            }
             switch (def.PartId)
             {
                 case MachineCatalog.Workshop:
                 case MachineCatalog.Smelter:
                 case MachineCatalog.Press:
                 case MachineCatalog.Crusher:
-                case MachineCatalog.Extractor:
                     return 0;
+                case MachineCatalog.Accelerator:
+                case MachineCatalog.QuantumEncoder:
+                case MachineCatalog.Converter:
+                    return 2;
                 default:
                     return 1;
             }
@@ -68,7 +85,7 @@ namespace StellarIndustries.Parts
                 IndustriesMod.Log.Warning("part look: LogicGates atlas not loaded, the machine wears the chest's texture");
             // Same footprint origin as the chest (its bottom face), a machine-sized box above it
             float bottom = donor.center.y - donor.size.y * 0.5f;
-            var size = new Vector3(def.Width, def.Height, def.Depth);
+            var size = new Vector3(def.SizeX, def.SizeY, def.SizeZ);
             var center = new Vector3(donor.center.x, bottom + size.y * 0.5f, donor.center.z);
             Transform visuals = PartTools.Blank(prefab, center, size);
             var origin = new Vector3(donor.center.x, bottom, donor.center.z);
@@ -77,9 +94,9 @@ namespace StellarIndustries.Parts
             visuals.gameObject.AddComponent<MachineVisuals>();
             // Power in (or out, for a generator) on the back, out of the model's junction box;
             // Item Lines then puts its item port on the same face and height, in the middle hatch
-            if (!def.IsLogistics)
+            if (MachineModels.NeedsPower(def))
                 PartTools.GraftSocket(prefab, MachineSimulation.PowerSocket, CableType.Power,
-                    origin + new Vector3(MachineModels.SocketOffset, MachineModels.ServiceHeight, -(def.Depth * 0.5f - 0.05f)), Vector3.back);
+                    origin + new Vector3(MachineModels.SocketOffset * def.Scale, MachineModels.ServiceHeight * def.Scale, -(def.SizeZ * 0.5f - 0.05f)), Vector3.back);
             IndustriesMod.Log.Msg($"machine {def.PartId} '{def.Name}': donor box {donor.center} {donor.size}, machine box {center} {size}");
             if (Diagnostics.DevTest.Active)
             {
@@ -96,12 +113,13 @@ namespace StellarIndustries.Parts
         }
 
         // A gear on a dark disc
-        private static Texture2D TabIcon()
+        private static Texture2D TabIcon() => TabIcon(new Color(1f, 0.6f, 0.15f, 1f));
+
+        private static Texture2D TabIcon(Color gear)
         {
             const int size = 64;
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "SI_TabIcon", hideFlags = HideFlags.HideAndDontSave };
             var clear = new Color(1f, 1f, 1f, 0f);
-            var gear = new Color(1f, 0.6f, 0.15f, 1f);
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)

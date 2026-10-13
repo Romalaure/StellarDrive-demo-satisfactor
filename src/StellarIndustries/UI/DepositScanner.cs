@@ -48,6 +48,9 @@ namespace StellarIndustries.UI
         public static string Scan()
         {
             float radius = Mathf.Clamp(Settings.ScanRadius.Value, 10f, 300f);
+            float radar = RadarReach();
+            if (radar > radius)
+                radius = radar;
             List<MinableHit> hits = WorldQuery.ScanMinables(radius, null).Where(h => Deposits.Extractable(h.ItemId)).ToList();
             var text = new StringBuilder();
             text.Append(Lang.T("<b>Scanner de gisements</b> (", "<b>Deposit scanner</b> (")).Append(Mathf.RoundToInt(radius)).Append(" m)");
@@ -67,6 +70,29 @@ namespace StellarIndustries.UI
             }
             text.Append(Lang.T("\n<color=#aaa>Un extracteur doit être à moins de 6 m d'un rocher.</color>", "\n<color=#aaa>An extractor must be within 6 m of a rock.</color>"));
             return text.ToString();
+        }
+
+        /// <summary>The reach of the nearest radar tower if the player is within 60 m of one, else 0.</summary>
+        private static float RadarReach()
+        {
+            Camera camera = Camera.main;
+            var ships = GameRefs.Service<Ships.Services.ShipsClientTracker>();
+            if (camera == null || ships == null)
+                return 0f;
+            float best = 0f;
+            foreach (var ship in ships.VisuallyLoadedShip)
+            {
+                if (!ships.TryGetShipVisualTransform(ship.Id, out Transform frame) || frame == null || Vector3.Distance(frame.position, camera.transform.position) > 400f)
+                    continue;
+                foreach (var part in ship.GetAllStatefulParts<Ships.Interface.Model.Parts.State.StorageState>())
+                {
+                    if (part?.Settings == null || !MachineCatalog.TryGet(part.Settings.id, out MachineDef def) || !def.Radar)
+                        continue;
+                    if (Vector3.Distance(frame.TransformPoint(part.LocalPosition), camera.transform.position) <= 60f)
+                        best = Mathf.Max(best, def.RadarRange);
+                }
+            }
+            return best;
         }
 
         private static string Direction(Transform view, Vector3 target)

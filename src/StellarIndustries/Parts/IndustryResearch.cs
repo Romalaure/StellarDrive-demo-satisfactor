@@ -63,6 +63,24 @@ namespace StellarIndustries.Parts
             new Tech { Id = 7809, Name = "Physique des particules", Requires = new ushort[] { 7806, 7807 }, Position = new Vector2Int(7, 4),
                 Parts = new[] { MachineCatalog.Accelerator },
                 Cost = new[] { (ResourceCatalog.Supercomputer, 2), (ResourceCatalog.CoolingSystem, 2), (ResourceCatalog.QuartzCrystal, 20) } },
+            new Tech { Id = 7810, Name = "Bioénergie", Requires = new ushort[] { 7801 }, Position = new Vector2Int(4, 6),
+                Parts = new[] { MachineCatalog.BiomassBurner },
+                Cost = new[] { (GameItems.Iron, 15), (GameItems.Wood, 20) } },
+            new Tech { Id = 7811, Name = "Condensation", Requires = new ushort[] { 7803 }, Position = new Vector2Int(6, 6),
+                Parts = new[] { MachineCatalog.WaterCondenser },
+                Cost = new[] { (ResourceCatalog.CopperSheet, 10), (ResourceCatalog.Rotor, 2) } },
+            new Tech { Id = 7812, Name = "Recyclage", Requires = new ushort[] { 7805 }, Position = new Vector2Int(7, 1),
+                Parts = new[] { MachineCatalog.Recycler, MachineCatalog.ExchangeCounter },
+                Cost = new[] { (ResourceCatalog.ReinforcedPlate, 6), (ResourceCatalog.CircuitBoard, 4) } },
+            new Tech { Id = 7813, Name = "Cartographie industrielle", Requires = new ushort[] { 7802 }, Position = new Vector2Int(5, 5),
+                Parts = new[] { MachineCatalog.RadarTower },
+                Cost = new[] { (ResourceCatalog.SteelBeam, 6), (ResourceCatalog.Cable, 10) } },
+            new Tech { Id = 7814, Name = "Physique quantique", Requires = new ushort[] { 7809 }, Position = new Vector2Int(8, 3),
+                Parts = new[] { MachineCatalog.QuantumEncoder, MachineCatalog.Converter },
+                Cost = new[] { (ResourceCatalog.QuantumProcessor, 2), (ResourceCatalog.StellarMatter, 4) } },
+            new Tech { Id = 7815, Name = "Énergie stellaire", Requires = new ushort[] { 7814 }, Position = new Vector2Int(9, 3),
+                Parts = new[] { MachineCatalog.StellarReactor },
+                Cost = new[] { (ResourceCatalog.TimeCrystal, 2), (ResourceCatalog.ControlUnit, 2), (ResourceCatalog.HeavyFrame, 4) } },
         };
 
         private static readonly HashSet<ushort> Locked = new HashSet<ushort>();
@@ -165,7 +183,9 @@ namespace StellarIndustries.Parts
         // ---- Layout: the tree's cells are 500 x 260 apart, boxes 410 x 170, lines from a box's right edge to the next one's left edge
 
         private const float CellWidth = 500f, CellHeight = 260f, HalfWidth = 205f, HalfHeight = 85f;
-        private const int MaxColumn = 9, MaxRow = 6;
+        // The game's research canvas widens to its furthest column (ResearchCanvas: 770 + x * 500),
+        // rows are fixed: the tree grows to the right when other mods fill it
+        private const int MaxColumn = 13, MaxRow = 6;
 
         private static bool Shown(ResearchSettings r) => r != null && r.availableInDemo && !r.hideFromTechTree;
         private static Vector2 Center(Vector2Int c) => new Vector2(c.x * CellWidth, c.y * CellHeight);

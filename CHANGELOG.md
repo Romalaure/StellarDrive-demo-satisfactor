@@ -1,5 +1,49 @@
 # Journal des changements
 
+## 0.12.0 — modèles revus, 8 nouvelles machines
+
+**Modèles 3D**
+- Presse : le pupitre est fixé sur le montant droit, les flexibles passent derrière les colonnes,
+  le réservoir hydraulique est posé au sol.
+- Broyeur : refait en vrai concasseur à mâchoires (bâti, mâchoire fixe, mâchoire mobile animée
+  par l'arbre excentrique, deux volants, moteur et courroies, trémie, tapis de sortie).
+- Assembleuse : un bras robot posé sur le plateau, avec plateau tournant, au lieu du portique.
+- Fabricateur : remis à l'endroit (façade ouverte à l'avant, paroi pleine à l'arrière).
+- Raffinerie : la pompe est posée sur sa cuve et le pupitre a son pied.
+- Générateur à combustion : vilebrequin, palier sous le volant et l'alternateur, radiateur
+  contre le bloc, trémie sur sa platine.
+- Quai de transfert et conteneur : les ports d'objets sont dans des trappes de la machine, plus
+  en l'air. Tous les ports (Item Lines) sont maintenant sur la rangée de service à l'arrière.
+- Plus aucun pupitre, panneau ou rangée de service qui flotte : chaque pièce a son support.
+- Textures : les grandes faces répètent la texture au lieu de l'étirer, les trémies carrées
+  restent carrées, les trémies ouvertes ont un bord au lieu d'un couvercle.
+- Machines plus grandes quand elles doivent l'être : de ×1,1 (fonderie) à ×2 (accélérateur,
+  réacteur). **Attention** : dans une partie existante, une machine agrandie peut chevaucher sa
+  voisine ; déplacez-la si besoin (aucun objet n'est perdu).
+
+**8 machines** (7615-7622), rangées dans un second onglet « Industrie+ » (énergie, extraction,
+logistique) :
+- *Brûleur à biomasse* : petit générateur de début de partie, 1 500 W.
+- *Condenseur d'eau* : une glace toutes les 8 s, n'importe où.
+- *Réacteur stellaire* : 25 kW avec des barres de combustible stellaire ; chaque barre laisse
+  un déchet à évacuer.
+- *Encodeur quantique* : cristaux temporels, processeurs neuro-quantiques, recyclage des
+  déchets stellaires.
+- *Convertisseur* : fer en cuivre, cuivre en aluminium, poussière en éclats stellaires.
+- *Recycleur* : détruit les objets en trop et paie en bons de recyclage, selon ce que l'objet a
+  coûté à fabriquer.
+- *Comptoir d'échange* : bons contre minerais, éclats ou matière stellaire.
+- *Tour radar* : près d'elle, le scanner (K) porte à 400 m. Pas besoin de courant.
+
+**Contenu** : 6 objets (7754-7759), 13 recettes, 6 techs (7810-7815). La recherche peut
+maintenant s'étendre vers la droite quand d'autres mods remplissent l'arbre.
+
+**Tests** : 55 tests unitaires ; le vaisseau du test en jeu porte aussi condenseur, recycleur
+(alimenté par le réacteur) et tour radar ; nouvelle phase 4 qui photographie chaque modèle.
+
+Toujours impossible dans StellarDrive : fluides en tuyaux, trains, véhicules, drones, ascenseur
+spatial (voir la page Limites du wiki).
+
 ## 0.11.0 — anglais
 
 - Le mod parle maintenant anglais : noms et descriptions des objets et des machines, recettes,

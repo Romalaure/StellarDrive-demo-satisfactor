@@ -209,6 +209,14 @@ namespace StellarIndustries.Tests
             foreach (MachineDef m in MachineCatalog.All)
                 Assert.True(m.HasNoRecipe ^ RecipeBook.ForMachine(m.PartId).Length > 0, m.Name);
             var made = RecipeBook.All.SelectMany(r => r.Outputs).Select(o => o.Item).ToHashSet();
+            // Special machines: the reactor leaves waste, the recycler pays vouchers, the condenser makes ice
+            foreach (MachineDef m in MachineCatalog.All)
+            {
+                if (m.WasteItem != 0)
+                    made.Add(m.WasteItem);
+                if (m.Sinks)
+                    made.Add(ResourceCatalog.Voucher);
+            }
             foreach (ResourceDef r in ResourceCatalog.All)
                 Assert.Contains(r.Id, made);
         }

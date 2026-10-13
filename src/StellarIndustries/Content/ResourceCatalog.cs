@@ -108,6 +108,12 @@ namespace StellarIndustries.Content
         public const uint TurboMotor = 7751;
         public const uint QuantumProcessor = 7752;
         public const uint StellarMatter = 7753;
+        public const uint StellarFuelRod = 7754;
+        public const uint StellarWaste = 7755;
+        public const uint Voucher = 7756;
+        public const uint NeuroProcessor = 7757;
+        public const uint TimeCrystal = 7758;
+        public const uint LogicModule = 7759;
 
         public static readonly ResourceDef[] All =
         {
@@ -435,6 +441,43 @@ namespace StellarIndustries.Content
                 Id = StellarMatter, Name = "Matière stellaire condensée", Category = ResourceCategory.Advanced, Mass = 1f, Tier = 4, MaxStack = 20,
                 Description = "Poussière stellaire compressée en particule lumineuse dans l'accélérateur.",
                 MaterialFrom = GameItems.StellarShard
+            },
+            // ---- 0.12: power, conversion, recycling
+            new ResourceDef
+            {
+                Id = StellarFuelRod, Name = "Barre de combustible stellaire", Category = ResourceCategory.Advanced, Mass = 8f, Tier = 4, MaxStack = 10,
+                Description = "Matière stellaire condensée gainée d'aluminium et de béton : le combustible du réacteur stellaire.",
+                MaterialFrom = GameItems.StellarShard
+            },
+            new ResourceDef
+            {
+                Id = StellarWaste, Name = "Déchet stellaire", Category = ResourceCategory.Ore, Mass = 4f, Tier = 4, MaxStack = 50,
+                Description = "Ce qui reste d'une barre usée. L'encodeur quantique sait encore en tirer de la matière.",
+                MaterialFrom = GameItems.StellarShard
+            },
+            new ResourceDef
+            {
+                Id = Voucher, Name = "Bon de recyclage", Category = ResourceCategory.Component, Mass = 0.01f, Tier = 1, MaxStack = 200,
+                Description = "Un bon gagné au recycleur. Le comptoir d'échange l'accepte comme monnaie.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = NeuroProcessor, Name = "Processeur neuro-quantique", Category = ResourceCategory.Advanced, Mass = 2f, Tier = 4, MaxStack = 10,
+                Description = "Un processeur quantique couplé à des modules logiques : le cerveau des machines du futur.",
+                MaterialFrom = GameItems.StellarShard
+            },
+            new ResourceDef
+            {
+                Id = TimeCrystal, Name = "Cristal temporel", Category = ResourceCategory.Advanced, Mass = 0.5f, Tier = 4, MaxStack = 20,
+                Description = "Un cristal qui oscille hors du temps, formé dans l'encodeur quantique.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = LogicModule, Name = "Module logique", Category = ResourceCategory.Component, Mass = 0.3f, Tier = 2, MaxStack = 100,
+                Description = "Une petite carte de fil fin et de cuivre qui prend des décisions simples.",
+                MaterialFrom = GameItems.Copper
             }
         };
 

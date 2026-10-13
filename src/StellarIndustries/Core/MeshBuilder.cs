@@ -35,6 +35,13 @@ namespace StellarIndustries.Core
         /// <summary>Atlas rectangle (0-1) the next shapes map their faces to.</summary>
         public Rect Panel = new Rect(0f, 0f, 1f, 1f);
 
+        /// <summary>
+        /// Above 0: faces and cylinders larger than this (meters) are split into several panels,
+        /// each showing the whole atlas tile, instead of one stretched tile. Large plates then look
+        /// like riveted panels and long beams keep their pattern at its size.
+        /// </summary>
+        public float PanelSize;
+
         public bool HasGeometry => _triangles.Count > 0;
 
         public int VertexCount => _vertices.Count;
@@ -179,6 +186,33 @@ namespace StellarIndustries.Core
         /// <summary>Cylinder or cone from a to b, radius ra at a and rb at b.</summary>
         public void Cylinder(Vector3 a, Vector3 b, float ra, float rb, int sides = 16, bool capA = true, bool capB = true)
         {
+            // Long or wide cylinders: the tile repeats around and along instead of stretching
+            if (PanelSize > 0f)
+            {
+                float around = Mathf.PI * (ra + rb);
+                int tiles = Mathf.Max(1, Mathf.RoundToInt(around / PanelSize));
+                int rings = Mathf.Max(1, Mathf.CeilToInt((b - a).magnitude / PanelSize));
+                if (tiles > 1 || rings > 1)
+                {
+                    // Faceted shapes (hoppers, prisms) keep their faces, one tile each; round ones get more sides
+                    if (sides < 8)
+                        tiles = sides;
+                    else
+                        sides = Mathf.Max(sides, tiles) / tiles * tiles;
+                    for (int ring = 0; ring < rings; ring++)
+                    {
+                        float t0 = (float)ring / rings, t1 = (float)(ring + 1) / rings;
+                        CylinderSection(Vector3.Lerp(a, b, t0), Vector3.Lerp(a, b, t1), Mathf.Lerp(ra, rb, t0), Mathf.Lerp(ra, rb, t1), sides, tiles,
+                            capA && ring == 0, capB && ring == rings - 1);
+                    }
+                    return;
+                }
+            }
+            CylinderSection(a, b, ra, rb, sides, 1, capA, capB);
+        }
+
+        private void CylinderSection(Vector3 a, Vector3 b, float ra, float rb, int sides, int tiles, bool capA, bool capB)
+        {
             Vector3 axis = (b - a).normalized;
             Vector3 u = Vector3.Cross(axis, Mathf.Abs(axis.y) < 0.9f ? Vector3.up : Vector3.right).normalized;
             Vector3 v = Vector3.Cross(axis, u);
@@ -191,7 +225,8 @@ namespace StellarIndustries.Core
             var radial = new Vector3[sides];
             for (int i = 0; i < sides; i++)
             {
-                float angle = i * Mathf.PI * 2f / sides;
+                // Square sections (hoppers, hoods) get their faces along the part's axes
+                float angle = i * Mathf.PI * 2f / sides + (sides == 4 ? Mathf.PI * 0.25f : 0f);
                 radial[i] = u * Mathf.Cos(angle) + v * Mathf.Sin(angle);
                 ringA[i] = a + radial[i] * ra;
                 ringB[i] = b + radial[i] * rb;
@@ -202,7 +237,9 @@ namespace StellarIndustries.Core
                 int j = (i + 1) % sides;
                 Vector3 ni = (radial[i] + axis * slope).normalized;
                 Vector3 nj = (radial[j] + axis * slope).normalized;
-                float ui = (float)i / sides, uj = (float)(i + 1) / sides;
+                // The tile spans sides / tiles segments, then starts again
+                int per = sides / tiles;
+                float ui = (float)(i % per) / per, uj = (float)(i % per + 1) / per;
                 Triangle(ringA[i], ringA[j], ringB[j], ni, nj, nj, ni + nj, At(ui, 0f), At(uj, 0f), At(uj, 1f));
                 Triangle(ringA[i], ringB[j], ringB[i], ni, nj, ni, ni + nj, At(ui, 0f), At(uj, 1f), At(ui, 1f));
             }
@@ -228,6 +265,29 @@ namespace StellarIndustries.Core
         public void Face(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 outward) => Quad(p0, p1, p2, p3, outward);
 
         private void Quad(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 outward)
+        {
+            if (PanelSize > 0f)
+            {
+                int n1 = Mathf.Max(1, Mathf.CeilToInt((p1 - p0).magnitude / PanelSize - 0.25f));
+                int n2 = Mathf.Max(1, Mathf.CeilToInt((p3 - p0).magnitude / PanelSize - 0.25f));
+                if (n1 > 1 || n2 > 1)
+                {
+                    Vector3 At2(float s, float t) => Vector3.Lerp(Vector3.Lerp(p0, p1, s), Vector3.Lerp(p3, p2, s), t);
+                    for (int i = 0; i < n1; i++)
+                    {
+                        for (int j = 0; j < n2; j++)
+                        {
+                            float s0 = (float)i / n1, s1 = (float)(i + 1) / n1, t0 = (float)j / n2, t1 = (float)(j + 1) / n2;
+                            SingleQuad(At2(s0, t0), At2(s1, t0), At2(s1, t1), At2(s0, t1), outward);
+                        }
+                    }
+                    return;
+                }
+            }
+            SingleQuad(p0, p1, p2, p3, outward);
+        }
+
+        private void SingleQuad(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 outward)
         {
             // Diagonals give the normal even when two corners meet (wedges built with Block)
             Vector3 n = Vector3.Cross(p2 - p0, p3 - p1);

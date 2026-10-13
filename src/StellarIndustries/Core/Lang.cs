@@ -77,6 +77,8 @@ namespace StellarIndustries.Core
                 return en;
             if (recipe.Id != null && recipe.Id.StartsWith("extract."))
                 return "Extraction: " + IndustrialItems.NameOf(recipe.Outputs[0].Item);
+            if (recipe.Id != null && recipe.Id.StartsWith("sink."))
+                return "Recycling: " + IndustrialItems.NameOf(recipe.Inputs[0].Item);
             return recipe.Outputs != null && recipe.Outputs.Length > 0 ? IndustrialItems.NameOf(recipe.Outputs[0].Item) : recipe.Name;
         }
     }

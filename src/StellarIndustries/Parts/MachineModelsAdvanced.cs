@@ -13,7 +13,10 @@ namespace StellarIndustries.Parts
             for (int i = 0; i < segments; i++)
             {
                 float a0 = i * Mathf.PI * 2f / segments, a1 = (i + 1) * Mathf.PI * 2f / segments;
-                k.Tube(tile, center + (u * Mathf.Cos(a0) + v * Mathf.Sin(a0)) * radius, center + (u * Mathf.Cos(a1) + v * Mathf.Sin(a1)) * radius, tube, 8);
+                Vector3 p0 = center + (u * Mathf.Cos(a0) + v * Mathf.Sin(a0)) * radius, p1 = center + (u * Mathf.Cos(a1) + v * Mathf.Sin(a1)) * radius;
+                // Segments overlap a little so the joints show no notch
+                Vector3 along = (p1 - p0).normalized * tube * 0.6f;
+                k.Tube(tile, p0 - along, p1 + along, tube, 8);
             }
         }
 
@@ -41,8 +44,8 @@ namespace StellarIndustries.Parts
             ladle.Box(Tile.DarkSteel, P(0.5f, 0.92f, 0.37f), new Vector3(0.03f, 0.03f, 0.16f));
             ladle.Tube(Tile.DarkSteel, P(0.5f, 0.92f, 0.44f), P(0.5f, 0.58f, 0.44f), 0.015f, 6);
             ladle.Cylinder(Tile.Rust, P(0.5f, 0.4f, 0.44f), P(0.5f, 0.56f, 0.44f), 0.07f, 0.1f, 10);
-            Console(k, P(0.55f, 1.25f, 0.4f), 0.26f, Tile.ScreenAmber);
-            k.Cylinder(Tile.Gauge, P(-0.5f, 0.8f, 0.35f), P(-0.5f, 0.8f, 0.37f), 0.07f, 0.07f, 16);
+            Console(k, P(-0.5f, 0.75f, 0.38f), 0.26f, Tile.ScreenAmber);
+            k.Cylinder(Tile.Gauge, P(-0.5f, 1.02f, 0.38f), P(-0.5f, 1.02f, 0.44f), 0.06f, 0.06f, 16);
         }
 
         // ---- Refinery: a distillation column with its ladder, two product tanks, piping, a pump and a flare
@@ -65,10 +68,10 @@ namespace StellarIndustries.Parts
                 k.Bolts(P(0.62f, 0.45f, z), Vector3.right, 0.11f, 6, 0.025f);
             }
             k.Pipe(Tile.Pipe, 0.035f, P(-0.13f, 1.4f, -0.1f), P(0.3f, 1.4f, -0.1f), P(0.3f, 0.62f, -0.25f));
-            k.Pipe(Tile.Pipe, 0.035f, P(-0.13f, 0.9f, -0.1f), P(0.2f, 0.9f, 0.2f), P(0.2f, 0.62f, 0.2f));
-            k.Cylinder(Tile.PaintedOrange, P(0.25f, 0.8f, 0.38f), P(0.25f, 0.95f, 0.38f), 0.09f, 0.09f, 12);
-            k.Moving("kind=spin axis=0,1,0 speed=300", P(0.25f, 0.97f, 0.38f)).Cylinder(Tile.Fan, P(0.25f, 0.95f, 0.38f), P(0.25f, 0.98f, 0.38f), 0.08f, 0.08f, 12);
-            Console(k, P(0.55f, 1.15f, 0.42f), 0.24f);
+            k.Pipe(Tile.Pipe, 0.035f, P(-0.13f, 0.9f, -0.1f), P(0.25f, 0.9f, -0.1f), P(0.25f, 0.9f, 0.2f), P(0.25f, 0.76f, 0.2f));
+            k.Cylinder(Tile.PaintedOrange, P(0.25f, 0.61f, 0.2f), P(0.25f, 0.76f, 0.2f), 0.09f, 0.09f, 12);
+            k.Moving("kind=spin axis=0,1,0 speed=300", P(0.25f, 0.78f, 0.2f)).Cylinder(Tile.Fan, P(0.25f, 0.76f, 0.2f), P(0.25f, 0.79f, 0.2f), 0.08f, 0.08f, 12);
+            Console(k, P(0.45f, 0.45f, 0.5f), 0.24f);
         }
 
         // ---- Accumulator: racks of cells behind a frame, terminals and busbars on top, a charge bar
@@ -130,6 +133,8 @@ namespace StellarIndustries.Parts
             k.Pipe(Tile.Pipe, 0.035f, P(0.3f, 0.12f, 0.2f), P(0.3f, 0.6f, 0.2f), P(0.5f, 1.1f, 0.42f));
             k.Pipe(Tile.Pipe, 0.035f, P(-0.3f, 0.12f, 0.2f), P(-0.3f, 0.6f, 0.2f), P(-0.5f, 1.1f, 0.42f));
             Console(k, P(0.6f, 0.45f, d * 0.5f - 0.12f), 0.36f);
+            // Warning sign on its own post
+            k.Box(Tile.DarkSteel, P(-0.55f, 0.27f, d * 0.5f - 0.1f), new Vector3(0.04f, 0.3f, 0.04f));
             k.Box(Tile.LabelWarning, P(-0.55f, 0.45f, d * 0.5f - 0.08f), new Vector3(0.18f, 0.16f, 0.02f));
         }
     }

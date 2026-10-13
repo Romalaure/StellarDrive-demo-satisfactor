@@ -28,6 +28,25 @@ Phase 1 : un vaisseau de test apparaît près du joueur — générateur à bois
 l'atelier A (9 fer, 3 cuivre), atelier B sans câble (6 fer), atelier C plein (10 × 255 fer).
 Phase 2 : production gelée jusqu'au contrôle du contenu rechargé, puis 4 fer ajoutés à A.
 
+Depuis 0.12.0, le vaisseau a une rangée de plus (à gauche, le cargo flotte à droite) :
+condenseur d'eau (câblé à un générateur à bois), recycleur (100 fer) alimenté par le réacteur
+stellaire (2 barres), tour radar.
+
+```
+PHASE=3 FRESH=1 WORLD=test4 tools/devrun.sh 90   # charge : 200 machines
+PHASE=4 FRESH=1 WORLD=test4 tools/devrun.sh 70   # vitrine : dev/model_<id>.png, 4 vues par machine
+```
+
+0.12.0 (13/10/2026) : phase 1 tout PASS (24 PASS, 0 FAIL), dont PASS recycleur 100 fer → 1 bon
+de recyclage ; PASS réacteur stellaire en veille, 1 010 J tirés de la barre en cours (il
+alimente le recycleur) ; PASS condenseur 4 glaces en ~32 s ; PASS tour radar en production ;
+PASS quai A → cargo (17 objets) ; PASS wiki 98 pages, 0 lien cassé. Phase 2 tout PASS (contenu
+identique après rechargement). Phase 3 : PASS 200/200, 0,29 ms par tick. Phase 4 : 22 planches
+de modèles relues une à une (pièces flottantes, textures, ports). Recherche avec TF Advanced
+installé : 15 techs placées, aucune à gauche de ses prérequis. Non testés en jeu : convertisseur,
+encodeur, comptoir d'échange, brûleur (leurs recettes et règles sont couvertes par les tests
+unitaires), déchets du réacteur (une barre dure 5 min ; testés en unitaire).
+
 Depuis 0.2.0, le vaisseau de test porte aussi fonderie, broyeur, assembleuse et presse, chacun
 câblé à son générateur ; la presse est réglée sur « câble uniquement » ; une capture d'écran du
 panneau de la presse est écrite dans `UserData/StellarIndustries/dev/hud_press.png`.
@@ -123,3 +142,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Quai : amarrer un vrai cargo piloté à côté d'une base | non testé |
 | Touche F7, écouter le bruit des machines | non testé à la main |
 | Deux joueurs (hôte + client) | non testé |
+| Onglet « Industrie+ » à l'écran, poser les machines de 0.12 à la main | non testé |
+| Machines agrandies dans une ancienne sauvegarde (chevauchement) | non testé |

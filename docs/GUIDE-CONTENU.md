@@ -7,7 +7,7 @@ Toutes les valeurs de jeu sont dans quelques tables C#. Après une modification 
 Plages d'ids réservées (`Core/Ids.cs`) : pièces 7601-7699, objets 7701-7799, techs 7801-7899.
 **Un id publié ne doit jamais être réutilisé pour autre chose** : les sauvegardes le gardent.
 
-Utilisés en 0.10.0 : pièces 7601-7614, objets 7701-7753, techs 7801-7809.
+Utilisés en 0.12.0 : pièces 7601-7622, objets 7701-7759, techs 7801-7815.
 
 ## Wiki dans le jeu
 

@@ -16,6 +16,6 @@ On commence avec un atelier et une fonderie, quelques lingots de fer… et on fi
 - [Limites](Limites) : ce que le mod ne fait pas (encore)
 
 ## La chaîne en un coup d'œil
-Minerai » **Fonderie** » lingots » **Atelier** » plaques, tiges, fils » **Presse** » vis, câbles » **Assembleuse** » plaques renforcées, rotors, stators » **Fabricateur** » moteurs, ordinateurs » **Accélérateur de particules** » processeurs quantiques.
+Minerai » **Fonderie** » lingots » **Atelier** » plaques, tiges, fils » **Presse** » vis, câbles » **Assembleuse** » plaques renforcées, rotors, stators » **Fabricateur** » moteurs, ordinateurs » **Accélérateur de particules** » processeurs quantiques » **Encodeur quantique** » cristaux temporels, processeurs neuro-quantiques.
 
 Les pages Machines, Objets, Recettes et Recherche sont tirées directement du contenu du mod : elles sont toujours à jour.

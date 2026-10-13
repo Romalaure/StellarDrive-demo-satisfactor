@@ -3,7 +3,7 @@
 Voici comment monter votre toute première usine. Comptez une dizaine de minutes.
 
 ## 1. Débloquer les premières machines
-Passez à la table de recherche. Une fois *Power Generation* obtenue, la branche **Industrie** apparaît : recherchez **Industrie de base** (20 fer et 10 cuivre). Vous débloquez l'[Atelier](Machine-7601), la [Fonderie](Machine-7602) et l'[Extracteur](Machine-7606), tous rangés dans l'onglet de construction « Industrie ».
+Passez à la table de recherche. Une fois *Power Generation* obtenue, la branche **Industrie** apparaît : recherchez **Industrie de base** (20 fer et 10 cuivre). Vous débloquez l'[Atelier](Machine-7601), la [Fonderie](Machine-7602) et l'[Extracteur](Machine-7606), rangés dans les onglets de construction « Industrie » (machines de production) et « Industrie+ » (énergie, extraction, logistique).
 
 ## 2. Donner du courant
 Posez un générateur à bois et vos deux machines. Chaque machine a sa prise électrique à l'arrière, dans le petit boîtier jaune et noir : tirez un câble électrique jusqu'au générateur. Tant qu'il n'y a pas de câble, la machine vous le dit (« Hors tension ») quand vous la regardez.

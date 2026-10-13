@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using StellarIndustries.Content;
@@ -316,6 +317,85 @@ namespace StellarIndustries.Recipes
                 Id = "accelerator.quantum", Name = "Processeur quantique", Machine = MachineCatalog.Accelerator, Seconds = 60f, Tier = 4,
                 Inputs = new[] { new ItemAmount(ResourceCatalog.Supercomputer, 1), new ItemAmount(ResourceCatalog.StellarMatter, 2) },
                 Outputs = new[] { new ItemAmount(ResourceCatalog.QuantumProcessor, 1) }
+            },
+            // ---- 0.12
+            new RecipeDef
+            {
+                Id = "assembler.logic", Name = "Module logique", Machine = MachineCatalog.Assembler, Seconds = 8f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.FineWire, 10), new ItemAmount(ResourceCatalog.CopperSheet, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.LogicModule, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.fuel_rod", Name = "Barre de combustible stellaire", Machine = MachineCatalog.Fabricator, Seconds = 40f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 2), new ItemAmount(ResourceCatalog.AluminumCasing, 4), new ItemAmount(ResourceCatalog.EncasedBeam, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarFuelRod, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "encoder.time_crystal", Name = "Cristal temporel", Machine = MachineCatalog.QuantumEncoder, Seconds = 30f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 2), new ItemAmount(ResourceCatalog.QuartzCrystal, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.TimeCrystal, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "encoder.neuro", Name = "Processeur neuro-quantique", Machine = MachineCatalog.QuantumEncoder, Seconds = 60f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.QuantumProcessor, 1), new ItemAmount(ResourceCatalog.LogicModule, 4), new ItemAmount(ResourceCatalog.TimeCrystal, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.NeuroProcessor, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "encoder.waste", Name = "Matière stellaire (déchets)", Machine = MachineCatalog.QuantumEncoder, Seconds = 20f, Tier = 4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.StellarWaste, 10), new ItemAmount(ResourceCatalog.QuartzCrystal, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "converter.copper", Name = "Cuivre (fer converti)", Machine = MachineCatalog.Converter, Seconds = 6f, Tier = 3,
+                Inputs = new[] { new ItemAmount(GameItems.Iron, 10), new ItemAmount(ResourceCatalog.StellarDust, 1) },
+                Outputs = new[] { new ItemAmount(GameItems.Copper, 10) }
+            },
+            new RecipeDef
+            {
+                Id = "converter.aluminum", Name = "Aluminium (cuivre converti)", Machine = MachineCatalog.Converter, Seconds = 8f, Tier = 3,
+                Inputs = new[] { new ItemAmount(GameItems.Copper, 10), new ItemAmount(ResourceCatalog.StellarDust, 2) },
+                Outputs = new[] { new ItemAmount(GameItems.Aluminum, 6) }
+            },
+            new RecipeDef
+            {
+                Id = "converter.shard", Name = "Éclats stellaires (poussière convertie)", Machine = MachineCatalog.Converter, Seconds = 10f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.StellarDust, 10), new ItemAmount(ResourceCatalog.QuartzCrystal, 1) },
+                Outputs = new[] { new ItemAmount(GameItems.StellarShard, 2) }
+            },
+            new RecipeDef
+            {
+                Id = "exchange.iron", Name = "Fer", Machine = MachineCatalog.ExchangeCounter, Seconds = 2f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 2) },
+                Outputs = new[] { new ItemAmount(GameItems.Iron, 20) }
+            },
+            new RecipeDef
+            {
+                Id = "exchange.copper", Name = "Cuivre", Machine = MachineCatalog.ExchangeCounter, Seconds = 2f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 2) },
+                Outputs = new[] { new ItemAmount(GameItems.Copper, 20) }
+            },
+            new RecipeDef
+            {
+                Id = "exchange.aluminum", Name = "Aluminium", Machine = MachineCatalog.ExchangeCounter, Seconds = 2f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 3) },
+                Outputs = new[] { new ItemAmount(GameItems.Aluminum, 10) }
+            },
+            new RecipeDef
+            {
+                Id = "exchange.shards", Name = "Éclats stellaires", Machine = MachineCatalog.ExchangeCounter, Seconds = 2f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 5) },
+                Outputs = new[] { new ItemAmount(GameItems.StellarShard, 5) }
+            },
+            new RecipeDef
+            {
+                Id = "exchange.matter", Name = "Matière stellaire condensée", Machine = MachineCatalog.ExchangeCounter, Seconds = 4f, Tier = 3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 60) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 1) }
             }
         };
 
@@ -347,6 +427,28 @@ namespace StellarIndustries.Recipes
         }
 
         public static RecipeDef Get(string id) => All.FirstOrDefault(r => r.Id == id) ?? (id != null && Extractions.TryGetValue(id, out RecipeDef e) ? e : null);
+
+        /// <summary>
+        /// The recycler's work on one item as a recipe: as many of the item as make at least one
+        /// voucher (100 points of value), into vouchers. Made on demand, never listed in <see cref="All"/>.
+        /// </summary>
+        public static RecipeDef Recycling(ushort machine, uint item, string itemName)
+        {
+            string id = "sink." + machine + "." + item;
+            if (!Extractions.TryGetValue(id, out RecipeDef recipe))
+            {
+                float value = ItemValues.Of(item);
+                int count = Math.Max(1, (int)Math.Ceiling(ItemValues.PointsPerVoucher / Math.Max(0.01f, value)));
+                int vouchers = Math.Max(1, (int)Math.Floor(value * count / ItemValues.PointsPerVoucher));
+                recipe = new RecipeDef
+                {
+                    Id = id, Name = "Recyclage : " + itemName, Machine = machine, Seconds = 2f,
+                    Inputs = new[] { new ItemAmount(item, count) }, Outputs = new[] { new ItemAmount(ResourceCatalog.Voucher, vouchers) }
+                };
+                Extractions[id] = recipe;
+            }
+            return recipe;
+        }
 
         private static readonly Dictionary<string, RecipeDef> Extractions = new Dictionary<string, RecipeDef>();
 
