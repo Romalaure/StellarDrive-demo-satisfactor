@@ -23,7 +23,15 @@ namespace StellarIndustries.Core
         /// <summary>Server to one client: the factory overview, Text is the panel.</summary>
         Overview = 5,
         /// <summary>Server to every client: the working machines, Text is "ship:part;ship:part...".</summary>
-        Active = 6
+        Active = 6,
+        /// <summary>Client to server: fit the module item Text into my scanner.</summary>
+        ScannerInstall = 7,
+        /// <summary>Client to server: take the module of slot Text out of my scanner.</summary>
+        ScannerRemove = 8,
+        /// <summary>Client to server: send me my scanner's modules.</summary>
+        ScannerRequest = 9,
+        /// <summary>Server to one client: its scanner's modules, Text is "id,id,..." (A: 1 if the last change was refused).</summary>
+        ScannerModules = 10
     }
 
     /// <summary>

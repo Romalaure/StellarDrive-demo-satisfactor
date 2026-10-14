@@ -99,6 +99,9 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.LogicModule:
                 case ResourceCatalog.RangeModule:
                 case ResourceCatalog.AnalysisModule:
+                case ResourceCatalog.RangeModule2:
+                case ResourceCatalog.RangeModule3:
+                case ResourceCatalog.AnalysisModule2:
                     return 0.6f;
                 case ResourceCatalog.StellarMatter:
                 case ResourceCatalog.Voucher:

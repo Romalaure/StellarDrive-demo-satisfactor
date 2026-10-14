@@ -47,6 +47,9 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.ScannerMk3: ScannerModel(Tile.PaintedGreen, 3); return true;
                 case ResourceCatalog.RangeModule: ModuleModel(Tile.Copper); return true;
                 case ResourceCatalog.AnalysisModule: ModuleModel(Tile.Gold); return true;
+                case ResourceCatalog.RangeModule2: ModuleModel(Tile.Copper, 2); return true;
+                case ResourceCatalog.RangeModule3: ModuleModel(Tile.Copper, 3); return true;
+                case ResourceCatalog.AnalysisModule2: ModuleModel(Tile.Gold, 2); return true;
                 default: return false;
             }
         }
@@ -142,12 +145,18 @@ namespace StellarIndustries.Content
         }
 
         // An upgrade card: a board with a chip and gold contacts
-        private static void ModuleModel(Tile contacts)
+        // An upgrade card: a board with a chip and its contacts; one more chip and light per grade, a glowing core on grade III
+        private static void ModuleModel(Tile contacts, int grade = 1)
         {
             Box(Tile.Circuit, V(0f, 0.008f, 0f), V(0.16f, 0.016f, 0.1f));
             Box(Tile.PaintedDark, V(0.01f, 0.022f, 0f), V(0.06f, 0.012f, 0.05f));
             Box(contacts, V(-0.07f, 0.017f, 0f), V(0.02f, 0.003f, 0.09f));
-            Box(Tile.LedGreen, V(0.055f, 0.02f, 0.035f), V(0.012f, 0.006f, 0.012f));
+            for (int i = 0; i < grade; i++)
+                Box(Tile.LedGreen, V(0.055f, 0.02f, 0.035f - i * 0.025f), V(0.012f, 0.006f, 0.012f));
+            if (grade >= 2)
+                Box(Tile.PaintedDark, V(0.012f, 0.031f, 0f), V(0.04f, 0.008f, 0.035f));
+            if (grade >= 3)
+                Box(Tile.StellarCrystal, V(0.012f, 0.037f, 0f), V(0.02f, 0.006f, 0.02f));
         }
 
         private static void Lumps(Tile tile, int count)

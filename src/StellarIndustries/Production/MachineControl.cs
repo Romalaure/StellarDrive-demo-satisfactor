@@ -114,6 +114,7 @@ namespace StellarIndustries.Production
 
         public static void Load(string worldDirectory)
         {
+            UI.ScannerModules.Load(worldDirectory);
             Choices.Clear();
             Reports.Clear();
             if (string.IsNullOrEmpty(worldDirectory))
@@ -129,6 +130,7 @@ namespace StellarIndustries.Production
         {
             if (string.IsNullOrEmpty(worldDirectory) || !Directory.Exists(worldDirectory))
                 return;
+            UI.ScannerModules.Save(worldDirectory);
             MachineSimulation.KeepCharges();
             ShipsServerTracker ships = ServiceLocator.GetService<ShipsServerTracker>();
             int pruned = Choices.Prune((shipId, partId) =>

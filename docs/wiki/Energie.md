@@ -23,6 +23,6 @@ Les poteaux (onglet « Industrie+ ») portent les câbles au-dessus du sol. Tout
 
 | Poteau | Hauteur | Branchements | Recherche |
 |---|---|---|---|
-| Poteau Mk1 | 2 m | 4 | *Lignes électriques* |
-| Poteau Mk2 | 3 m | 8 | *Haute tension* |
-| Pylône Mk3 | 4 m | 12 | *Haute tension* |
+| Poteau Mk1 | 3 m | 4 | *Lignes électriques* |
+| Poteau Mk2 | 4,5 m | 8 | *Haute tension* |
+| Pylône Mk3 | 6 m | 12 | *Haute tension* |

@@ -301,6 +301,16 @@ namespace StellarIndustries.Diagnostics
                     UI.MachineHud.Forced = null;
                     yield return CheckWiki();
                 }
+                if (i == 13)
+                {
+                    FactoryOverview.Shown = true;
+                    yield return Wait(1.5f);
+                    Directory.CreateDirectory(Folder);
+                    ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "overview.png"));
+                    yield return Wait(0.5f);
+                    FactoryOverview.Shown = false;
+                    Log("overview screenshot requested: " + FactoryOverview.Build());
+                }
                 if (i == 6)
                 {
                     Log("overview: " + Strip(FactoryOverview.Build()));
@@ -635,7 +645,7 @@ namespace StellarIndustries.Diagnostics
             var slots = new List<(ushort Id, Vector3 Size, float X)>();
             float cursor = 0f;
             var models = MachineCatalog.All.Select(m => (m.PartId, new Vector3(m.SizeX, m.SizeY, m.SizeZ)))
-                .Concat(Parts.PowerPoles.All.Select(p => (p.Id, new Vector3(0.32f, p.Height, 0.32f))));
+                .Concat(Parts.PowerPoles.All.Select(p => (p.Id, new Vector3(0.48f, p.Height * 1.5f, 0.48f))));
             foreach ((ushort id, Vector3 size) in models)
             {
                 slots.Add((id, size, cursor + size.x * 0.5f));
@@ -803,6 +813,34 @@ namespace StellarIndustries.Diagnostics
             yield return Wait(1f);
             UI.DepositScanner.Hold = false;
             Log("scanner screenshot requested");
+            yield return CheckModules();
+        }
+
+        /// <summary>The host gets a Mk2 and three modules, fits two (Mk2: 3 slots), sees the effect, takes one out.</summary>
+        private static IEnumerator CheckModules()
+        {
+            foreach (uint item in new[] { ResourceCatalog.ScannerMk2, ResourceCatalog.RangeModule2, ResourceCatalog.AnalysisModule2, ResourceCatalog.RangeModule })
+                SDModKit.Game.PlayerAccess.TryGive(item, 1, out _);
+            yield return Wait(1f);
+            float before = UI.DepositScanner.CurrentGear().Range;
+            UI.ScannerModules.RequestInstall(ResourceCatalog.RangeModule2);
+            UI.ScannerModules.RequestInstall(ResourceCatalog.AnalysisModule2);
+            yield return Wait(1f);
+            UI.DepositScanner.Gear gear = UI.DepositScanner.CurrentGear();
+            var counts = SDModKit.Game.PlayerAccess.CurrentCounts();
+            int left = counts.TryGetValue(ResourceCatalog.RangeModule2, out int n) ? n : 0;
+            bool fitted = UI.ScannerModules.Own.Count == 2 && Mathf.Approximately(gear.RangeBonus, 0.5f) && gear.Markers && left == 0;
+            Log($"{(fitted ? "PASS" : "FAIL")} scanner modules fitted: [{string.Join(",", UI.ScannerModules.Own)}], Mk{gear.Tier} range bonus +{gear.RangeBonus * 100f:0} % ({before:0} m -> {gear.Range:0} m, radar {gear.RadarBoost}), markers {gear.Markers}, range module II left in inventory {left}");
+            UI.ScannerPanel.Toggle();
+            yield return Wait(1f);
+            ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "modules.png"));
+            yield return Wait(0.5f);
+            UI.ScannerPanel.Toggle();
+            UI.ScannerModules.RequestRemove(0);
+            yield return Wait(1f);
+            counts = SDModKit.Game.PlayerAccess.CurrentCounts();
+            left = counts.TryGetValue(ResourceCatalog.RangeModule2, out n) ? n : 0;
+            Log($"{(UI.ScannerModules.Own.Count == 1 && left == 1 ? "PASS" : "FAIL")} scanner module taken out: [{string.Join(",", UI.ScannerModules.Own)}], range module II back in inventory {left}");
         }
 
         // ---- Load test (DevPhase 3)

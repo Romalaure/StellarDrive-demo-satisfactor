@@ -23,6 +23,6 @@ Poles (the "Industrie+" tab) carry cables above the ground. All the sockets of a
 
 | Pole | Height | Connections | Research |
 |---|---|---|---|
-| Power Pole Mk1 | 2 m | 4 | *Power Lines* |
-| Power Pole Mk2 | 3 m | 8 | *High-Voltage Lines* |
-| Power Pylon Mk3 | 4 m | 12 | *High-Voltage Lines* | A generator has a single socket: to power several machines, go through the game's power splitters.
+| Power Pole Mk1 | 3 m | 4 | *Power Lines* |
+| Power Pole Mk2 | 4.5 m | 8 | *High-Voltage Lines* |
+| Power Pylon Mk3 | 6 m | 12 | *High-Voltage Lines* | A generator has a single socket: to power several machines, go through the game's power splitters.

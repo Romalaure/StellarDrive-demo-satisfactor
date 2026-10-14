@@ -106,8 +106,11 @@ namespace StellarIndustries.Parts
                 Parts = new ushort[0], Recipes = new[] { "assembler.scanner2", "assembler.range_module" },
                 Cost = new[] { (ResourceCatalog.CircuitBoard, 4), (ResourceCatalog.Cable, 10) } },
             new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech3, Name = "Analyse géologique", Requires = new ushort[] { StellarIndustries.Recipes.RecipeBook.ScanTech2, 7806 }, Position = new Vector2Int(7, 5),
-                Parts = new ushort[0], Recipes = new[] { "fabricator.scanner3", "fabricator.analysis_module" },
+                Parts = new ushort[0], Recipes = new[] { "fabricator.scanner3", "fabricator.analysis_module", "fabricator.range_module2" },
                 Cost = new[] { (ResourceCatalog.Computer, 2), (ResourceCatalog.QuartzCrystal, 10) } },
+            new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech4, Name = "Prospection quantique", Requires = new ushort[] { StellarIndustries.Recipes.RecipeBook.ScanTech3, 7809 }, Position = new Vector2Int(9, 5),
+                Parts = new ushort[0], Recipes = new[] { "accelerator.range_module3", "accelerator.analysis_module2" },
+                Cost = new[] { (ResourceCatalog.QuantumProcessor, 1), (ResourceCatalog.RadioModule, 2) } },
         };
 
         /// <summary>

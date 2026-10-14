@@ -24,6 +24,8 @@ namespace StellarIndustries.Parts
         private const float Head = 0.16f;
         /// <summary>Height of one ring of four sockets on the head.</summary>
         private const float Ring = 0.3f;
+        /// <summary>The whole pole (model, box, sockets) is built this many times bigger than its design.</summary>
+        private const float Scale = 1.5f;
 
         internal sealed class Pole
         {
@@ -39,24 +41,24 @@ namespace StellarIndustries.Parts
             new Pole
             {
                 Id = PoleMk1, Name = "Poteau électrique Mk1", NameEn = "Power Pole Mk1", Sockets = 4, Height = 2f, Mass = 25f,
-                Description = "Un poteau de 2 m qui porte les câbles électriques au-dessus du sol : 4 branchements, tous sur le même réseau. " +
+                Description = "Un poteau de 3 m qui porte les câbles électriques au-dessus du sol : 4 branchements, tous sur le même réseau. " +
                               "Pour relier des machines éloignées sans câble qui traîne.",
-                DescriptionEn = "A 2 m pole that carries power cables above the ground: 4 connections, all on the same grid. " +
+                DescriptionEn = "A 3 m pole that carries power cables above the ground: 4 connections, all on the same grid. " +
                                 "To link distant machines without cables lying around.",
                 Cost = new[] { (ResourceCatalog.IronRod, 4), (ResourceCatalog.CopperWire, 4) }
             },
             new Pole
             {
                 Id = PoleMk2, Name = "Poteau électrique Mk2", NameEn = "Power Pole Mk2", Sockets = 8, Height = 3f, Mass = 40f,
-                Description = "Un poteau de 3 m à double tête : 8 branchements sur le même réseau.",
-                DescriptionEn = "A 3 m pole with a double head: 8 connections on the same grid.",
+                Description = "Un poteau de 4,5 m à double tête : 8 branchements sur le même réseau.",
+                DescriptionEn = "A 4.5 m pole with a double head: 8 connections on the same grid.",
                 Cost = new[] { (ResourceCatalog.SteelPipe, 2), (ResourceCatalog.Cable, 4), (ResourceCatalog.Rubber, 2) }
             },
             new Pole
             {
                 Id = PoleMk3, Name = "Pylône électrique Mk3", NameEn = "Power Pylon Mk3", Sockets = 12, Height = 4f, Mass = 70f,
-                Description = "Un pylône en treillis de 4 m : 12 branchements sur le même réseau, pour les grands réseaux.",
-                DescriptionEn = "A 4 m lattice pylon: 12 connections on the same grid, for big power networks.",
+                Description = "Un pylône en treillis de 6 m : 12 branchements sur le même réseau, pour les grands réseaux.",
+                DescriptionEn = "A 6 m lattice pylon: 12 connections on the same grid, for big power networks.",
                 Cost = new[] { (ResourceCatalog.SteelBeam, 4), (ResourceCatalog.Cable, 8), (ResourceCatalog.AlloySheet, 2) }
             }
         };
@@ -95,19 +97,20 @@ namespace StellarIndustries.Parts
             Bounds donor = PartTools.DonorBounds(prefab);
             GameSkin.CaptureLogicGates();
             float bottom = donor.center.y - donor.size.y * 0.5f;
-            var size = new Vector3(Head * 2f, pole.Height, Head * 2f);
+            var size = new Vector3(Head * 2f, pole.Height, Head * 2f) * Scale;
             var origin = new Vector3(donor.center.x, bottom, donor.center.z);
-            Transform visuals = PartTools.Blank(prefab, origin + new Vector3(0f, pole.Height * 0.5f, 0f), size);
+            Transform visuals = PartTools.Blank(prefab, origin + new Vector3(0f, size.y * 0.5f, 0f), size);
             var kit = new ModelKit("SI_Model", origin);
             Model(kit, pole, origin);
-            kit.Build(visuals, visuals.gameObject.layer, IndustrialSkin.Material, GameSkin.Ready ? GameSkin.Palette : (Vector2?)null, Vector3.zero);
+            Transform root = kit.Build(visuals, visuals.gameObject.layer, IndustrialSkin.Material, GameSkin.Ready ? GameSkin.Palette : (Vector2?)null, Vector3.zero);
+            root.localScale = Vector3.one * Scale;
             // Four sockets per ring, one on each side of the head, from the top ring down
             Vector3[] sides = { Vector3.forward, Vector3.right, Vector3.back, Vector3.left };
             for (int i = 0; i < pole.Sockets; i++)
             {
                 Vector3 side = sides[i % 4];
                 float y = pole.Height - 0.2f - (i / 4) * Ring;
-                PartTools.GraftSocket(prefab, (byte)i, CableType.Power, origin + new Vector3(0f, y, 0f) + side * Head, side);
+                PartTools.GraftSocket(prefab, (byte)i, CableType.Power, origin + (new Vector3(0f, y, 0f) + side * Head) * Scale, side);
             }
             // Every socket relays to all the others: the game makes them one network
             SocketObject[] sockets = prefab.GetComponentsInChildren<SocketObject>(true).Where(s => s.Type == CableType.Power).ToArray();

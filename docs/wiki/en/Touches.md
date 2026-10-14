@@ -6,6 +6,8 @@
 | Look at a machine | See its state, recipe, progress, power and contents |
 | `N` on a machine | Next recipe (Shift+N: previous), or change a dock's mode |
 | `N` elsewhere (or `K`) | Scan the deposits around you (needs a deposit scanner in your inventory) |
+| Left click, scanner in hand | Scan the deposits |
+| Right click, scanner in hand (or `Shift+N`) | Open the scanner's module bay |
 | `F7` | Open the factory overview |
 | `G` | Open the game's guide, where this wiki lives |
 
@@ -23,4 +25,5 @@ They are in `UserData/MelonPreferences.cfg`, section `[StellarIndustries]`:
 | `RecipeKey`, `ScanKey`, `OverviewKey` | change the keys |
 | `MachineVolume` | volume of the machines' hum |
 | `ScanNeedsScanner` | `false`: the K key works without a scanner (as a Mk1) |
-| `DepositDetails` | `false`: no ore veins or crystals on the rocks |
+| `DepositDetails` | `false`: no ore drawn on the rocks |
+| `ScanVolume` | volume of the scanner's sounds |

@@ -72,8 +72,11 @@ namespace StellarIndustries.Content
             [7760] = ("Deposit Scanner Mk1", "A handheld scanner: keep it in your inventory and press K to list the minable rocks within 80 m, with their distance and direction."),
             [7761] = ("Deposit Scanner Mk2", "Reaches 160 m, adds a radar screen and tells the purity of each deposit (impure, normal, pure)."),
             [7762] = ("Deposit Scanner Mk3", "Reaches 300 m and marks the deposits right in your view for 30 seconds, with their purity and yield."),
-            [7763] = ("Range Module", "A scanner upgrade: +25% range. Up to two count, kept in your inventory."),
-            [7764] = ("Analysis Module", "A scanner upgrade: any scanner then shows the purity of the deposits and the yield an extractor would get."),
+            [7763] = ("Range Module", "Fits into the deposit scanner: +25% range."),
+            [7764] = ("Analysis Module", "Fits into the deposit scanner: it shows the purity of the deposits and the yield an extractor would get."),
+            [7765] = ("Range Module II", "Fits into the deposit scanner: +50% range."),
+            [7766] = ("Range Module III", "Fits into the deposit scanner: doubles the range."),
+            [7767] = ("Analysis Module II", "Fits into the deposit scanner: purity, yield, and markers on the deposits in your view for 30 seconds, whatever the scanner."),
         };
 
         public static readonly Dictionary<ushort, (string Name, string Description)> Machines = new Dictionary<ushort, (string, string)>
@@ -161,6 +164,9 @@ namespace StellarIndustries.Content
             ["workshop.scanner1"] = "Deposit Scanner Mk1",
             ["assembler.scanner2"] = "Deposit Scanner Mk2",
             ["fabricator.scanner3"] = "Deposit Scanner Mk3",
+            ["fabricator.range_module2"] = "Range Module II",
+            ["accelerator.range_module3"] = "Range Module III",
+            ["accelerator.analysis_module2"] = "Analysis Module II",
         };
 
         public static readonly Dictionary<ushort, string> Techs = new Dictionary<ushort, string>
@@ -188,6 +194,7 @@ namespace StellarIndustries.Content
             [7821] = "Prospecting",
             [7822] = "Advanced Prospecting",
             [7823] = "Geological Analysis",
+            [7824] = "Quantum Prospecting",
         };
     }
 }

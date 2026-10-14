@@ -30,19 +30,24 @@ Les lignes d'objets restent à l'intérieur d'un vaisseau. Pour décharger un ca
 Vous croulez sous les vis ou les plaques en trop ? Envoyez-les au [Recycleur](Machine-7620) : il les détruit et vous paie en [bons de recyclage](Objet-7756). Plus un objet demande de travail, plus il rapporte (100 points font un bon ; un minerai vaut 1 point). Les bons s'échangent ensuite au [Comptoir d'échange](Machine-7621) contre du minerai, des éclats stellaires ou de la matière stellaire : choisissez ce que vous voulez avec **N**.
 
 ## Trouver les gisements
-Le scanner de gisements est un objet : gardez-le dans votre inventaire et appuyez sur **N** sans viser de machine (ou **K**).
+Le scanner de gisements est un objet : gardez-le dans votre inventaire et appuyez sur **N** sans viser de machine (ou **K**), ou prenez-le en main dans la barre d'outils et **cliquez**.
 
 | Objet | Où | Ce qu'il fait |
 |---|---|---|
 | [Scanner Mk1](Objet-7760) | atelier, recherche *Prospection* | 80 m, chaque minerai, le plus proche avec sa distance et une flèche |
 | [Scanner Mk2](Objet-7761) | assembleuse, *Prospection avancée* | 160 m, écran radar, pureté des gisements |
 | [Scanner Mk3](Objet-7762) | fabricateur, *Analyse géologique* | 300 m, repères sur les gisements dans votre vue pendant 30 s |
-| [Module de portée](Objet-7763) | assembleuse | +25 % de portée (deux au plus) |
-| [Module d'analyse](Objet-7764) | fabricateur | pureté et rendement d'extraction sur tout scanner |
+| [Module de portée](Objet-7763) | assembleuse | +25 % de portée |
+| [Module de portée II](Objet-7765) | fabricateur | +50 % de portée |
+| [Module de portée III](Objet-7766) | accélérateur, *Prospection quantique* | double la portée |
+| [Module d'analyse](Objet-7764) | fabricateur | pureté et rendement d'extraction |
+| [Module d'analyse II](Objet-7767) | accélérateur, *Prospection quantique* | pureté, rendement et repères dans la vue |
 
-Près d'une [Tour radar](Machine-7622) (moins de 60 m), le scanner porte jusqu'à 400 m.
+**Monter les modules** : clic droit avec le scanner en main (ou **Maj+N**) ouvre la baie à modules. Le Mk1 a 2 emplacements, le Mk2 3, le Mk3 4. Un module monté quitte l'inventaire ; le retirer le rend. Les modules montés suivent votre compte : ils servent avec n'importe quel scanner que vous portez.
 
-**Pureté** : chaque rocher est *impur* (un extracteur y travaille à moitié de sa vitesse), *normal* ou *pur* (vitesse doublée). Un gisement riche se voit : ses filons et nodules de minerai sont plus nombreux et plus gros.
+Près d'une [Tour radar](Machine-7622) (moins de 60 m), le scanner porte au moins à 400 m, plus ses modules de portée (800 m au plus).
+
+**Pureté** : chaque rocher est *impur* (un extracteur y travaille à moitié de sa vitesse, le laser en tire moitié moins), *normal* ou *pur* (vitesse et minage doublés). Un gisement riche se voit : ses filons et nodules de minerai sont plus nombreux et plus gros.
 
 ## Stocker
 Le [Conteneur industriel](Machine-7608) offre 10 emplacements, comme toutes les machines du mod.

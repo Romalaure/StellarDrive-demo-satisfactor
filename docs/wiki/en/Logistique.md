@@ -30,19 +30,24 @@ Item lines stay inside one ship. To unload a cargo ship into your base, use two 
 Drowning in spare screws or plates? Send them to the [Recycler](Machine-7620): it destroys them and pays you in [recycling vouchers](Objet-7756). The more work an item took, the more it is worth (100 points make a voucher; an ore is worth 1 point). Then trade the vouchers at the [Exchange Counter](Machine-7621) for ore, stellar shards or stellar matter: pick what you want with **N**.
 
 ## Finding deposits
-The deposit scanner is an item: keep it in your inventory and press **N** while not aiming at a machine (or **K**).
+The deposit scanner is an item: keep it in your inventory and press **N** while not aiming at a machine (or **K**), or hold it from the toolbar and **click**.
 
 | Item | Where | What it does |
 |---|---|---|
 | [Scanner Mk1](Objet-7760) | workshop, *Prospecting* research | 80 m, each ore, the nearest with its distance and an arrow |
 | [Scanner Mk2](Objet-7761) | assembler, *Advanced Prospecting* | 160 m, radar screen, deposit purity |
 | [Scanner Mk3](Objet-7762) | fabricator, *Geological Analysis* | 300 m, markers on the deposits in your view for 30 s |
-| [Range Module](Objet-7763) | assembler | +25% range (two at most) |
-| [Analysis Module](Objet-7764) | fabricator | purity and extraction yield on any scanner |
+| [Range Module](Objet-7763) | assembler | +25% range |
+| [Range Module II](Objet-7765) | fabricator | +50% range |
+| [Range Module III](Objet-7766) | accelerator, *Quantum Prospecting* | doubles the range |
+| [Analysis Module](Objet-7764) | fabricator | purity and extraction yield |
+| [Analysis Module II](Objet-7767) | accelerator, *Quantum Prospecting* | purity, yield and markers in view |
 
-Within 60 m of a [Radar Tower](Machine-7622), the scanner reaches 400 m.
+**Fitting modules**: right-click with the scanner in hand (or **Shift+N**) opens its module bay. The Mk1 has 2 slots, the Mk2 3, the Mk3 4. A fitted module leaves your inventory; taking it out gives it back. Fitted modules follow your account: they work with any scanner you carry.
 
-**Purity**: every rock is *impure* (an extractor works at half speed there), *normal* or *pure* (double speed). A rich deposit shows: its ore veins and nodules are more numerous and bigger.
+Within 60 m of a [Radar Tower](Machine-7622), the scanner reaches at least 400 m, plus its range modules (800 m at most).
+
+**Purity**: every rock is *impure* (an extractor works at half speed there, the laser gets half as much), *normal* or *pure* (double speed and mining). A rich deposit shows: its ore veins and nodules are more numerous and bigger.
 
 ## Storage
 The [Industrial Container](Machine-7608) has 10 slots, like every machine of the mod.

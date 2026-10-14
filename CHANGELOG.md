@@ -1,5 +1,25 @@
 # Journal des changements
 
+## 0.15.0 — modules montés, scanner en main, tableau de bord
+
+- **Modules montés dans le scanner** : clic droit avec le scanner en main (ou Maj+N, Maj+K) ouvre
+  sa baie à modules. Monter un module le retire de l'inventaire, le retirer le rend. 2 emplacements
+  sur le Mk1, 3 sur le Mk2, 4 sur le Mk3. Le jeu ne peut pas attacher de données à un objet : les
+  modules montés suivent le compte du joueur et servent avec n'importe quel scanner porté.
+  Les modules gardés seulement dans l'inventaire ne comptent plus : il faut les monter.
+- **Nouveaux modules** : portée II (+50 %, fabricateur), portée III (×2, accélérateur), analyse II
+  (pureté, rendement et repères dans la vue sur n'importe quel scanner, accélérateur). Nouvelle
+  recherche *Prospection quantique*.
+- **Scanner en main** : avec le scanner sélectionné dans la barre d'outils, clic gauche = balayage.
+- **Son et animation** : balayage sonore avec deux bips (réglage `ScanVolume`), ondes qui
+  partent du centre de l'écran ; bourdonnement et ondes rouges sans scanner.
+- **Pureté au laser** : miner un rocher à la main donne aussi ×½ (impur) ou ×2 (pur).
+- **Tour radar** : les modules de portée s'ajoutent maintenant à sa portée (plafond 800 m).
+- **Poteaux électriques** une fois et demie plus grands (3 m, 4,5 m, 6 m).
+- **Tableau de bord (F7)** refait : tuiles (machines, en marche, à vérifier, convoyeurs), barres
+  d'énergie et d'accumulateurs, barre des états, production de la dernière minute objet par
+  objet, machines par type, liste des machines à vérifier.
+
 ## 0.14.0 — gisements, modèles d'objets, touche N
 
 - **Gisements** : les blocs posés sur les rochers sont remplacés par des facettes du rocher

@@ -6,6 +6,8 @@
 | Regarder une machine | Voir son état, sa recette, sa progression, son énergie et son contenu |
 | `N` sur une machine | Passer à la recette suivante (Maj+N : la précédente), ou changer le mode d'un quai |
 | `N` ailleurs (ou `K`) | Scanner les gisements autour de vous (il faut un scanner de gisements dans l'inventaire) |
+| Clic gauche, scanner en main | Scanner les gisements |
+| Clic droit, scanner en main (ou `Maj+N`) | Ouvrir la baie à modules du scanner |
 | `F7` | Ouvrir le tableau de bord de l'usine |
 | `G` | Ouvrir le guide du jeu, où se trouve ce wiki |
 
@@ -23,4 +25,5 @@ Ils se trouvent dans `UserData/MelonPreferences.cfg`, section `[StellarIndustrie
 | `RecipeKey`, `ScanKey`, `OverviewKey` | changer les touches |
 | `MachineVolume` | volume du bruit des machines |
 | `ScanNeedsScanner` | `false` : la touche K marche sans scanner (comme un Mk1) |
-| `DepositDetails` | `false` : pas de filons ni de cristaux sur les rochers |
+| `DepositDetails` | `false` : pas de minerai dessiné sur les rochers |
+| `ScanVolume` | volume des sons du scanner |

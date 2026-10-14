@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.14.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.15.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -34,6 +34,7 @@ namespace StellarIndustries
             MachineControl.Install();
             Diagnostics.FactoryOverview.Install();
             MachineActivity.Install();
+            UI.ScannerModules.Install();
             ApplyPatches();
             Log.Msg("ready");
         }
@@ -177,6 +178,7 @@ namespace StellarIndustries
         {
             Parts.DepositDecor.Forget();
             UI.DepositScanner.Forget();
+            UI.ScannerModules.Forget();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -229,6 +231,7 @@ namespace StellarIndustries
                 Parts.IndustryResearch.Tick();
                 UI.MachineHud.Update();
                 UI.DepositScanner.Update();
+                UI.ScannerModules.Update();
                 Parts.DepositDecor.Update();
                 Diagnostics.FactoryOverview.Update();
                 UI.MachineSound.Update();

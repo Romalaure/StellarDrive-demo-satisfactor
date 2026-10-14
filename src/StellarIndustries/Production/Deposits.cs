@@ -169,3 +169,29 @@ namespace StellarIndustries.Production
         }
     }
 }
+
+namespace StellarIndustries.Production
+{
+    /// <summary>
+    /// Mining a rock with the laser gives as much as its purity says too: half on an impure
+    /// rock (at least one), twice as much on a pure one, like the extractors.
+    /// </summary>
+    [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.GetItemDrop))]
+    internal static class MiningPurityPatch
+    {
+        private static void Postfix(Planets.Objects.MinablePlanetObject __instance, ref Items.Model.ItemDrop __result)
+        {
+            try
+            {
+                if (__result.Quantity == 0 || !Deposits.Extractable(__result.ItemId))
+                    return;
+                float factor = DepositPurity.Factor(Deposits.PurityOf(__instance));
+                __result.Quantity = (byte)Mathf.Clamp(Mathf.RoundToInt(__result.Quantity * factor), 1, 255);
+            }
+            catch (System.Exception e)
+            {
+                ErrorLog.Report("mining purity", e);
+            }
+        }
+    }
+}

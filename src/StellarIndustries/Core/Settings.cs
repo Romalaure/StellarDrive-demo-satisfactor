@@ -22,6 +22,7 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
         public static MelonPreferences_Entry<bool> ScanNeedsScanner { get; private set; }
         public static MelonPreferences_Entry<bool> DepositDetails { get; private set; }
+        public static MelonPreferences_Entry<float> ScanVolume { get; private set; }
 
         public static void Load()
         {
@@ -46,6 +47,8 @@ namespace StellarIndustries.Core
                 description: "Reach of the deposit scanner Mk1 (meters); the Mk2 reaches twice as far, the Mk3 almost four times.");
             ScanNeedsScanner = _category.CreateEntry("ScanNeedsScanner", true,
                 description: "On: the scanner key only works with a deposit scanner (item) in your inventory. Off: it always works, at least as a Mk1.");
+            ScanVolume = _category.CreateEntry("ScanVolume", 0.6f,
+                description: "Volume of the deposit scanner's sounds (0 = silent, 1 = loud).");
             DepositDetails = _category.CreateEntry("DepositDetails", true,
                 description: "Shows ore veins, crystals and scree on the minable rocks (purely visual, on your game only).");
             ResearchUnlocks = _category.CreateEntry("ResearchUnlocks", true,

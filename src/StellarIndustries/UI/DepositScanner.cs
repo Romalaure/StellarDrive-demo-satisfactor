@@ -27,13 +27,17 @@ namespace StellarIndustries.UI
         public struct Gear
         {
             public int Tier;
-            public int RangeModules;
-            public bool Analysis;
+            /// <summary>Range added by the fitted range modules (0.25 = +25 %).</summary>
+            public float RangeBonus;
+            /// <summary>Best fitted analysis module: 0 none, 1 purity and yield, 2 also markers.</summary>
+            public int Analysis;
             public float Range;
             public bool RadarBoost;
             /// <summary>The scanner works without the item (setting ScanNeedsScanner off).</summary>
             public bool Free;
-            public bool ShowsPurity => Tier >= 2 || Analysis;
+            public bool ShowsPurity => Tier >= 2 || Analysis >= 1;
+            public bool ShowsYield => Tier >= 3 || Analysis >= 1;
+            public bool Markers => Tier >= 3 || Analysis >= 2;
         }
 
         private struct Hit
@@ -51,7 +55,7 @@ namespace StellarIndustries.UI
         private static float _scannedAt = -100f, _until = -100f;
         private static string _message;
         private static GUIStyle _title, _body, _small, _label;
-        private static Texture2D _white, _disc, _dot, _arrow, _diamond;
+        private static Texture2D _white, _disc, _dot, _arrow, _diamond, _ring;
 
         /// <summary>Development: the panel stays until this is cleared (in-game test screenshots).</summary>
         public static bool Hold;
@@ -75,10 +79,29 @@ namespace StellarIndustries.UI
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null || Cursor.visible)
                 return;
-            // The recipe key scans when no machine is aimed at
+            // The recipe key scans when no machine is aimed at; with Shift it opens the module bay
             bool recipeKey = keyboard[MachineHud.RecipeKey].wasPressedThisFrame && !MachineHud.Aiming;
-            if (recipeKey || (_key != Key.None && keyboard[_key].wasPressedThisFrame))
+            bool ownKey = _key != Key.None && keyboard[_key].wasPressedThisFrame;
+            bool shift = keyboard.shiftKey.isPressed;
+            // With the scanner in hand: left click scans, right click opens the module bay
+            Mouse mouse = Mouse.current;
+            bool inHand = InHand();
+            bool click = inHand && mouse != null && mouse.leftButton.wasPressedThisFrame;
+            bool bay = inHand && mouse != null && mouse.rightButton.wasPressedThisFrame;
+            if ((recipeKey || ownKey) && shift || bay)
+                ScannerPanel.Toggle();
+            else if (recipeKey || ownKey || click)
                 Run(null);
+        }
+
+        /// <summary>Whether the item the player holds (selected in the toolbar) is a deposit scanner.</summary>
+        private static bool InHand()
+        {
+            var state = PlayerAccess.LocalNetworkState;
+            if (state == null)
+                return false;
+            var selection = state.ItemSelection;
+            return selection.HasItemSelected && (selection.ItemId == ResourceCatalog.ScannerMk1 || selection.ItemId == ResourceCatalog.ScannerMk2 || selection.ItemId == ResourceCatalog.ScannerMk3);
         }
 
         /// <summary>The scanner the player carries now (with its modules and a nearby radar tower).</summary>
@@ -88,14 +111,24 @@ namespace StellarIndustries.UI
             int Has(uint item) => counts.TryGetValue(item, out int n) ? n : 0;
             var gear = new Gear
             {
-                Tier = Has(ResourceCatalog.ScannerMk3) > 0 ? 3 : Has(ResourceCatalog.ScannerMk2) > 0 ? 2 : Has(ResourceCatalog.ScannerMk1) > 0 ? 1 : 0,
-                RangeModules = Mathf.Min(2, Has(ResourceCatalog.RangeModule)),
-                Analysis = Has(ResourceCatalog.AnalysisModule) > 0
+                Tier = Has(ResourceCatalog.ScannerMk3) > 0 ? 3 : Has(ResourceCatalog.ScannerMk2) > 0 ? 2 : Has(ResourceCatalog.ScannerMk1) > 0 ? 1 : 0
             };
             if (gear.Tier == 0 && !Settings.ScanNeedsScanner.Value)
             {
                 gear.Tier = 1;
                 gear.Free = true;
+            }
+            // The modules fitted in the scanner, as many as it has slots
+            IReadOnlyList<uint> fitted = ScannerModules.Own;
+            for (int i = 0; i < fitted.Count && i < ScannerModules.Slots(gear.Tier); i++)
+            {
+                foreach (var kind in ScannerModules.Kinds)
+                {
+                    if (kind.Item != fitted[i])
+                        continue;
+                    gear.RangeBonus += kind.Range;
+                    gear.Analysis = Mathf.Max(gear.Analysis, kind.Analysis);
+                }
             }
             return WithRange(gear);
         }
@@ -104,14 +137,15 @@ namespace StellarIndustries.UI
         {
             float mk1 = Mathf.Clamp(Settings.ScanRadius.Value, 10f, 300f);
             float range = gear.Tier >= 3 ? mk1 * 3.75f : gear.Tier == 2 ? mk1 * 2f : mk1;
-            range *= 1f + 0.25f * gear.RangeModules;
+            // A radar tower nearby lifts the scanner's own reach; the modules add to either
             float radar = RadarReach();
             if (radar > range)
             {
                 range = radar;
                 gear.RadarBoost = true;
             }
-            gear.Range = Mathf.Min(range, 600f);
+            range *= 1f + gear.RangeBonus;
+            gear.Range = Mathf.Min(range, 800f);
             return gear;
         }
 
@@ -127,8 +161,10 @@ namespace StellarIndustries.UI
                     "You need a <b>deposit scanner</b> in your inventory.\nMake one at the industrial workshop after the \"Prospecting\" research.");
                 _scannedAt = Time.unscaledTime;
                 _until = Time.unscaledTime + 6f;
+                ScannerSound.Refuse();
                 return;
             }
+            ScannerSound.Scan();
             Vector3 at = PlayerAccess.WorldPosition;
             foreach (Deposits.Rock rock in Deposits.Loaded())
             {
@@ -136,13 +172,13 @@ namespace StellarIndustries.UI
                     Hits.Add(new Hit { Item = rock.Item, Name = IndustrialItems.NameOf(rock.Item), Position = rock.Position, Purity = rock.Purity });
             }
             _scannedAt = Time.unscaledTime;
-            _until = Time.unscaledTime + (_gear.Tier >= 3 ? 30f : _gear.Tier == 2 ? 15f : 10f);
+            _until = Time.unscaledTime + (_gear.Markers ? 30f : _gear.Tier == 2 ? 15f : 10f);
         }
 
         /// <summary>The scan as text (in-game test): with the player's scanner, or a Mk3 with both modules if <paramref name="best"/>.</summary>
         public static string Scan(bool best = false)
         {
-            Run(best ? WithRange(new Gear { Tier = 3, RangeModules = 2, Analysis = true }) : (Gear?)null);
+            Run(best ? WithRange(new Gear { Tier = 3, RangeBonus = 1f, Analysis = 2 }) : (Gear?)null);
             if (_message != null)
                 return _message;
             var text = new StringBuilder();
@@ -226,6 +262,7 @@ namespace StellarIndustries.UI
             if (Cursor.visible && !Hold)
                 return;
             Styles();
+            DrawPulse();
             float fade = Hold ? 1f : Mathf.Clamp01(_until - Time.unscaledTime);
             Color previous = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, fade);
@@ -234,9 +271,30 @@ namespace StellarIndustries.UI
             else
             {
                 Camera camera = Camera.main;
-                if (camera != null && _gear.Tier >= 3)
+                if (camera != null && _gear.Markers)
                     DrawMarkers(camera);
                 DrawPanel(camera);
+            }
+            GUI.color = previous;
+        }
+
+        /// <summary>The scan's wave: three rings spreading from the middle of the screen and fading, the first second and a half.</summary>
+        private static void DrawPulse()
+        {
+            float age = Time.unscaledTime - _scannedAt;
+            if (age < 0f || age > 1.5f)
+                return;
+            Color tint = _message != null ? new Color(1f, 0.45f, 0.3f) : new Color(0.3f, 0.9f, 1f);
+            Color previous = GUI.color;
+            var c = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            for (int i = 0; i < 3; i++)
+            {
+                float t = (age - i * 0.18f) / 1.1f;
+                if (t <= 0f || t >= 1f)
+                    continue;
+                float r = Mathf.Lerp(20f, Screen.height * 0.75f, t);
+                GUI.color = new Color(tint.r, tint.g, tint.b, (1f - t) * 0.55f);
+                GUI.DrawTexture(new Rect(c.x - r, c.y - r, r * 2f, r * 2f), _ring);
             }
             GUI.color = previous;
         }
@@ -271,7 +329,7 @@ namespace StellarIndustries.UI
             // Header: model, reach, modules
             GUI.Label(new Rect(rect.x + 12f, rect.y + 8f, 300f, 22f), Lang.T("SCANNER DE GISEMENTS", "DEPOSIT SCANNER") + (_gear.Free ? "" : " Mk" + _gear.Tier), _title);
             string reach = Mathf.RoundToInt(_gear.Range) + " m" + (_gear.RadarBoost ? Lang.T(" (tour radar)", " (radar tower)") : "") +
-                           (_gear.RangeModules > 0 ? "  " + new string('+', _gear.RangeModules) : "") + (_gear.Analysis ? Lang.T("  analyse", "  analysis") : "");
+                           (_gear.RangeBonus > 0f ? $"  +{Mathf.RoundToInt(_gear.RangeBonus * 100f)} %" : "") + (_gear.Analysis > 0 ? Lang.T("  analyse ", "  analysis ") + new string('I', _gear.Analysis) : "");
             GUI.Label(new Rect(rect.xMax - 232f, rect.y + 10f, 220f, 20f), "<color=#8cf>" + reach + "</color>", _small);
             // The sweep, the first second
             float sweep = Mathf.Clamp01((Time.unscaledTime - _scannedAt) / 0.9f);
@@ -304,7 +362,7 @@ namespace StellarIndustries.UI
                     var line = new StringBuilder();
                     line.Append($"<color={Deposits.PurityColor(Purity.Pure)}>{pure} {Lang.T("pur", "pure")}</color> · <color={Deposits.PurityColor(Purity.Normal)}>{normal} normal</color> · <color={Deposits.PurityColor(Purity.Impure)}>{impure} {Lang.T("impur", "impure")}</color>");
                     line.Append(Lang.T("  — le plus proche : ", "  — nearest: ")).Append($"<color={Deposits.PurityColor(nearest.Purity)}>{Deposits.PurityName(nearest.Purity)}</color>");
-                    if (_gear.Analysis || _gear.Tier >= 3)
+                    if (_gear.ShowsYield)
                     {
                         MachineCatalog.TryGet(MachineCatalog.Extractor, out MachineDef extractor);
                         float perMinute = 60f / (extractor?.ExtractSeconds ?? 6f) * DepositPurity.Factor(nearest.Purity) * Settings.Speed;
@@ -412,6 +470,12 @@ namespace StellarIndustries.UI
             _label = new GUIStyle(GUI.skin.label) { fontSize = 12, richText = true, alignment = TextAnchor.UpperCenter, normal = { textColor = Color.white } };
             _white = Texture(4, (x, y) => Color.white);
             _dot = Texture(16, (x, y) => Disc(x, y, 16, 7.5f) ? Color.white : Clear);
+            _ring = Texture(256, (x, y) =>
+            {
+                float d = Mathf.Sqrt((x - 127.5f) * (x - 127.5f) + (y - 127.5f) * (y - 127.5f));
+                float edge = Mathf.Abs(d - 124f);
+                return edge < 3f ? new Color(1f, 1f, 1f, 1f - edge / 3f) : d < 124f ? new Color(1f, 1f, 1f, 0.05f * d / 124f) : Clear;
+            });
             _diamond = Texture(32, (x, y) =>
             {
                 float d = Mathf.Abs(x - 15.5f) + Mathf.Abs(y - 15.5f);

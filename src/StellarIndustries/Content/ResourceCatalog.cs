@@ -119,6 +119,9 @@ namespace StellarIndustries.Content
         public const uint ScannerMk3 = 7762;
         public const uint RangeModule = 7763;
         public const uint AnalysisModule = 7764;
+        public const uint RangeModule2 = 7765;
+        public const uint RangeModule3 = 7766;
+        public const uint AnalysisModule2 = 7767;
 
         public static readonly ResourceDef[] All =
         {
@@ -506,14 +509,32 @@ namespace StellarIndustries.Content
             new ResourceDef
             {
                 Id = RangeModule, Name = "Module de portée", Category = ResourceCategory.Component, Mass = 0.3f, Tier = 1, MaxStack = 5,
-                Description = "Amélioration du scanner : +25 % de portée. Deux au plus comptent, gardés dans l'inventaire.",
+                Description = "Se monte dans le scanner de gisements : +25 % de portée.",
                 MaterialFrom = GameItems.Copper
             },
             new ResourceDef
             {
                 Id = AnalysisModule, Name = "Module d'analyse", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 2, MaxStack = 5,
-                Description = "Amélioration du scanner : tout scanner indique alors la pureté des gisements et le rendement qu'en tirerait un extracteur.",
+                Description = "Se monte dans le scanner de gisements : il indique la pureté des gisements et le rendement qu'en tirerait un extracteur.",
                 MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = RangeModule2, Name = "Module de portée II", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 2, MaxStack = 5,
+                Description = "Se monte dans le scanner de gisements : +50 % de portée.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = RangeModule3, Name = "Module de portée III", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 3, MaxStack = 5,
+                Description = "Se monte dans le scanner de gisements : double la portée.",
+                MaterialFrom = GameItems.StellarShard
+            },
+            new ResourceDef
+            {
+                Id = AnalysisModule2, Name = "Module d'analyse II", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 3, MaxStack = 5,
+                Description = "Se monte dans le scanner de gisements : pureté, rendement, et repères sur les gisements dans votre vue pendant 30 secondes, quel que soit le scanner.",
+                MaterialFrom = GameItems.StellarShard
             }
         };
 

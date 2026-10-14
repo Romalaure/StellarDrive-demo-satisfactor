@@ -414,7 +414,7 @@ namespace StellarIndustries.Production
             // One cycle per tick at most; a partial next cycle is kept
             rt.Progress = Mathf.Min(rt.Progress - 1f, 0.99f);
             rt.Cycles++;
-            Diagnostics.FactoryOverview.Counted(1);
+            Diagnostics.FactoryOverview.Counted(rt.Recipe);
             entry.Ship.UpdatePartState(entry.Part.Id, state with { InventorySlots = Write(after) });
         }
 

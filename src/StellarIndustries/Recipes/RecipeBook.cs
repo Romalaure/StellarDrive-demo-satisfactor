@@ -430,11 +430,30 @@ namespace StellarIndustries.Recipes
                 Id = "fabricator.analysis_module", Name = "Module d'analyse", Machine = MachineCatalog.Fabricator, Seconds = 30f, Tier = 3, Tech = ScanTech3,
                 Inputs = new[] { new ItemAmount(ResourceCatalog.Computer, 1), new ItemAmount(ResourceCatalog.QuartzCrystal, 4), new ItemAmount(ResourceCatalog.FineWire, 6) },
                 Outputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule, 1) }
+            },
+            // ---- 0.15: better modules
+            new RecipeDef
+            {
+                Id = "fabricator.range_module2", Name = "Module de portée II", Machine = MachineCatalog.Fabricator, Seconds = 30f, Tier = 3, Tech = ScanTech3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.RangeModule, 1), new ItemAmount(ResourceCatalog.Oscillator, 1), new ItemAmount(ResourceCatalog.FineWire, 10) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.RangeModule2, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "accelerator.range_module3", Name = "Module de portée III", Machine = MachineCatalog.Accelerator, Seconds = 40f, Tier = 4, Tech = ScanTech4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.RangeModule2, 1), new ItemAmount(ResourceCatalog.RadioModule, 1), new ItemAmount(ResourceCatalog.StellarMatter, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.RangeModule3, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "accelerator.analysis_module2", Name = "Module d'analyse II", Machine = MachineCatalog.Accelerator, Seconds = 40f, Tier = 4, Tech = ScanTech4,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule, 1), new ItemAmount(ResourceCatalog.QuantumProcessor, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule2, 1) }
             }
         };
 
         /// <summary>The prospecting techs (see Parts.IndustryResearch) that unlock the scanner recipes.</summary>
-        public const ushort ScanTech1 = 7821, ScanTech2 = 7822, ScanTech3 = 7823;
+        public const ushort ScanTech1 = 7821, ScanTech2 = 7822, ScanTech3 = 7823, ScanTech4 = 7824;
 
         /// <summary>Whether one of the mod's techs is researched (set by the mod; everything is when nothing is set).</summary>
         public static Func<ushort, bool> TechDone = _ => true;
