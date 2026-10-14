@@ -27,6 +27,7 @@ namespace StellarIndustries.Production
             public Vector3 Position;
             public float Distance;
             public Purity Purity;
+            public bool Node;
         }
 
         /// <summary>One rock found in the world (also what the scanner and the decorations read).</summary>
@@ -37,6 +38,8 @@ namespace StellarIndustries.Production
             public string Name;
             public Vector3 Position;
             public Purity Purity;
+            /// <summary>Inexhaustible deposit (see <see cref="OreConversion.IsNode"/>).</summary>
+            public bool Node;
         }
 
         private const float ScanInterval = 3f;
@@ -66,6 +69,17 @@ namespace StellarIndustries.Production
         }
 
         /// <summary>A rock's purity, the same on every player's game: from its item and its place on its planet.</summary>
+        /// <summary>Whether a rock is an inexhaustible deposit (the same on every player's game).</summary>
+        public static bool IsNode(MinablePlanetObject rock)
+        {
+            if (rock == null || rock.dropRate.item == null || !Extractable(rock.dropRate.item.id))
+                return false;
+            (int a, int b, int c) = KeyOf(rock);
+            return OreConversion.IsNode(a, b, c);
+        }
+
+        public static string NodeName(bool node) => node ? Lang.T("inépuisable", "inexhaustible") : "";
+
         public static Purity PurityOf(MinablePlanetObject rock)
         {
             uint item = rock.dropRate.item != null ? rock.dropRate.item.id : 0u;
@@ -119,6 +133,18 @@ namespace StellarIndustries.Production
             Label(rock) = IndustrialItems.NameOf(ore);
         }
 
+        /// <summary>Names an inexhaustible deposit as such (its label, shown when aimed at).</summary>
+        private static void MarkNode(MinablePlanetObject rock)
+        {
+            if (!IsNode(rock))
+                return;
+            string label = Label(rock);
+            string name = string.IsNullOrEmpty(label) ? IndustrialItems.NameOf(rock.dropRate.item.id) : label;
+            string mark = Lang.T(" (gisement inépuisable)", " (inexhaustible deposit)");
+            if (!name.EndsWith(mark))
+                Label(rock) = name + mark;
+        }
+
         /// <summary>Development: a rock's key and the id type it came from.</summary>
         public static string DescribeKey(MinablePlanetObject rock)
         {
@@ -142,6 +168,7 @@ namespace StellarIndustries.Production
             foreach (MinablePlanetObject rock in Object.FindObjectsByType<MinablePlanetObject>(FindObjectsSortMode.None))
             {
                 Convert(rock);
+                MarkNode(rock);
                 if (rock == null || rock.dropRate.item == null)
                     continue;
                 uint item = rock.dropRate.item.id;
@@ -153,8 +180,8 @@ namespace StellarIndustries.Production
                     continue;
                 list.Add(new Rock
                 {
-                    Object = rock, Item = item, Position = rock.transform.position, Purity = PurityOf(rock),
-                    Name = string.IsNullOrEmpty(rock.Label) ? rock.dropRate.item.itemName : rock.Label
+                    Object = rock, Item = item, Position = rock.transform.position, Purity = PurityOf(rock), Node = IsNode(rock),
+                    Name = IndustrialItems.NameOf(item)
                 });
             }
             return list;
@@ -196,7 +223,7 @@ namespace StellarIndustries.Production
                     if (d > best)
                         continue;
                     best = d;
-                    found = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity };
+                    found = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity, Node = rock.Node };
                 }
             }
             Cache[(shipId, part.Id)] = (found, Time.unscaledTime);
@@ -221,6 +248,51 @@ namespace StellarIndustries.Production
     /// Mining a rock with the laser gives as much as its purity says too: half on an impure
     /// rock (at least one), twice as much on a pure one, like the extractors.
     /// </summary>
+    [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.ReduceHealth))]
+    internal static class NodeMiningPatch
+    {
+        private static readonly HarmonyLib.AccessTools.FieldRef<Planets.Objects.MinablePlanetObject, float> Health =
+            HarmonyLib.AccessTools.FieldRefAccess<Planets.Objects.MinablePlanetObject, float>("_currentHealth");
+
+        /// <summary>
+        /// On the miner's game: a deposit that would break is whole again instead, and the host is
+        /// asked for what breaking it would have given.
+        /// </summary>
+        private static bool Prefix(Planets.Objects.MinablePlanetObject __instance, float amount)
+        {
+            try
+            {
+                if (Health(__instance) <= 0f || Health(__instance) - amount > 0f || !Deposits.IsNode(__instance))
+                    return true;
+                Health(__instance) = __instance.MaxHealth;
+                Items.Model.ItemDrop drop = __instance.GetItemDrop();
+                if (drop.Quantity > 0)
+                    SINet.SendToServer(SIMessageKind.NodeMined, drop.ItemId, drop.Quantity, "");
+                return false;
+            }
+            catch (System.Exception e)
+            {
+                ErrorLog.Report("inexhaustible deposit", e);
+                return true;
+            }
+        }
+
+        /// <summary>Host: gives a player what they mined from an inexhaustible deposit (ores only, a few at a time).</summary>
+        public static void Install()
+        {
+            SINet.OnServer(SIMessageKind.NodeMined, (sender, item, count, text) =>
+            {
+                if (!Deposits.Extractable(item) || count == 0 || count > 12 || IndustrialItems.Find(item) == null)
+                    return;
+                var players = SDModKit.Game.GameRefs.PlayersServer;
+                Players.TrackedPlayerServer player = players == null ? null : sender == null || sender.IsLocalClient
+                    ? System.Linq.Enumerable.FirstOrDefault(players.ActivePlayers, p => p != null && p.IsHost)
+                    : System.Linq.Enumerable.FirstOrDefault(players.ActivePlayers, p => p != null && p.ConnectionId == sender.ClientId);
+                player?.AddItemToInventory(new Items.Model.ItemDrop { ItemId = item, Quantity = (byte)count });
+            });
+        }
+    }
+
     [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.GetItemDrop))]
     internal static class MiningPurityPatch
     {

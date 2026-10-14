@@ -788,14 +788,17 @@ namespace StellarIndustries.Diagnostics
                 Log("probe all rocks: " + string.Join(", ", Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None).GroupBy(m => m.dropRate.item != null ? m.dropRate.item.itemName : "?").Select(g => g.Count() + " " + g.Key)));
             }
             Log("deposit keys: " + string.Join(" ; ", rocks.Select(r => r.Name + " " + Deposits.DescribeKey(r.Object))));
+            Log($"deposits: {rocks.Count(r => r.Node)} inexhaustible");
             Log($"deposits: {rocks.Count} rock(s) loaded: " + string.Join(", ", rocks.GroupBy(r => r.Name + " " + r.Purity).Select(g => g.Count() + " " + g.Key)));
             var localPlayer = SDModKit.Game.GameRefs.PlayersClient?.LocalPlayer;
             Vector3 worldUp = localPlayer != null ? localPlayer.Rotation * Vector3.up : ship.up;
             int shown = 0;
             var rockSheet = new Texture2D(cell * 4, cell * 2, TextureFormat.RGBA32, false);
-            foreach (Deposits.Rock rock in rocks.GroupBy(r => r.Purity).SelectMany(g => g.Take(2)).Take(4))
+            // Inexhaustible deposits first, then the mod's ores, then the rest
+            foreach (Deposits.Rock rock in rocks.OrderByDescending(r => r.Node).ThenByDescending(r => ResourceCatalog.Get(r.Item) != null).Take(4))
             {
                 Parts.DepositDecor.Decorate(rock);
+                Log($"rock {rock.Name} {rock.Purity}{(rock.Node ? " node" : "")}: " + Parts.DepositDecor.Explain(rock));
                 Transform t = rock.Object.transform;
                 Bounds b = new Bounds(t.position, Vector3.zero);
                 foreach (Renderer r in t.GetComponentsInChildren<Renderer>())
@@ -823,6 +826,23 @@ namespace StellarIndustries.Diagnostics
             File.WriteAllBytes(Path.Combine(Folder, "deposits.png"), rockSheet.EncodeToPNG());
             Object.Destroy(rockSheet);
             Log($"deposits: {shown} photographed, {Parts.DepositDecor.Count} decorated in all");
+            // The laser on an inexhaustible deposit: it stays, and what it gives reaches the inventory
+            Deposits.Rock? node = rocks.Where(r => r.Node && r.Object != null).Cast<Deposits.Rock?>().FirstOrDefault();
+            if (node != null)
+            {
+                var minable = node.Value.Object;
+                var before = SDModKit.Game.PlayerAccess.CurrentCounts();
+                int had = before.TryGetValue(node.Value.Item, out int h) ? h : 0;
+                minable.ReduceHealth(minable.MaxHealth + 1f);
+                yield return Wait(1f);
+                var after = SDModKit.Game.PlayerAccess.CurrentCounts();
+                int has = after.TryGetValue(node.Value.Item, out int n2) ? n2 : 0;
+                Log($"{(minable != null && minable.CurrentHealth > 0f && has > had ? "PASS" : "FAIL")} inexhaustible deposit mined: {IndustrialItems.NameOf(node.Value.Item)} {had} -> {has}, rock still there {minable != null}, health {minable?.CurrentHealth:0.0}");
+            }
+            else
+            {
+                Log("SKIP inexhaustible deposit mining: none loaded near the player");
+            }
             camera.targetTexture = null;
             RenderTexture.ReleaseTemporary(target);
             Object.Destroy(shot);

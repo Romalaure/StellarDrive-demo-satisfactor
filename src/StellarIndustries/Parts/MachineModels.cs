@@ -60,6 +60,8 @@ namespace StellarIndustries.Parts
                 case MachineModel.Lift: Lift(kit, w, d, def.Height); break;
                 case MachineModel.Splitter: Hub(kit, w, d, true); break;
                 case MachineModel.Merger: Hub(kit, w, d, false); break;
+                case MachineModel.Extractor2: ExtractorMk2(kit, w, d); break;
+                case MachineModel.DeepDrill: DeepDrill(kit, w, d); break;
                 default: Workshop(kit, w, d); break;
             }
             if (!def.IsLogistics)

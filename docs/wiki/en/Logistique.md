@@ -60,5 +60,16 @@ About four metal rocks in ten hold one of the mod's ores instead of iron, copper
 | [Raw Quartz](Objet-7771) | clear crystals | silica (crusher), quartz crystals (blast furnace) |
 | [Gold Ore](Objet-7772) | golden | [gold ingots](Objet-7773) (smelter), then circuit boards |
 
+## Inexhaustible deposits and extractors
+About one rock in eight is an **inexhaustible deposit**: a crown of ore points and glowing purple shards, "∞" on the scanner. The laser never breaks it (it gives its items every time), and an extractor next to it works **2.5 times faster**.
+
+| Extractor | Speed | Reach | Research |
+|---|---|---|---|
+| [Extractor](Machine-7606) | 1 item / 6 s | 6 m | *Basic Industry* |
+| [Extractor Mk2](Machine-7632) | 1 item / 3 s | 8 m | *Advanced Extraction* |
+| [Deposit Drill](Machine-7633) | 1 item / 1.5 s | 6 m | *Deep Drilling* |
+
+Purity (×½, ×1, ×2) and an inexhaustible deposit (×2.5) add to these speeds.
+
 ## Storage
 The [Industrial Container](Machine-7608) has 10 slots, like every machine of the mod.

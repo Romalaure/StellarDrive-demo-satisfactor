@@ -46,6 +46,7 @@ namespace StellarIndustries.UI
             public string Name;
             public Vector3 Position;
             public Purity Purity;
+            public bool Node;
         }
 
         private static readonly List<Hit> Hits = new List<Hit>();
@@ -169,7 +170,7 @@ namespace StellarIndustries.UI
             foreach (Deposits.Rock rock in Deposits.Loaded())
             {
                 if (Vector3.Distance(at, rock.Position) <= _gear.Range)
-                    Hits.Add(new Hit { Item = rock.Item, Name = IndustrialItems.NameOf(rock.Item), Position = rock.Position, Purity = rock.Purity });
+                    Hits.Add(new Hit { Item = rock.Item, Name = IndustrialItems.NameOf(rock.Item), Position = rock.Position, Purity = rock.Purity, Node = rock.Node });
             }
             _scannedAt = Time.unscaledTime;
             _until = Time.unscaledTime + (_gear.Markers ? 30f : _gear.Tier == 2 ? 15f : 10f);
@@ -186,7 +187,7 @@ namespace StellarIndustries.UI
             foreach (var group in Hits.GroupBy(h => h.Item))
             {
                 text.Append($"\n{IndustrialItems.NameOf(group.Key)}: {group.Count()} ({group.Count(h => h.Purity == Purity.Pure)} pure, " +
-                            $"{group.Count(h => h.Purity == Purity.Normal)} normal, {group.Count(h => h.Purity == Purity.Impure)} impure)");
+                            $"{group.Count(h => h.Purity == Purity.Normal)} normal, {group.Count(h => h.Purity == Purity.Impure)} impure, {group.Count(h => h.Node)} inexhaustible)");
             }
             return text.ToString();
         }
@@ -356,7 +357,9 @@ namespace StellarIndustries.UI
                 float distance = view != null ? Vector3.Distance(view.position, nearest.Position) : 0f;
                 Color color = OreColor(g.Item);
                 Fill(new Rect(listX, y + 5f, 12f, 12f), color);
-                GUI.Label(new Rect(listX + 20f, y, 200f, 22f), $"<b>{IndustrialItems.NameOf(g.Item)}</b>  <color=#aaa>×{g.Hits.Count}</color>", _body);
+                int nodes = g.Hits.Count(h => h.Node);
+                GUI.Label(new Rect(listX + 20f, y, 200f, 22f), $"<b>{IndustrialItems.NameOf(g.Item)}</b>  <color=#aaa>×{g.Hits.Count}</color>" +
+                    (nodes > 0 ? $"  <color=#c9f>∞{nodes}</color>" : ""), _body);
                 // Nearest: distance, arrow, direction words
                 Arrow(new Rect(listX + 200f, y + 1f, 20f, 20f), angle, color);
                 GUI.Label(new Rect(listX + 226f, y, 200f, 22f), $"{Mathf.RoundToInt(distance)} m <color=#aaa>{Direction(angle, distance)}</color>", _body);
@@ -381,7 +384,7 @@ namespace StellarIndustries.UI
                 DrawRadar(new Rect(rect.xMax - 200f, rect.y + 40f, 186f, 186f), view);
             string hint = Lang.T($"[{MachineHud.RecipeKey}] nouveau balayage — un extracteur doit être à moins de 6 m d'un rocher", $"[{MachineHud.RecipeKey}] scan again — an extractor must be within 6 m of a rock");
             if (_gear.ShowsPurity)
-                hint += Lang.T(" (pur ×2, impur ×½)", " (pure ×2, impure ×½)");
+                hint += Lang.T(" (pur ×2, impur ×½, ∞ inépuisable ×2,5)", " (pure ×2, impure ×½, ∞ inexhaustible ×2.5)");
             GUI.Label(new Rect(rect.x + 12f, rect.yMax - 22f, rect.width - 20f, 20f), "<color=#9aa>" + hint + "</color>", _small);
         }
 
@@ -441,7 +444,8 @@ namespace StellarIndustries.UI
                 GUI.color = OreColor(h.Item) * new Color(1f, 1f, 1f, previous.a);
                 GUI.DrawTexture(new Rect(x - size * 0.5f, y - size * 0.5f, size, size), _diamond);
                 GUI.color = previous;
-                string text = $"{h.Name} <color={Deposits.PurityColor(h.Purity)}>{Deposits.PurityName(h.Purity)}</color>\n{Mathf.RoundToInt(Vector3.Distance(from, h.Position))} m";
+                string text = $"{h.Name} <color={Deposits.PurityColor(h.Purity)}>{Deposits.PurityName(h.Purity)}</color>" +
+                              (h.Node ? Lang.T(" <color=#c9f>∞ inépuisable</color>", " <color=#c9f>∞ inexhaustible</color>") : "") + $"\n{Mathf.RoundToInt(Vector3.Distance(from, h.Position))} m";
                 GUI.Label(new Rect(x - 80f, y + size * 0.5f + 1f, 160f, 34f), text, _label);
             }
         }

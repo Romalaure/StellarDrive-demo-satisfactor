@@ -31,7 +31,9 @@ namespace StellarIndustries.Core
         /// <summary>Client to server: send me my scanner's modules.</summary>
         ScannerRequest = 9,
         /// <summary>Server to one client: its scanner's modules, Text is "id,id,..." (A: 1 if the last change was refused).</summary>
-        ScannerModules = 10
+        ScannerModules = 10,
+        /// <summary>Client to server: I mined an inexhaustible deposit, give me item A times B.</summary>
+        NodeMined = 11
     }
 
     /// <summary>

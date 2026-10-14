@@ -29,6 +29,23 @@ namespace StellarIndustries.Tests
         }
 
         [Fact]
+        public void AboutOneRockInEightIsInexhaustible()
+        {
+            int nodes = 0, total = 0;
+            for (int b = 0; b < 50; b++)
+            {
+                for (int c = 0; c < 50; c++)
+                {
+                    total++;
+                    if (OreConversion.IsNode(777, b * 7919, c))
+                        nodes++;
+                }
+            }
+            Assert.InRange(nodes / (float)total, 0.09f, 0.15f);
+            Assert.True(OreConversion.NodeBonus > 1f);
+        }
+
+        [Fact]
         public void ShardsAndIceStayWhatTheyAre()
         {
             for (int c = 0; c < 200; c++)

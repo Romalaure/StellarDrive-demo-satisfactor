@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using StellarIndustries.Content;
 using StellarIndustries.Core;
 using StellarIndustries.Production;
@@ -51,7 +52,7 @@ namespace StellarIndustries.Parts
             {
                 try
                 {
-                    MeshFilter visual = Nearest(visuals, rock.Object.transform.position);
+                    MeshFilter visual = Own(rock) ?? Nearest(visuals, rock.Object.transform.position);
                     if (visual != null)
                         Decorate(rock, visual);
                 }
@@ -93,13 +94,14 @@ namespace StellarIndustries.Parts
             return best;
         }
 
-        /// <summary>The game's rock visuals ("... visual" objects with a readable mesh), by place.</summary>
+        /// <summary>The game's rock visuals (objects with a readable mesh, by the game's naming), by place.</summary>
         private static Dictionary<Vector3Int, List<MeshFilter>> Visuals()
         {
             var found = new Dictionary<Vector3Int, List<MeshFilter>>();
             foreach (MeshFilter filter in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
             {
-                if (filter.sharedMesh == null || !filter.sharedMesh.isReadable || !filter.name.EndsWith(" visual"))
+                // Hotspot rocks are drawn by "... visual" objects, the planets' fixed rocks by "static object ..." ones
+                if (filter.sharedMesh == null || !filter.sharedMesh.isReadable || !(filter.name.EndsWith(" visual") || filter.name.StartsWith("static object")))
                     continue;
                 Vector3Int key = Key(filter.transform.position);
                 if (!found.TryGetValue(key, out List<MeshFilter> list))
@@ -109,19 +111,56 @@ namespace StellarIndustries.Parts
             return found;
         }
 
+        /// <summary>Development: what the decoration of a rock found.</summary>
+        public static string Explain(Deposits.Rock rock)
+        {
+            Transform t = rock.Object != null ? rock.Object.transform : null;
+            if (t == null)
+                return "gone";
+            Transform decor = t.Find(ChildName);
+            MeshFilter visual = Nearest(Visuals(), t.position);
+            string mesh = decor != null && decor.GetComponent<MeshFilter>()?.sharedMesh != null ? decor.GetComponent<MeshFilter>().sharedMesh.name + " " + decor.GetComponent<MeshFilter>().sharedMesh.vertexCount : "-";
+            float near = float.MaxValue;
+            foreach (var list in Visuals().Values)
+                foreach (MeshFilter f in list)
+                    near = Mathf.Min(near, Vector3.Distance(f.transform.position, t.position));
+            var around = new System.Text.StringBuilder();
+            foreach (Renderer r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (r == null || Vector3.Distance(r.bounds.center, t.position) > 2.5f || r.bounds.size.magnitude > 10f || r.name == ChildName)
+                    continue;
+                MeshFilter f = r.GetComponent<MeshFilter>();
+                around.Append($" [{r.GetType().Name} {r.name} parent {(r.transform.parent != null ? r.transform.parent.name : "-")} mesh {(f != null && f.sharedMesh != null ? f.sharedMesh.name + " readable " + f.sharedMesh.isReadable : "-")} at {Vector3.Distance(r.transform.position, t.position):0.00} m]");
+            }
+            return $"decor {(decor != null ? mesh : "none")}, visual {(visual != null ? visual.name : "none")}, nearest visual {near:0.00} m, renderers around:{around}";
+        }
+
         /// <summary>Adds the veins to one rock (in-game test: finds its visual itself). False if the rock has no readable visual.</summary>
         public static bool Decorate(Deposits.Rock rock)
         {
             if (rock.Object == null || rock.Object.transform.Find(ChildName) != null)
                 return false;
-            MeshFilter visual = Nearest(Visuals(), rock.Object.transform.position);
+            MeshFilter visual = Own(rock) ?? Nearest(Visuals(), rock.Object.transform.position);
             return visual != null && Decorate(rock, visual);
+        }
+
+        /// <summary>Some rocks (the planets' static objects) carry their mesh themselves rather than a separate visual.</summary>
+        private static MeshFilter Own(Deposits.Rock rock)
+        {
+            foreach (MeshFilter filter in rock.Object.GetComponentsInChildren<MeshFilter>())
+            {
+                if (filter.name != ChildName && filter.sharedMesh != null && filter.sharedMesh.isReadable)
+                    return filter;
+            }
+            return null;
         }
 
         private static bool Decorate(Deposits.Rock rock, MeshFilter visual)
         {
             Transform t = rock.Object.transform;
-            Mesh mesh = MeshFor(visual.sharedMesh, rock.Item, rock.Purity);
+            // The rock's up, in its mesh's frame: an inexhaustible deposit's crown grows that way
+            Vector3 up = visual.transform.InverseTransformDirection(Up()).normalized;
+            Mesh mesh = MeshFor(visual.sharedMesh, rock.Item, rock.Purity, rock.Node, up);
             if (mesh == null)
                 return false;
             var go = new GameObject(ChildName) { layer = visual.gameObject.layer };
@@ -136,6 +175,15 @@ namespace StellarIndustries.Parts
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             Count++;
             return true;
+        }
+
+        /// <summary>Which way is up where the player stands (the rocks around share it).</summary>
+        private static Vector3 Up()
+        {
+            var players = SDModKit.Game.GameRefs.PlayersClient;
+            if (players != null && players.LocalPlayer != null)
+                return players.LocalPlayer.Rotation * Vector3.up;
+            return Vector3.up;
         }
 
         private static (Tile Vein, Tile Nugget, bool Crystal, int Seed) Look(uint item)
@@ -163,11 +211,12 @@ namespace StellarIndustries.Parts
                  + 0.25f * Mathf.Sin(p.z * 1.7f - seed + 1.3f * Mathf.Sin(p.x * 1.2f - p.y * 0.7f));
 
         /// <summary>The veins of one rock shape, in the rock mesh's own frame.</summary>
-        public static Mesh MeshFor(Mesh rock, uint item, Purity purity)
+        public static Mesh MeshFor(Mesh rock, uint item, Purity purity, bool node = false, Vector3 up = default)
         {
             if (rock == null || !rock.isReadable)
                 return null;
-            if (Meshes.TryGetValue((rock.GetInstanceID(), item, purity), out Mesh cached) && cached != null)
+            // Inexhaustible deposits are few: theirs is built for each (its crown depends on how the rock lies)
+            if (!node && Meshes.TryGetValue((rock.GetInstanceID(), item, purity), out Mesh cached) && cached != null)
                 return cached;
             (Tile vein, Tile nugget, bool crystal, int seed) = Look(item);
             Vector3[] vertices = rock.vertices;
@@ -176,8 +225,11 @@ namespace StellarIndustries.Parts
             // Whole facets of the rock turn to ore, in patches: more of them when the deposit is rich
             float frequency = 3f / size;
             float threshold = purity == Purity.Impure ? 0.62f : purity == Purity.Normal ? 0.52f : 0.42f;
+            // The mod's ores cover the whole rock (gold most of it), so they never pass for the metal the rock was
             if (ResourceCatalog.Get(item) != null)
-                threshold -= 0.17f;
+                threshold = item == ResourceCatalog.GoldOre ? 0.35f : -1f;
+            if (node)
+                threshold -= 0.2f;
             float lift = size * 0.004f;
             var b = new MeshBuilder { Panel = IndustrialSkin.Uv(vein) };
             var spots = new List<(Vector3 At, Vector3 Normal)>();
@@ -194,11 +246,11 @@ namespace StellarIndustries.Parts
                 normal.Normalize();
                 if (Field(centre * frequency, seed) < threshold)
                     continue;
-                Vector3 up = normal * lift;
+                Vector3 raise = normal * lift;
                 // Pulled in a little from the facet's edges, so the rock's own outline still shows
-                Vector3 Inset(Vector3 p) => centre + (p - centre) * 0.97f + up;
+                Vector3 Inset(Vector3 p) => centre + (p - centre) * 0.97f + raise;
                 b.Face(Inset(a), Inset(c1), Inset(c2), normal, new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.1f), new Vector2(0.5f, 0.9f));
-                spots.Add((centre + up, normal));
+                spots.Add((centre + raise, normal));
             }
             // Nuggets (metals) or small crystals (shards, ice, glass) on the veins
             int count = purity == Purity.Impure ? 2 : purity == Purity.Normal ? 5 : 10;
@@ -221,12 +273,49 @@ namespace StellarIndustries.Parts
                     b.Cylinder(at - n * s * 0.6f, at + n * s * 0.9f, s * 1.3f, s * 0.7f, 5);
                 }
             }
+            if (node)
+                Crown(b, vertices, up, size, crystal, nugget);
             if (!b.HasGeometry)
                 return null;
-            Mesh mesh = b.Build($"SI_Veins_{rock.name}_{item}_{purity}", GameSkin.Ready ? GameSkin.Palette : (Vector2?)null);
+            Mesh mesh = b.Build($"SI_Veins_{rock.name}_{item}_{purity}{(node ? "_node" : "")}", GameSkin.Ready ? GameSkin.Palette : (Vector2?)null);
             mesh.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            Meshes[(rock.GetInstanceID(), item, purity)] = mesh;
+            if (!node)
+                Meshes[(rock.GetInstanceID(), item, purity)] = mesh;
             return mesh;
+        }
+
+        /// <summary>
+        /// An inexhaustible deposit's crown: big ore points on its top, among glowing stellar
+        /// shards, so it is told from an ordinary rock from afar.
+        /// </summary>
+        private static void Crown(MeshBuilder b, Vector3[] vertices, Vector3 up, float size, bool crystal, Tile ore)
+        {
+            if (up.sqrMagnitude < 0.5f)
+                up = Vector3.up;
+            Vector3 centre = Vector3.zero;
+            foreach (Vector3 v in vertices)
+                centre += v;
+            centre /= Mathf.Max(1, vertices.Length);
+            // The highest corners of the rock, one per direction
+            var tops = new List<Vector3>();
+            foreach (Vector3 v in vertices.OrderByDescending(v => Vector3.Dot(v - centre, up)))
+            {
+                if (tops.All(t => (t - v).sqrMagnitude > size * size * 0.02f))
+                    tops.Add(v);
+                if (tops.Count == 6)
+                    break;
+            }
+            for (int i = 0; i < tops.Count; i++)
+            {
+                Vector3 at = tops[i];
+                Vector3 axis = ((at - centre).normalized * 0.5f + up).normalized;
+                bool glow = i % 2 == 1;
+                float r = size * (glow ? 0.025f : 0.04f), length = size * (glow ? 0.18f : 0.24f);
+                b.Panel = IndustrialSkin.Uv(glow ? Tile.StellarCrystal : ore);
+                Vector3 tip = at + axis * length;
+                b.Cylinder(at - axis * r * 2f, tip, r, crystal || glow ? r * 0.9f : r * 0.6f, 6);
+                b.Cylinder(tip, tip + axis * r * 2.2f, crystal || glow ? r * 0.9f : r * 0.6f, 0.003f, 6, capB: false);
+            }
         }
 
     }

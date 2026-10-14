@@ -114,6 +114,8 @@ namespace StellarIndustries.Content
             [7625] = ("Conveyor Belt Mk3", "A heavy steel and rubber belt: 6 items per second, for big production lines."),
             [7626] = ("Bucket Lift", "Lifts items three meters: it takes from behind its foot and drops in front of its top (2.5 items per second). To go from one deck to another or fill a tall machine."),
             [7627] = ("Splitter", "Takes items from behind and hands them out in turn to the front, left and right (4 items per second): one ore line then feeds several smelters. A blocked output is skipped."),
+            [7632] = ("Extractor Mk2", "A drilling mast with a rotary head: twice as fast as the extractor (1 item every 3 s) and it reaches a rock up to 8 m away. On an inexhaustible deposit it goes 2.5 times faster still."),
+            [7633] = ("Deposit Drill", "A derrick with a rotary table and three rods: 1 item every 1.5 s, 4 kW. Set on an inexhaustible deposit, it gets 2.5 times as much out of it."),
             [7628] = ("Merger", "Gathers what comes in from behind, left and right onto a single line out the front (4 items per second)."),
         };
 
@@ -148,6 +150,8 @@ namespace StellarIndustries.Content
             [7626] = "Lifts items up one floor",
             [7627] = "Splits one line into three outputs",
             [7628] = "Joins three lines into one",
+            [7632] = "Pulls ore twice as fast, up to 8 m away",
+            [7633] = "Drills deposits at high speed",
         };
 
         /// <summary>Recipes whose English name is not simply their first product's.</summary>
@@ -208,6 +212,8 @@ namespace StellarIndustries.Content
             [7822] = "Advanced Prospecting",
             [7823] = "Geological Analysis",
             [7824] = "Quantum Prospecting",
+            [7825] = "Advanced Extraction",
+            [7826] = "Deep Drilling",
         };
     }
 }

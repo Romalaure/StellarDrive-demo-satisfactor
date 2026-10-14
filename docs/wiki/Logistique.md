@@ -60,5 +60,16 @@ Environ quatre rochers de métal sur dix contiennent un minerai du mod à la pla
 | [Quartz brut](Objet-7771) | cristaux clairs | silice (broyeur), cristaux de quartz (haut fourneau) |
 | [Minerai d'or](Objet-7772) | doré | [lingots d'or](Objet-7773) (fonderie), puis circuits imprimés |
 
+## Gisements inépuisables et extracteurs
+Environ un rocher sur huit est un **gisement inépuisable** : couronne de pointes de minerai et d'éclats violets lumineux, « ∞ » au scanner. Le laser ne le casse jamais (il rend ses objets à chaque fois), et un extracteur posé à côté y travaille **2,5 fois plus vite**.
+
+| Extracteur | Vitesse | Portée | Recherche |
+|---|---|---|---|
+| [Extracteur](Machine-7606) | 1 objet / 6 s | 6 m | *Industrie de base* |
+| [Extracteur Mk2](Machine-7632) | 1 objet / 3 s | 8 m | *Extraction avancée* |
+| [Foreuse de gisement](Machine-7633) | 1 objet / 1,5 s | 6 m | *Forage profond* |
+
+La pureté (×½, ×1, ×2) et le gisement inépuisable (×2,5) s'ajoutent à ces vitesses.
+
 ## Stocker
 Le [Conteneur industriel](Machine-7608) offre 10 emplacements, comme toutes les machines du mod.

@@ -1,5 +1,18 @@
 # Journal des changements
 
+## 0.17.0 — gisements inépuisables, extracteurs Mk2 et foreuse
+
+- **Gisements inépuisables** : environ un rocher sur huit (tous minerais) ne se casse jamais au
+  laser ; il rend ses objets à chaque fois que sa jauge tombe à zéro, puis se remet à neuf. Un
+  extracteur posé à côté y travaille 2,5 fois plus vite (en plus de la pureté). On les reconnaît à
+  leur couronne de pointes de minerai et d'éclats violets lumineux ; le scanner les marque « ∞ ».
+- **Minerais du mod plus faciles à reconnaître** : charbon, soufre, calcaire et quartz couvrent
+  tout le rocher, l'or presque tout.
+- **Extracteur Mk2** (recherche *Extraction avancée*) : 1 objet toutes les 3 s, portée 8 m.
+- **Foreuse de gisement** (recherche *Forage profond*) : 1 objet toutes les 1,5 s, 4 kW.
+- Les rochers « statiques » des planètes (dessinés par un autre objet du jeu) reçoivent eux aussi
+  leur minerai dessiné.
+
 ## 0.16.0 — nouveaux minerais
 
 - **Cinq minerais dans le monde** : charbon, soufre, calcaire, quartz brut et minerai d'or. Environ

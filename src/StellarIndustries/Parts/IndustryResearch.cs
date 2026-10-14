@@ -111,6 +111,12 @@ namespace StellarIndustries.Parts
             new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech4, Name = "Prospection quantique", Requires = new ushort[] { StellarIndustries.Recipes.RecipeBook.ScanTech3, 7809 }, Position = new Vector2Int(9, 5),
                 Parts = new ushort[0], Recipes = new[] { "accelerator.range_module3", "accelerator.analysis_module2" },
                 Cost = new[] { (ResourceCatalog.QuantumProcessor, 1), (ResourceCatalog.RadioModule, 2) } },
+            new Tech { Id = 7825, Name = "Extraction avancée", Requires = new ushort[] { 7801, 7807 }, Position = new Vector2Int(6, 2),
+                Parts = new[] { MachineCatalog.ExtractorMk2 },
+                Cost = new[] { (ResourceCatalog.SteelBeam, 10), (ResourceCatalog.Motor, 2) } },
+            new Tech { Id = 7826, Name = "Forage profond", Requires = new ushort[] { 7825, 7809 }, Position = new Vector2Int(8, 2),
+                Parts = new[] { MachineCatalog.DeepDrill },
+                Cost = new[] { (ResourceCatalog.HeavyFrame, 4), (ResourceCatalog.TurboMotor, 1) } },
         };
 
         /// <summary>

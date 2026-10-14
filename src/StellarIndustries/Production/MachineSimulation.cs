@@ -160,9 +160,10 @@ namespace StellarIndustries.Production
                     return;
                 }
                 Deposits.Deposit d = deposit.Value;
-                rt.Detail = Lang.T($"Gisement : {d.Name} {Deposits.PurityName(d.Purity)} à {d.Distance:0.0} m ({DepositPurity.Factor(d.Purity):0.#}× la vitesse)",
-                    $"Deposit: {Deposits.PurityName(d.Purity)} {d.Name} at {d.Distance:0.0} m ({DepositPurity.Factor(d.Purity):0.#}× speed)");
-                RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds / DepositPurity.Factor(d.Purity), IndustrialItems.NameOf(d.Item), d.Purity.ToString());
+                float factor = DepositPurity.Factor(d.Purity) * (d.Node ? OreConversion.NodeBonus : 1f);
+                rt.Detail = Lang.T($"Gisement : {d.Name} {Deposits.PurityName(d.Purity)}{(d.Node ? " inépuisable" : "")} à {d.Distance:0.0} m ({factor:0.#}× la vitesse)",
+                    $"Deposit: {Deposits.PurityName(d.Purity)}{(d.Node ? " inexhaustible" : "")} {d.Name} at {d.Distance:0.0} m ({factor:0.#}× speed)");
+                RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds / factor, IndustrialItems.NameOf(d.Item), d.Purity + (d.Node ? ".node" : ""));
                 recipe = RecipeSelector.Pick(Buffer, new[] { extraction }, rt.Recipe, IndustrialItems.MaxStack, out status);
             }
             else if (def.FixedOutput != 0)

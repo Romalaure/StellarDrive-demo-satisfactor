@@ -33,7 +33,9 @@ namespace StellarIndustries.Production
         Belt,
         Lift,
         Splitter,
-        Merger
+        Merger,
+        Extractor2,
+        DeepDrill
     }
 
     /// <summary>How a conveyor part takes and gives items (see <see cref="Logistics.Conveyors"/>).</summary>
@@ -147,6 +149,8 @@ namespace StellarIndustries.Production
         public const ushort ConveyorLift = 7626;
         public const ushort Splitter = 7627;
         public const ushort Merger = 7628;
+        public const ushort ExtractorMk2 = 7632;
+        public const ushort DeepDrill = 7633;
 
         public static readonly MachineDef[] All =
         {
@@ -348,6 +352,22 @@ namespace StellarIndustries.Production
                 Conveyor = ConveyorKind.Merger, ConveyorRate = 4f, ConveyorHold = 4,
                 Description = "Rassemble sur une seule ligne ce qui arrive par l'arrière, la gauche et la droite, et l'envoie vers l'avant (4 objets par seconde).",
                 BuildCost = new[] { (ResourceCatalog.IronPlate, 2), (ResourceCatalog.CopperWire, 2) }
+            },
+            // ---- 0.17: better extractors
+            new MachineDef
+            {
+                PartId = ExtractorMk2, Name = "Extracteur Mk2", Model = MachineModel.Extractor2, Scale = 1.45f, Tier = 2, Watts = 1500f, Mass = 380f,
+                Width = 1.4f, Height = 2.5f, Depth = 1.2f, Extracts = true, ExtractSeconds = 3f, ExtractRadius = 8f, UtilityTab = true,
+                Description = "Un mât de forage à tête rotative : deux fois plus rapide que l'extracteur (1 objet toutes les 3 s) et il atteint un rocher jusqu'à 8 m. " +
+                              "Sur un gisement inépuisable, il va encore 2,5 fois plus vite.",
+                BuildCost = new[] { (ResourceCatalog.SteelBeam, 6), (ResourceCatalog.Motor, 2), (ResourceCatalog.CircuitBoard, 2) }
+            },
+            new MachineDef
+            {
+                PartId = DeepDrill, Name = "Foreuse de gisement", Model = MachineModel.DeepDrill, Scale = 1.8f, Tier = 3, Watts = 4000f, Mass = 700f,
+                Width = 1.6f, Height = 2.7f, Depth = 1.4f, Extracts = true, ExtractSeconds = 1.5f, ExtractRadius = 6f, UtilityTab = true,
+                Description = "Un derrick à table rotative et trois tiges : 1 objet toutes les 1,5 s, 4 kW. Posée sur un gisement inépuisable, elle en tire 2,5 fois plus.",
+                BuildCost = new[] { (ResourceCatalog.HeavyFrame, 4), (ResourceCatalog.TurboMotor, 1), (ResourceCatalog.ControlUnit, 1) }
             }
         };
 
@@ -381,7 +401,9 @@ namespace StellarIndustries.Production
             [BeltMk3] = "Transporte les objets d'une machine à l'autre",
             [ConveyorLift] = "Monte les objets d'un étage",
             [Splitter] = "Partage une ligne entre trois sorties",
-            [Merger] = "Réunit trois lignes en une"
+            [Merger] = "Réunit trois lignes en une",
+            [ExtractorMk2] = "Extrait le minerai deux fois plus vite, jusqu'à 8 m",
+            [DeepDrill] = "Fore les gisements à grande vitesse"
         };
 
         static MachineCatalog()

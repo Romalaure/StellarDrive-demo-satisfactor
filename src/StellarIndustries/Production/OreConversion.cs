@@ -20,6 +20,16 @@ namespace StellarIndustries.Production
         /// <summary>Share of the metal rocks that hold one of the mod's ores (percent).</summary>
         public const int Share = 40;
 
+        /// <summary>Share of the rocks that are inexhaustible deposits (percent).</summary>
+        public const int NodeShare = 12;
+
+        /// <summary>An extractor on an inexhaustible deposit works this many times faster.</summary>
+        public const float NodeBonus = 2.5f;
+
+        /// <summary>Whether this rock is an inexhaustible deposit: the laser never breaks it, an extractor on it works faster.</summary>
+        public static bool IsNode(int planet, int b, int c) =>
+            Mix((uint)planet * 3266489917u ^ (uint)b * 2654435761u ^ (uint)c * 2246822519u ^ 0x9e3779b9u) % 100u < NodeShare;
+
         public static bool Converts(uint item) => item == GameItems.Iron || item == GameItems.Copper || item == GameItems.Aluminum;
 
         /// <summary>The ore a rock of <paramref name="item"/> holds; <paramref name="planet"/> picks the planet's three ores.</summary>
