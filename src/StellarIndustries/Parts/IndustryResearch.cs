@@ -28,6 +28,8 @@ namespace StellarIndustries.Parts
             public ushort[] Requires;
             public Vector2Int Position;
             public ushort[] Parts;
+            /// <summary>Recipes it unlocks (their <see cref="StellarIndustries.Recipes.RecipeDef.Tech"/> is this tech).</summary>
+            public string[] Recipes = new string[0];
             public (uint Item, int Count)[] Cost;
         }
 
@@ -81,7 +83,50 @@ namespace StellarIndustries.Parts
             new Tech { Id = 7815, Name = "Énergie stellaire", Requires = new ushort[] { 7814 }, Position = new Vector2Int(9, 3),
                 Parts = new[] { MachineCatalog.StellarReactor },
                 Cost = new[] { (ResourceCatalog.TimeCrystal, 2), (ResourceCatalog.ControlUnit, 2), (ResourceCatalog.HeavyFrame, 4) } },
+            // ---- 0.13: conveyors, power lines, prospecting
+            new Tech { Id = 7816, Name = "Convoyeurs", Requires = new ushort[] { 7801 }, Position = new Vector2Int(3, 1),
+                Parts = new[] { MachineCatalog.BeltMk1, MachineCatalog.Splitter, MachineCatalog.Merger },
+                Cost = new[] { (ResourceCatalog.IronPlate, 10), (ResourceCatalog.IronRod, 10) } },
+            new Tech { Id = 7817, Name = "Convoyeurs rapides", Requires = new ushort[] { 7816, 7803 }, Position = new Vector2Int(5, 1),
+                Parts = new[] { MachineCatalog.BeltMk2, MachineCatalog.ConveyorLift },
+                Cost = new[] { (ResourceCatalog.ReinforcedPlate, 4), (ResourceCatalog.Rotor, 2), (ResourceCatalog.Screws, 40) } },
+            new Tech { Id = 7818, Name = "Convoyeurs lourds", Requires = new ushort[] { 7817, 7807 }, Position = new Vector2Int(7, 0),
+                Parts = new[] { MachineCatalog.BeltMk3 },
+                Cost = new[] { (ResourceCatalog.SteelBeam, 10), (ResourceCatalog.Rubber, 10), (ResourceCatalog.AlloySheet, 5) } },
+            new Tech { Id = 7819, Name = "Lignes électriques", Requires = new ushort[] { 7801 }, Position = new Vector2Int(3, 3),
+                Parts = new[] { PowerPoles.PoleMk1 },
+                Cost = new[] { (ResourceCatalog.IronRod, 10), (ResourceCatalog.CopperWire, 10) } },
+            new Tech { Id = 7820, Name = "Haute tension", Requires = new ushort[] { 7819, 7804 }, Position = new Vector2Int(5, 3),
+                Parts = new[] { PowerPoles.PoleMk2, PowerPoles.PoleMk3 },
+                Cost = new[] { (ResourceCatalog.Cable, 20), (ResourceCatalog.SteelBeam, 4) } },
+            new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech1, Name = "Prospection", Requires = new ushort[] { 7801 }, Position = new Vector2Int(3, 5),
+                Parts = new ushort[0], Recipes = new[] { "workshop.scanner1" },
+                Cost = new[] { (ResourceCatalog.IronPlate, 6), (ResourceCatalog.CopperWire, 10) } },
+            new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech2, Name = "Prospection avancée", Requires = new ushort[] { StellarIndustries.Recipes.RecipeBook.ScanTech1, 7803 }, Position = new Vector2Int(5, 5),
+                Parts = new ushort[0], Recipes = new[] { "assembler.scanner2", "assembler.range_module" },
+                Cost = new[] { (ResourceCatalog.CircuitBoard, 4), (ResourceCatalog.Cable, 10) } },
+            new Tech { Id = StellarIndustries.Recipes.RecipeBook.ScanTech3, Name = "Analyse géologique", Requires = new ushort[] { StellarIndustries.Recipes.RecipeBook.ScanTech2, 7806 }, Position = new Vector2Int(7, 5),
+                Parts = new ushort[0], Recipes = new[] { "fabricator.scanner3", "fabricator.analysis_module" },
+                Cost = new[] { (ResourceCatalog.Computer, 2), (ResourceCatalog.QuartzCrystal, 10) } },
         };
+
+        /// <summary>
+        /// Whether one of the mod's techs is researched (everything is when the research branch is
+        /// off or the tech could not be added). Read from the game's research state, shared by all players.
+        /// </summary>
+        public static bool IsDone(ushort techId)
+        {
+            if (!Settings.ResearchUnlocks.Value || !Added.Any(t => t.id == techId))
+                return true;
+            if (_proxy == null)
+                _proxy = global::Core.Services.ServiceLocator.GetService<Research.ResearchClientProxy>();
+            return _proxy != null && _proxy.IsResearched(techId);
+        }
+
+        private static Research.ResearchClientProxy _proxy;
+
+        /// <summary>A new world: the research state is looked up again.</summary>
+        public static void Forget() => _proxy = null;
 
         private static readonly HashSet<ushort> Locked = new HashSet<ushort>();
         private static readonly List<ResearchSettings> Added = new List<ResearchSettings>();
@@ -146,7 +191,7 @@ namespace StellarIndustries.Parts
             foreach (Tech tech in All)
             {
                 PartSettings[] parts = tech.Parts.Select(id => CustomParts.Get(id)).Where(p => p != null).ToArray();
-                if (parts.Length == 0)
+                if (parts.Length == 0 && tech.Recipes.Length == 0)
                     continue;
                 if (list.list.Any(r => r != null && r.id == tech.Id))
                 {
@@ -177,7 +222,7 @@ namespace StellarIndustries.Parts
             _list = list;
             _placedCount = list.list.Count;
             IndustriesMod.Log.Msg("research: " + string.Join(", ", Added.Select(t =>
-                $"{t.techName} {t.positionInTechTree} ({t.unlockedParts.Length} machine(s), cost {string.Join(" + ", t.resourceCost.Select(c => c.Quantity + " " + IndustrialItems.NameOf(c.ItemId)))})")));
+                $"{t.techName} {t.positionInTechTree} ({t.unlockedParts.Length} part(s), cost {string.Join(" + ", t.resourceCost.Select(c => c.Quantity + " " + IndustrialItems.NameOf(c.ItemId)))})")));
         }
 
         // ---- Layout: the tree's cells are 500 x 260 apart, boxes 410 x 170, lines from a box's right edge to the next one's left edge

@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.11.0", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.13.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -112,6 +112,9 @@ namespace StellarIndustries
             MachineControl.Forget();
             Deposits.Forget();
             Logistics.LoadingDocks.Forget();
+            Logistics.Conveyors.Forget();
+            if (_partsRegistered)
+                ForgetDeposits();
             Diagnostics.FactoryOverview.Forget();
             MachineActivity.Forget();
             if (_partsRegistered)
@@ -170,6 +173,13 @@ namespace StellarIndustries
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ForgetDeposits()
+        {
+            Parts.DepositDecor.Forget();
+            UI.DepositScanner.Forget();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void StopSound()
         {
             try
@@ -187,6 +197,8 @@ namespace StellarIndustries
         {
             try
             {
+                Parts.IndustryResearch.Forget();
+                RecipeBook.TechDone = Parts.IndustryResearch.IsDone;
                 Parts.IndustryResearch.Ensure();
                 Parts.PortLayout.Arrange();
             }
@@ -217,6 +229,7 @@ namespace StellarIndustries
                 Parts.IndustryResearch.Tick();
                 UI.MachineHud.Update();
                 UI.DepositScanner.Update();
+                Parts.DepositDecor.Update();
                 Diagnostics.FactoryOverview.Update();
                 UI.MachineSound.Update();
             }

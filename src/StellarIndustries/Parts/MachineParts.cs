@@ -21,12 +21,14 @@ namespace StellarIndustries.Parts
         {
             BuildTabs.Declare(PartTools.Tab, 60, TabIcon());
             BuildTabs.Declare(PartTools.UtilityTab, 61, TabIcon(new Color(0.3f, 0.75f, 1f, 1f)));
+            BuildTabs.Declare(PartTools.ConveyorTab, 62, TabIcon(new Color(0.45f, 0.9f, 0.4f, 1f)));
             foreach (MachineDef def in MachineCatalog.All)
             {
                 MachineDef machine = def;
-                PartTools.Register(machine.PartId, Donor, Utility(machine) ? PartTools.UtilityTab : PartTools.Tab, BuildRow(machine), (settings, prefab) => Configure(machine, settings, prefab));
+                PartTools.Register(machine.PartId, Donor, machine.IsConveyor ? PartTools.ConveyorTab : Utility(machine) ? PartTools.UtilityTab : PartTools.Tab, BuildRow(machine), (settings, prefab) => Configure(machine, settings, prefab));
             }
-            IndustriesMod.Log.Msg($"registered {MachineCatalog.All.Length} machine(s)");
+            PowerPoles.Register();
+            IndustriesMod.Log.Msg($"registered {MachineCatalog.All.Length} machine(s) and {PowerPoles.All.Length} power pole(s)");
         }
 
         /// <summary>The game language changed: the parts are renamed in place.</summary>
@@ -40,6 +42,7 @@ namespace StellarIndustries.Parts
                 settings.fullLabel = Lang.MachineName(def);
                 settings.description = Lang.MachineDescription(def);
             }
+            PowerPoles.Rename();
         }
 
         /// <summary>Power, extraction and logistics parts go to the second tab.</summary>
@@ -52,6 +55,9 @@ namespace StellarIndustries.Parts
         /// </summary>
         private static int BuildRow(MachineDef def)
         {
+            // Conveyor tab: belts, then lift, splitter and merger
+            if (def.IsConveyor)
+                return def.Conveyor == ConveyorKind.Belt ? 0 : 1;
             if (Utility(def))
             {
                 if (def.Generates || def.Stores)

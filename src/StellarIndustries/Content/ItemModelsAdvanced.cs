@@ -36,8 +36,37 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.TurboMotor: TurboModel(); return true;
                 case ResourceCatalog.QuantumProcessor: QuantumModel(); return true;
                 case ResourceCatalog.StellarMatter: MatterModel(); return true;
+                case ResourceCatalog.ScannerMk1: ScannerModel(Tile.PaintedOrange, 1); return true;
+                case ResourceCatalog.ScannerMk2: ScannerModel(Tile.PaintedBlue, 2); return true;
+                case ResourceCatalog.ScannerMk3: ScannerModel(Tile.PaintedGreen, 3); return true;
+                case ResourceCatalog.RangeModule: ModuleModel(Tile.Copper); return true;
+                case ResourceCatalog.AnalysisModule: ModuleModel(Tile.Gold); return true;
                 default: return false;
             }
+        }
+
+        // A handheld scanner: grip, body with its screen, an antenna per tier
+        private static void ScannerModel(Tile paint, int tier)
+        {
+            Box(paint, V(0f, 0.035f, 0.02f), V(0.16f, 0.07f, 0.2f));
+            Box(Tile.Screen, V(0f, 0.072f, 0.03f), V(0.12f, 0.006f, 0.12f));
+            Box(Tile.Rubber, V(0f, 0.03f, -0.12f), V(0.07f, 0.05f, 0.1f));
+            Box(Tile.ControlPanel, V(0f, 0.072f, -0.055f), V(0.1f, 0.006f, 0.03f));
+            for (int i = 0; i < tier; i++)
+            {
+                float x = (i - (tier - 1) * 0.5f) * 0.045f;
+                Cyl(Tile.Brushed, V(x, 0.05f, 0.11f), V(x, 0.05f + 0.07f + i * 0.02f, 0.14f), 0.006f, 0.004f, 6);
+                Cyl(Tile.LedRed, V(x, 0.12f + i * 0.02f, 0.142f), V(x, 0.13f + i * 0.02f, 0.144f), 0.01f, 0.01f, 6);
+            }
+        }
+
+        // An upgrade card: a board with a chip and gold contacts
+        private static void ModuleModel(Tile contacts)
+        {
+            Box(Tile.Circuit, V(0f, 0.008f, 0f), V(0.16f, 0.016f, 0.1f));
+            Box(Tile.PaintedDark, V(0.01f, 0.022f, 0f), V(0.06f, 0.012f, 0.05f));
+            Box(contacts, V(-0.07f, 0.017f, 0f), V(0.02f, 0.003f, 0.09f));
+            Box(Tile.LedGreen, V(0.055f, 0.02f, 0.035f), V(0.012f, 0.006f, 0.012f));
         }
 
         private static void Lumps(Tile tile, int count)

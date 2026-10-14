@@ -28,6 +28,20 @@ Phase 1 : un vaisseau de test apparaît près du joueur — générateur à bois
 l'atelier A (9 fer, 3 cuivre), atelier B sans câble (6 fer), atelier C plein (10 × 255 fer).
 Phase 2 : production gelée jusqu'au contrôle du contenu rechargé, puis 4 fer ajoutés à A.
 
+Depuis 0.13.0, le vaisseau a deux rangées de plus vers l'arrière (pour rester en équilibre sur sa
+pente) : un coffre de 12 fers vidé par deux convoyeurs Mk1 dans un répartiteur qui remplit deux
+conteneurs, et un générateur à bois qui alimente l'atelier E à travers un poteau Mk1. Le cargo est
+posé d'après la place réelle du quai A.
+
+0.13.0 (14/10/2026) : 61 tests unitaires. Phase 1 : 26 PASS, 0 FAIL, dont PASS convoyeurs (12 fers,
+6 dans chaque conteneur), PASS atelier E derrière le poteau, PASS extracteur selon la pureté du
+rocher, PASS wiki 109 pages, 0 lien cassé. Un passage sur trois, le vaisseau de test a glissé dans
+la pente et le quai a échoué (cargo hors de portée) : c'est la physique du terrain, pas le code.
+Phase 2 tout PASS. Phase 3 : PASS 200/200, 0,45 ms par tick. Phase 4 : 31 planches (dont convoyeurs
+et poteaux), photos des gisements décorés (deposits.png) et du scanner Mk3 (scanner.png).
+Non testés en jeu : élévateur et fusionneur en service, poteaux Mk2/Mk3 branchés, recettes des
+scanners après leur recherche, repères du Mk3 sur des gisements devant le joueur.
+
 Depuis 0.12.0, le vaisseau a une rangée de plus (à gauche, le cargo flotte à droite) :
 condenseur d'eau (câblé à un générateur à bois), recycleur (100 fer) alimenté par le réacteur
 stellaire (2 barres), tour radar.
@@ -144,3 +158,5 @@ Résultat 0.1.0 (11/10/2026) :
 | Deux joueurs (hôte + client) | non testé |
 | Onglet « Industrie+ » à l'écran, poser les machines de 0.12 à la main | non testé |
 | Machines agrandies dans une ancienne sauvegarde (chevauchement) | non testé |
+| Poser convoyeurs et poteaux à la main, sens des tapis | non testé |
+| Scanner avec un vrai scanner en inventaire (client et hôte) | non testé |

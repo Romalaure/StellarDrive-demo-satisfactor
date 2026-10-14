@@ -114,6 +114,11 @@ namespace StellarIndustries.Content
         public const uint NeuroProcessor = 7757;
         public const uint TimeCrystal = 7758;
         public const uint LogicModule = 7759;
+        public const uint ScannerMk1 = 7760;
+        public const uint ScannerMk2 = 7761;
+        public const uint ScannerMk3 = 7762;
+        public const uint RangeModule = 7763;
+        public const uint AnalysisModule = 7764;
 
         public static readonly ResourceDef[] All =
         {
@@ -477,6 +482,37 @@ namespace StellarIndustries.Content
             {
                 Id = LogicModule, Name = "Module logique", Category = ResourceCategory.Component, Mass = 0.3f, Tier = 2, MaxStack = 100,
                 Description = "Une petite carte de fil fin et de cuivre qui prend des décisions simples.",
+                MaterialFrom = GameItems.Copper
+            },
+            // ---- 0.13: the deposit scanner, kept in the player's inventory (see UI.DepositScanner)
+            new ResourceDef
+            {
+                Id = ScannerMk1, Name = "Scanner de gisements Mk1", Category = ResourceCategory.Component, Mass = 1f, Tier = 0, MaxStack = 5,
+                Description = "Un scanner de poche : gardez-le dans votre inventaire et appuyez sur K pour lister les rochers minables à moins de 80 m, avec leur distance et leur direction.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = ScannerMk2, Name = "Scanner de gisements Mk2", Category = ResourceCategory.Component, Mass = 1f, Tier = 1, MaxStack = 5,
+                Description = "Porte à 160 m, ajoute un écran radar et donne la pureté de chaque gisement (impur, normal, pur).",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = ScannerMk3, Name = "Scanner de gisements Mk3", Category = ResourceCategory.Advanced, Mass = 1f, Tier = 2, MaxStack = 5,
+                Description = "Porte à 300 m et marque les gisements directement dans votre vue pendant 30 secondes, avec leur pureté et leur rendement.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = RangeModule, Name = "Module de portée", Category = ResourceCategory.Component, Mass = 0.3f, Tier = 1, MaxStack = 5,
+                Description = "Amélioration du scanner : +25 % de portée. Deux au plus comptent, gardés dans l'inventaire.",
+                MaterialFrom = GameItems.Copper
+            },
+            new ResourceDef
+            {
+                Id = AnalysisModule, Name = "Module d'analyse", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 2, MaxStack = 5,
+                Description = "Amélioration du scanner : tout scanner indique alors la pureté des gisements et le rendement qu'en tirerait un extracteur.",
                 MaterialFrom = GameItems.Copper
             }
         };

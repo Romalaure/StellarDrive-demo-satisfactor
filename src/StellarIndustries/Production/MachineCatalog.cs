@@ -29,7 +29,25 @@ namespace StellarIndustries.Production
         Converter,
         Recycler,
         Exchange,
-        Radar
+        Radar,
+        Belt,
+        Lift,
+        Splitter,
+        Merger
+    }
+
+    /// <summary>How a conveyor part takes and gives items (see <see cref="Logistics.Conveyors"/>).</summary>
+    internal enum ConveyorKind
+    {
+        None,
+        /// <summary>From the part behind it to the part in front.</summary>
+        Belt,
+        /// <summary>From the part behind its foot to the part in front of its top.</summary>
+        Lift,
+        /// <summary>From behind, shared in turn between the front, left and right.</summary>
+        Splitter,
+        /// <summary>From behind, left and right, all to the front.</summary>
+        Merger
     }
 
     /// <summary>
@@ -78,8 +96,15 @@ namespace StellarIndustries.Production
         public float DockRange = 4f;
         /// <summary>Dock: items moved per second.</summary>
         public int DockRate = 4;
-        /// <summary>No production, no recipe: a container or a dock.</summary>
-        public bool IsLogistics => Container || Dock;
+        /// <summary>Conveyor: carries items between the parts at its ends, <see cref="ConveyorRate"/> per second, at most <see cref="ConveyorHold"/> at once.</summary>
+        public ConveyorKind Conveyor;
+        public float ConveyorRate;
+        public int ConveyorHold = 4;
+        public bool IsConveyor => Conveyor != ConveyorKind.None;
+        /// <summary>One line on what the machine is for (shown first when it is aimed at).</summary>
+        public string Role;
+        /// <summary>No production, no recipe: a container, a dock or a conveyor.</summary>
+        public bool IsLogistics => Container || Dock || IsConveyor;
         /// <summary>No recipe at all: extractor, generator, accumulator, container, dock.</summary>
         public bool HasNoRecipe => Extracts || Generates || Stores || IsLogistics || FixedOutput != 0 || Sinks || Radar;
         /// <summary>Model box (meters) the model is designed in: width (x), height (y), depth (z).</summary>
@@ -116,6 +141,12 @@ namespace StellarIndustries.Production
         public const ushort Recycler = 7620;
         public const ushort ExchangeCounter = 7621;
         public const ushort RadarTower = 7622;
+        public const ushort BeltMk1 = 7623;
+        public const ushort BeltMk2 = 7624;
+        public const ushort BeltMk3 = 7625;
+        public const ushort ConveyorLift = 7626;
+        public const ushort Splitter = 7627;
+        public const ushort Merger = 7628;
 
         public static readonly MachineDef[] All =
         {
@@ -271,8 +302,96 @@ namespace StellarIndustries.Production
                 Width = 1.2f, Height = 2.6f, Depth = 1.2f, Radar = true, RadarRange = 400f, UtilityTab = true,
                 Description = "Une antenne qui balaie les environs : à moins de 60 m d'une tour, le scanner de gisements (touche K) porte jusqu'à 400 m.",
                 BuildCost = new[] { (ResourceCatalog.SteelBeam, 4), (ResourceCatalog.Cable, 10), (ResourceCatalog.CircuitBoard, 2) }
+            },
+            // ---- 0.13: conveyors (front towards +z: the items go that way)
+            new MachineDef
+            {
+                PartId = BeltMk1, Name = "Convoyeur Mk1", Model = MachineModel.Belt, Tier = 0, Mass = 15f, Width = 0.8f, Height = 0.35f, Depth = 1f,
+                Conveyor = ConveyorKind.Belt, ConveyorRate = 1f, ConveyorHold = 4,
+                Description = "Un tapis roulant d'un mètre : il prend les produits de la machine (ou du coffre) derrière lui et les pose dans la machine, le coffre " +
+                              "ou le convoyeur devant lui, 1 objet par seconde. Mettez-en plusieurs bout à bout ; les flèches montrent le sens.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 1), (ResourceCatalog.IronRod, 1) }
+            },
+            new MachineDef
+            {
+                PartId = BeltMk2, Name = "Convoyeur Mk2", Model = MachineModel.Belt, Tier = 1, Mass = 18f, Width = 0.8f, Height = 0.35f, Depth = 1f,
+                Conveyor = ConveyorKind.Belt, ConveyorRate = 2.5f, ConveyorHold = 5,
+                Description = "Tapis renforcé : 2,5 objets par seconde. Se pose et se raccorde comme le Mk1.",
+                BuildCost = new[] { (ResourceCatalog.ReinforcedPlate, 1), (ResourceCatalog.IronRod, 2) }
+            },
+            new MachineDef
+            {
+                PartId = BeltMk3, Name = "Convoyeur Mk3", Model = MachineModel.Belt, Tier = 2, Mass = 22f, Width = 0.8f, Height = 0.35f, Depth = 1f,
+                Conveyor = ConveyorKind.Belt, ConveyorRate = 6f, ConveyorHold = 8,
+                Description = "Tapis lourd en acier et caoutchouc : 6 objets par seconde, pour les grosses chaînes.",
+                BuildCost = new[] { (ResourceCatalog.SteelBeam, 1), (ResourceCatalog.Rubber, 2), (ResourceCatalog.AlloySheet, 1) }
+            },
+            new MachineDef
+            {
+                PartId = ConveyorLift, Name = "Élévateur à godets", Model = MachineModel.Lift, Tier = 1, Mass = 40f, Width = 0.8f, Height = 2f, Depth = 1f,
+                Conveyor = ConveyorKind.Lift, ConveyorRate = 2.5f, ConveyorHold = 6,
+                Description = "Monte les objets de deux mètres : il prend derrière son pied et dépose devant son sommet (2,5 objets par seconde). " +
+                              "Pour passer d'un pont à l'autre ou remplir une machine haute.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 4), (ResourceCatalog.IronRod, 4), (ResourceCatalog.Rotor, 1) }
+            },
+            new MachineDef
+            {
+                PartId = Splitter, Name = "Répartiteur", Model = MachineModel.Splitter, Tier = 0, Mass = 20f, Width = 1f, Height = 0.6f, Depth = 1f,
+                Conveyor = ConveyorKind.Splitter, ConveyorRate = 4f, ConveyorHold = 4,
+                Description = "Reçoit par l'arrière et distribue à tour de rôle vers l'avant, la gauche et la droite (4 objets par seconde) : " +
+                              "une ligne de minerai alimente ainsi plusieurs fonderies. Une sortie bouchée est sautée.",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 2), (ResourceCatalog.CopperWire, 2) }
+            },
+            new MachineDef
+            {
+                PartId = Merger, Name = "Fusionneur", Model = MachineModel.Merger, Tier = 0, Mass = 20f, Width = 1f, Height = 0.6f, Depth = 1f,
+                Conveyor = ConveyorKind.Merger, ConveyorRate = 4f, ConveyorHold = 4,
+                Description = "Rassemble sur une seule ligne ce qui arrive par l'arrière, la gauche et la droite, et l'envoie vers l'avant (4 objets par seconde).",
+                BuildCost = new[] { (ResourceCatalog.IronPlate, 2), (ResourceCatalog.CopperWire, 2) }
             }
         };
+
+        /// <summary>One line on what each machine is for (French; English in <see cref="Content.English.Roles"/>).</summary>
+        private static readonly Dictionary<ushort, string> Roles = new Dictionary<ushort, string>
+        {
+            [Workshop] = "Façonne lingots et minerai en pièces de base",
+            [Smelter] = "Fond le minerai en lingots",
+            [Press] = "Presse, coupe et compacte les pièces",
+            [Crusher] = "Broie le minerai pour plus de rendement",
+            [Assembler] = "Assemble deux pièces en un composant",
+            [Extractor] = "Extrait le minerai d'un rocher proche, sans fin",
+            [CombustionGenerator] = "Produit du courant en brûlant du combustible",
+            [IndustrialContainer] = "Stocke : tampon entre machines",
+            [LoadingDock] = "Transfère des objets vers un autre quai",
+            [Fabricator] = "Fabrique des pièces complexes (jusqu'à 4 ingrédients)",
+            [Foundry] = "Four à deux entrées : acier, alliages, quartz",
+            [Refinery] = "Chimie : charbon, plastique, caoutchouc",
+            [Accumulator] = "Stocke le surplus de courant et le rend",
+            [Accelerator] = "Matière stellaire et processeurs quantiques",
+            [BiomassBurner] = "Petit générateur de début de partie",
+            [WaterCondenser] = "Produit de la glace à partir de l'air",
+            [StellarReactor] = "Centrale électrique de fin de partie",
+            [QuantumEncoder] = "Fabrique le haut de gamme quantique",
+            [Converter] = "Change un minerai en un autre",
+            [Recycler] = "Détruit le surplus contre des bons",
+            [ExchangeCounter] = "Échange les bons contre des ressources",
+            [RadarTower] = "Augmente la portée du scanner de gisements",
+            [BeltMk1] = "Transporte les objets d'une machine à l'autre",
+            [BeltMk2] = "Transporte les objets d'une machine à l'autre",
+            [BeltMk3] = "Transporte les objets d'une machine à l'autre",
+            [ConveyorLift] = "Monte les objets d'un étage",
+            [Splitter] = "Partage une ligne entre trois sorties",
+            [Merger] = "Réunit trois lignes en une"
+        };
+
+        static MachineCatalog()
+        {
+            foreach (MachineDef def in All)
+            {
+                if (Roles.TryGetValue(def.PartId, out string role))
+                    def.Role = role;
+            }
+        }
 
         /// <summary>What a generator burns: item and energy per item (joules). The game's wood generator gets 40 kJ from a log.</summary>
         public static readonly (uint Item, float Joules)[] Fuels =

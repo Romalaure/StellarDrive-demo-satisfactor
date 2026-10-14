@@ -64,6 +64,8 @@ namespace StellarIndustries.Core
 
         public static string MachineName(MachineDef def) => English && Content.English.Machines.TryGetValue(def.PartId, out var en) ? en.Name : def.Name;
 
+        public static string MachineRole(MachineDef def) => English && Content.English.Roles.TryGetValue(def.PartId, out string en) ? en : def.Role;
+
         public static string MachineDescription(MachineDef def) => English && Content.English.Machines.TryGetValue(def.PartId, out var en) ? en.Description : def.Description;
 
         public static string TechName(ushort id, string french) => English && Content.English.Techs.TryGetValue(id, out string en) ? en : french;

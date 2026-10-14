@@ -33,8 +33,28 @@ namespace StellarIndustries.Parts
         public ModelKit Box(Tile tile, Vector3 center, Vector3 size, Quaternion? rotation = null)
         {
             _mesh.Panel = IndustrialSkin.Uv(tile);
+            _mesh.Upright = IsSign(tile);
             _mesh.Box(center - _pivot, size, rotation);
+            _mesh.Upright = false;
             return this;
+        }
+
+        /// <summary>Tiles with a top and a bottom (pictograms, arrows, screens, dials): always shown the right way up.</summary>
+        public static bool IsSign(Tile tile)
+        {
+            switch (tile)
+            {
+                case Tile.LabelWarning:
+                case Tile.LabelPower:
+                case Tile.ArrowLabel:
+                case Tile.Gauge:
+                case Tile.Screen:
+                case Tile.ScreenAmber:
+                case Tile.Belt:
+                    return true;
+                default:
+                    return tile >= Tile.IconSmelt && tile <= Tile.IconChem;
+            }
         }
 
         public ModelKit Cylinder(Tile tile, Vector3 a, Vector3 b, float ra, float rb, int sides = 16, bool capA = true, bool capB = true)

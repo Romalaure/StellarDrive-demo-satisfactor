@@ -13,6 +13,9 @@ Un mod d'industrie pour **StellarDrive Demo**. Vous partez de quelques lingots d
   - « Industrie+ » : brûleur à biomasse, générateur à combustion, réacteur stellaire, accumulateur, extracteur, condenseur d'eau, tour radar, conteneur, quai de transfert, recycleur et comptoir d'échange.
 - **59 objets et 72 recettes**, des plaques de fer aux cristaux temporels.
 - **Recycler et échanger** : le recycleur paie vos surplus en bons, le comptoir les échange contre des ressources.
+- **Convoyeurs** : tapis Mk1 à Mk3, élévateur, répartiteur et fusionneur, branchés directement sur les machines.
+- **Poteaux électriques** de 4 à 12 branchements.
+- **Scanners de gisements** Mk1 à Mk3 avec modules, et des gisements de pureté variable.
 - **Une branche de recherche** : chaque niveau se paie avec ce que vous fabriquez déjà, ce qui vous fait remonter la chaîne naturellement.
 - **Des machines vivantes** : volants qui tournent, presses qui frappent, bras robotisés, fours qui rougeoient, voyant vert quand tout va bien, et un léger ronronnement quand on passe à côté.
 - **Un wiki dans le jeu** : appuyez sur **G**, entrée « Wiki Stellar Industries ». Chaque machine et chaque objet a sa fiche.
@@ -69,6 +72,9 @@ An industry mod for **StellarDrive Demo**. You start with a handful of iron ingo
   - "Industrie+": biomass burner, combustion generator, stellar reactor, accumulator, extractor, water condenser, radar tower, container, transfer dock, recycler and exchange counter.
 - **59 items and 72 recipes**, from iron plates to time crystals.
 - **Recycle and trade**: the recycler pays for your surplus in vouchers, the exchange counter trades them for resources.
+- **Conveyors**: Mk1 to Mk3 belts, a lift, a splitter and a merger, linked straight to the machines.
+- **Power poles** with 4 to 12 connections.
+- **Deposit scanners** Mk1 to Mk3 with modules, and deposits of varying purity.
 - **A research branch**: each level is paid with what you already make, so you naturally climb up the chain.
 - **Machines that feel alive**: spinning flywheels, stamping presses, robot arms, glowing furnaces, a green light when all is well, and a gentle hum as you walk by.
 - **An in-game wiki**: press **G** and pick "Wiki Stellar Industries". Every machine and every item has its own page.

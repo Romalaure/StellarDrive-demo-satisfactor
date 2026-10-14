@@ -20,6 +20,8 @@ namespace StellarIndustries.Core
         public static MelonPreferences_Entry<float> MachineVolume { get; private set; }
         public static MelonPreferences_Entry<string> Language { get; private set; }
         public static MelonPreferences_Entry<float> ScanRadius { get; private set; }
+        public static MelonPreferences_Entry<bool> ScanNeedsScanner { get; private set; }
+        public static MelonPreferences_Entry<bool> DepositDetails { get; private set; }
 
         public static void Load()
         {
@@ -41,7 +43,11 @@ namespace StellarIndustries.Core
             ScanKey = _category.CreateEntry("ScanKey", "K",
                 description: "Key of the deposit scanner: lists the minable rocks around you for a few seconds.");
             ScanRadius = _category.CreateEntry("ScanRadius", 80f,
-                description: "Reach of the deposit scanner (meters).");
+                description: "Reach of the deposit scanner Mk1 (meters); the Mk2 reaches twice as far, the Mk3 almost four times.");
+            ScanNeedsScanner = _category.CreateEntry("ScanNeedsScanner", true,
+                description: "On: the scanner key only works with a deposit scanner (item) in your inventory. Off: it always works, at least as a Mk1.");
+            DepositDetails = _category.CreateEntry("DepositDetails", true,
+                description: "Shows ore veins, crystals and scree on the minable rocks (purely visual, on your game only).");
             ResearchUnlocks = _category.CreateEntry("ResearchUnlocks", true,
                 description: "On: the machines are unlocked by the research branch Industrie (research table). Off: all available from the start. Takes effect at the next game start.");
             OverviewKey = _category.CreateEntry("OverviewKey", "F7",

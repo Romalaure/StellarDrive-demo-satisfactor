@@ -26,6 +26,8 @@ namespace StellarIndustries.Parts
         public const string Tab = "Industrie";
         /// <summary>Second tab: power, extraction and logistics.</summary>
         public const string UtilityTab = "Industrie+";
+        /// <summary>Third tab: belts, lift, splitter, merger.</summary>
+        public const string ConveyorTab = "Convoyeurs";
 
         /// <summary>Every part id this mod adds.</summary>
         public static readonly HashSet<ushort> Ids = new HashSet<ushort>();

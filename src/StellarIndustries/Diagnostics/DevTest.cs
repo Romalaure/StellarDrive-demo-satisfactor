@@ -49,10 +49,16 @@ namespace StellarIndustries.Diagnostics
     {
         private const string GameScene = "MainGame";
         private const ushort WoodGenerator = 60, IronFloor = 1;
+        /// <summary>The game's storage chest (the donor of the machines).</summary>
+        private static ushort Chest => SDModKit.Game.PartLookup.ByAssetName("StorageChest")?.id ?? 0;
         private const ushort GeneratorPart = 1, WorkshopA = 2, WorkshopB = 3, WorkshopC = 4;
         private const ushort Gen2 = 5, SmelterPart = 6, Gen3 = 7, CrusherPart = 8, Gen4 = 9, AssemblerPart = 10, Gen5 = 11, PressPart = 12, Gen6 = 13, ExtractorPart = 14, Gen7 = 15, WorkshopD = 16, DockA = 17, ContainerPart = 18, CargoDock = 1;
         private const ushort Gen8 = 19, AccumulatorPart = 20, Gen9 = 21, FoundryPart = 22, Gen10 = 23, RefineryPart = 24, FabricatorPart = 25, AcceleratorPart = 26;
         private const ushort Gen11 = 27, CondenserPart = 28, RecyclerPart = 29, RadarPart = 30, ReactorPart = 31;
+        // 0.13: a chest emptied by two belts into a splitter that fills two containers; a generator powering workshop E through a pole
+        private const ushort SourceChest = 32, Belt1 = 33, Belt2 = 34, SplitterPart = 35, OutA = 36, OutB = 37, Gen12 = 38, PolePart = 39, WorkshopE = 40;
+        /// <summary>Which way a part's front faces on the test ship (read from the placement the game makes).</summary>
+        private static Vector3 _forward = Vector3.forward, _right = Vector3.right;
 
         private static MelonPreferences_Entry<string> _world;
         private static MelonPreferences_Entry<int> _phase;
@@ -160,6 +166,11 @@ namespace StellarIndustries.Diagnostics
             int fromSocket = ItemSocket(MachineCatalog.Smelter), toSocket = ItemSocket(MachineCatalog.Workshop);
             _itemLine = fromSocket >= 0 && toSocket >= 0 && Logistics.ItemLinesBridge.Installed;
             Log(_itemLine ? $"item line: smelter socket {fromSocket} -> workshop D socket {toSocket}" : $"SKIP item line test (Item Lines installed: {Logistics.ItemLinesBridge.Installed}, sockets {fromSocket}/{toSocket})");
+            var probe = JsonUtility.FromJson<ShipImportExportUtils.ShipImportExportData>(ShipJson(-1, toSocket));
+            StatefulPart probePart = new ShipsConverter().ConvertToState(probe.ships).States.Cast<SavedShipState>().Single().StatefulParts.First(p => p.Id == GeneratorPart);
+            _forward = Axis(probePart.LocalRotation * Vector3.forward);
+            _right = Axis(probePart.LocalRotation * Vector3.right);
+            Log($"parts face {_forward} (right {_right}) on the test ship");
             var data = JsonUtility.FromJson<ShipImportExportUtils.ShipImportExportData>(ShipJson(_itemLine ? fromSocket : -1, toSocket));
             SavedShipState state = new ShipsConverter().ConvertToState(data.ships).States.Cast<SavedShipState>().Single();
             state.Id = ids.CreateUniqueIdForObject();
@@ -193,15 +204,14 @@ namespace StellarIndustries.Diagnostics
             var cargoData = JsonUtility.FromJson<ShipImportExportUtils.ShipImportExportData>(CargoJson());
             SavedShipState cargo = new ShipsConverter().ConvertToState(cargoData.ships).States.Cast<SavedShipState>().Single();
             cargo.Id = ids.CreateUniqueIdForObject();
-            cargo.SpaceId = player.SpaceId;
-            cargo.Position = player.Position + up * 1.5f + player.Rotation * (Vector3.right * 8f + new Vector3(4.3f, 0f, 7.4f));
-            cargo.Rotation = player.Rotation;
+            // Its dock 3 m right of dock A, off the deck, from both ships' own part frames (the test ship's origin moves as its deck grows)
+            Vector3 dockA = state.StatefulParts.First(p => p.Id == DockA).LocalPosition;
+            Vector3 cargoDock = cargo.StatefulParts.First(p => p.Id == CargoDock).LocalPosition;
+            cargo.SpaceId = state.SpaceId;
+            cargo.Rotation = state.Rotation;
+            cargo.Position = state.Position + state.Rotation * (dockA + new Vector3(0f, 0f, 3f) - cargoDock);
             cargo.Velocity = Vector3.zero;
-            if (physicsSpace != 0 && physicsSpace != cargo.SpaceId && transpose != null)
-            {
-                cargo.Position = transpose.Position(cargo.SpaceId, physicsSpace, cargo.Position);
-                cargo.SpaceId = physicsSpace;
-            }
+            Log($"dock A local {dockA}, cargo dock local {cargoDock}, test ship at {state.Position}, cargo at {cargo.Position}");
             cargo.RelativeSpaceId = spaces.GetOrCreateShipRelativeSpace(cargo.Id);
             ships.LoadShip(cargo);
             _cargoId = cargo.Id;
@@ -229,7 +239,7 @@ namespace StellarIndustries.Diagnostics
             ship.UpdatePartState(WorkshopB, new StorageState { InventorySlots = Slots((GameItems.Iron, 6)) });
             var full = Enumerable.Repeat((GameItems.Iron, IndustrialItems.MaxStack(GameItems.Iron)), 10).ToArray();
             ship.UpdatePartState(WorkshopC, new StorageState { InventorySlots = Slots(full) });
-            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6, Gen8, Gen9, Gen10, Gen11 })
+            foreach (ushort generator in new[] { Gen2, Gen3, Gen4, Gen5, Gen6, Gen8, Gen9, Gen10, Gen11, Gen12 })
                 ship.UpdatePartState(generator, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
             ship.UpdatePartState(SmelterPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 6), (ResourceCatalog.StellarDust, 4)) });
             ship.UpdatePartState(CrusherPart, new StorageState { InventorySlots = Slots((GameItems.StellarShard, 2)) });
@@ -244,6 +254,10 @@ namespace StellarIndustries.Diagnostics
             // 0.12 machines: the reactor powers the recycler, which turns 100 iron into a voucher
             ship.UpdatePartState(ReactorPart, new StorageState { InventorySlots = Slots((ResourceCatalog.StellarFuelRod, 2)) });
             ship.UpdatePartState(RecyclerPart, new StorageState { InventorySlots = Slots((GameItems.Iron, 100)) });
+            // 0.13: 12 iron to carry, a log-fired generator and 3 iron for workshop E behind the pole
+            ship.UpdatePartState(SourceChest, new StorageState { InventorySlots = Slots((GameItems.Iron, 12)) });
+            ship.UpdatePartState(Gen12, new WoodPowerGeneratorState { ItemSlot = Slot(GameItems.Wood, 20) });
+            ship.UpdatePartState(WorkshopE, new StorageState { InventorySlots = Slots((GameItems.Iron, 3)) });
             // Dock A sends to the cargo ship's dock
             ship.UpdatePartState(DockA, new StorageState { InventorySlots = Slots((GameItems.Iron, 12), (GameItems.Copper, 5)) });
             ship.UpdatePartState(ContainerPart, new StorageState { InventorySlots = Slots((ResourceCatalog.Screws, 50)) });
@@ -264,6 +278,13 @@ namespace StellarIndustries.Diagnostics
                     yield break;
                 }
                 Log($"t={2 * i} s: {Describe(ship)}");
+                if (i == 1 || i == 8)
+                {
+                    TrackedShipServer cargoNow = ships.GetShip(_cargoId);
+                    Vector3? a = ship.TryGetStatefulPart(DockA, out StatefulPart da) ? Deposits.WorldPosition(shipId, da) : null;
+                    Vector3? b = cargoNow != null && cargoNow.TryGetStatefulPart(CargoDock, out StatefulPart db) ? Deposits.WorldPosition(_cargoId, db) : null;
+                    Log($"docks {(a != null && b != null ? Vector3.Distance(a.Value, b.Value).ToString("0.00") + " m apart: " + a.Value + " " + b.Value : "not both shown")}");
+                }
                 if (i == 1)
                     PlaceDevRock(ship);
                 if (i == 3)
@@ -329,6 +350,9 @@ namespace StellarIndustries.Diagnostics
             Log($"{(ice >= 3 ? "PASS" : "FAIL")} water condenser: {ice} ice made in about 32 s (one every 8 s), {MachineSimulation.Get(ship.Id, CondenserPart)?.Status}");
             MachineSimulation.Runtime radar = MachineSimulation.Get(ship.Id, RadarPart);
             Log($"{(radar != null && radar.Status == MachineStatus.Producing ? "PASS" : "FAIL")} radar tower: {radar?.Status}, {radar?.Detail}");
+            CheckConveyors(ship);
+            Check(ship, WorkshopE, (ResourceCatalog.IronPlate, 1), (GameItems.Iron, 1));
+            Log($"workshop E behind the pole: {MachineSimulation.Get(ship.Id, WorkshopE)?.Status}");
             if (_devRock != null)
                 Object.Destroy(_devRock);
             Check(ship, WorkshopB, (GameItems.Iron, 6));
@@ -607,13 +631,15 @@ namespace StellarIndustries.Diagnostics
                 Log("FAIL services missing");
                 yield break;
             }
-            // Machines in a row along x, each centred in its slot
-            var slots = new List<(MachineDef Def, float X)>();
+            // Machines and poles in a row along x, each centred in its slot
+            var slots = new List<(ushort Id, Vector3 Size, float X)>();
             float cursor = 0f;
-            foreach (MachineDef def in MachineCatalog.All)
+            var models = MachineCatalog.All.Select(m => (m.PartId, new Vector3(m.SizeX, m.SizeY, m.SizeZ)))
+                .Concat(Parts.PowerPoles.All.Select(p => (p.Id, new Vector3(0.32f, p.Height, 0.32f))));
+            foreach ((ushort id, Vector3 size) in models)
             {
-                slots.Add((def, cursor + def.SizeX * 0.5f));
-                cursor += def.SizeX + 2.2f;
+                slots.Add((id, size, cursor + size.x * 0.5f));
+                cursor += size.x + 2.2f;
             }
             float half = cursor * 0.5f;
             var hull = new StringBuilder();
@@ -632,7 +658,7 @@ namespace StellarIndustries.Diagnostics
                 if (parts.Length > 0)
                     parts.Append(',');
                 parts.Append(string.Format(CultureInfo.InvariantCulture, "{{\"id\":{0},\"settingsId\":{1},\"coord\":{{\"x\":{2},\"y\":-0.46,\"z\":0}},\"forwardOrientationId\":2,\"upOrientationId\":4}}",
-                    i + 1, slots[i].Def.PartId, slots[i].X - half));
+                    i + 1, slots[i].Id, slots[i].X - half));
             }
             var sb = new StringBuilder();
             sb.Append("{\"rootShipId\":1,\"cables\":[],\"ships\":[{");
@@ -684,14 +710,15 @@ namespace StellarIndustries.Diagnostics
             (Vector3 Dir, string Name)[] views = { (new Vector3(0.5f, 0.45f, 1f), "front"), (new Vector3(-0.5f, 0.4f, -1f), "back"), (new Vector3(1f, 0.25f, -0.15f), "side"), (new Vector3(-0.35f, 1.1f, 0.6f), "top") };
             for (int i = 0; i < slots.Count; i++)
             {
-                MachineDef def = slots[i].Def;
+                ushort id = slots[i].Id;
+                Vector3 size = slots[i].Size;
                 if (!server.TryGetStatefulPart((ushort)(i + 1), out StatefulPart part))
                     continue;
                 var sheet = new Texture2D(cell * 2, cell * 2, TextureFormat.RGBA32, false);
-                float reach = new Vector3(def.SizeX, def.SizeY, def.SizeZ).magnitude;
+                float reach = Mathf.Max(1.6f, size.magnitude);
                 for (int v = 0; v < views.Length; v++)
                 {
-                    Vector3 center = ship.TransformPoint(part.LocalPosition + part.LocalRotation * new Vector3(0f, def.SizeY * 0.45f, 0f));
+                    Vector3 center = ship.TransformPoint(part.LocalPosition + part.LocalRotation * new Vector3(0f, size.y * 0.45f, 0f));
                     Vector3 dir = ship.rotation * (part.LocalRotation * views[v].Dir.normalized);
                     camera.transform.position = center + dir * reach * 1.15f;
                     camera.transform.rotation = Quaternion.LookRotation(center - camera.transform.position, ship.up);
@@ -706,14 +733,59 @@ namespace StellarIndustries.Diagnostics
                 }
                 sheet.Apply();
                 Directory.CreateDirectory(Folder);
-                File.WriteAllBytes(Path.Combine(Folder, $"model_{def.PartId}.png"), sheet.EncodeToPNG());
+                File.WriteAllBytes(Path.Combine(Folder, $"model_{id}.png"), sheet.EncodeToPNG());
                 Object.Destroy(sheet);
             }
+            // The deposits near the player, with their ore model, two views each
+            List<Deposits.Rock> rocks = Deposits.Loaded().OrderBy(r => Vector3.Distance(r.Position, camera.transform.position)).ToList();
+            Log($"deposits: {rocks.Count} rock(s) loaded: " + string.Join(", ", rocks.GroupBy(r => r.Name + " " + r.Purity).Select(g => g.Count() + " " + g.Key)));
+            var localPlayer = SDModKit.Game.GameRefs.PlayersClient?.LocalPlayer;
+            Vector3 worldUp = localPlayer != null ? localPlayer.Rotation * Vector3.up : ship.up;
+            int shown = 0;
+            var rockSheet = new Texture2D(cell * 4, cell * 2, TextureFormat.RGBA32, false);
+            foreach (Deposits.Rock rock in rocks.GroupBy(r => r.Purity).SelectMany(g => g.Take(2)).Take(4))
+            {
+                Parts.DepositDecor.Decorate(rock);
+                Transform t = rock.Object.transform;
+                Bounds b = new Bounds(t.position, Vector3.zero);
+                foreach (Renderer r in t.GetComponentsInChildren<Renderer>())
+                    b.Encapsulate(r.bounds);
+                Log($"rock {shown}: {rock.Name} {rock.Purity} at {rock.Position}, parent {(t.parent != null ? t.parent.name : "-")}, up·world up {Vector3.Dot(t.up, worldUp):0.00}, scale {t.lossyScale}, " +
+                    $"renderers {string.Join("/", t.GetComponentsInChildren<Renderer>().Select(r => r.name + ":" + r.sharedMaterial?.name))}, bounds {b.size}");
+                for (int v = 0; v < 2; v++)
+                {
+                    Vector3 dir = Quaternion.AngleAxis(v * 140f, worldUp) * (Vector3.ProjectOnPlane(camera.transform.position - b.center, worldUp).normalized + worldUp * 0.55f);
+                    float reach = Mathf.Max(2f, b.extents.magnitude * 2.4f);
+                    camera.transform.position = b.center + dir.normalized * reach;
+                    camera.transform.rotation = Quaternion.LookRotation(b.center - camera.transform.position, worldUp);
+                    camera.Render();
+                    RenderTexture previous = RenderTexture.active;
+                    RenderTexture.active = target;
+                    shot.ReadPixels(new Rect(0, 0, cell, cell), 0, 0);
+                    shot.Apply();
+                    RenderTexture.active = previous;
+                    rockSheet.SetPixels(shown * cell, (1 - v) * cell, cell, cell, shot.GetPixels());
+                    yield return null;
+                }
+                shown++;
+            }
+            rockSheet.Apply();
+            File.WriteAllBytes(Path.Combine(Folder, "deposits.png"), rockSheet.EncodeToPNG());
+            Object.Destroy(rockSheet);
+            Log($"deposits: {shown} photographed, {Parts.DepositDecor.Count} decorated in all");
             camera.targetTexture = null;
             RenderTexture.ReleaseTemporary(target);
             Object.Destroy(shot);
             Object.Destroy(cameraObject);
             Log($"showcase: {slots.Count} model sheets written");
+            // The scanner panel (a Mk3 with both modules) over the player's view
+            Log("scanner: " + UI.DepositScanner.Scan(best: true).Replace("\n", " | "));
+            UI.DepositScanner.Hold = true;
+            yield return Wait(1.5f);
+            ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "scanner.png"));
+            yield return Wait(1f);
+            UI.DepositScanner.Hold = false;
+            Log("scanner screenshot requested");
         }
 
         // ---- Load test (DevPhase 3)
@@ -915,7 +987,8 @@ namespace StellarIndustries.Diagnostics
         /// </summary>
         private static void PlaceDevRock(TrackedShipServer ship)
         {
-            Log("scanner: " + UI.DepositScanner.Scan().Replace("\n", " | "));
+            Log("scanner (player's): " + UI.DepositScanner.Scan().Replace("\n", " | "));
+            Log("scanner (Mk3, both modules): " + UI.DepositScanner.Scan(best: true).Replace("\n", " | "));
             var real = Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None);
             Log($"{real.Length} minable rock(s) loaded: " + string.Join(", ", real.GroupBy(r => r.dropRate.item != null ? r.dropRate.item.itemName : "?").Select(g => g.Count() + " " + g.Key)));
             ship.TryGetStatefulPart(ExtractorPart, out StatefulPart part);
@@ -942,6 +1015,23 @@ namespace StellarIndustries.Diagnostics
             Log($"test rock ({_devRockItem}) set 3 m from the extractor at {at.Value}");
         }
 
+        /// <summary>The 12 iron went from the chest along both belts and were shared by the splitter between the two containers.</summary>
+        private static void CheckConveyors(TrackedShipServer ship)
+        {
+            int a = Crafting.CountOf(Stacks(ship, OutA), GameItems.Iron), b = Crafting.CountOf(Stacks(ship, OutB), GameItems.Iron);
+            int left = Crafting.CountOf(Stacks(ship, SourceChest), GameItems.Iron);
+            int onBelts = Crafting.CountOf(Stacks(ship, Belt1), GameItems.Iron) + Crafting.CountOf(Stacks(ship, Belt2), GameItems.Iron) + Crafting.CountOf(Stacks(ship, SplitterPart), GameItems.Iron);
+            bool pass = a > 0 && b > 0 && a + b + left + onBelts == 12 && a + b >= 8;
+            Log($"{(pass ? "PASS" : "FAIL")} conveyors: chest {left} left, {onBelts} on the belts, container A {a}, container B {b} (12 iron in all)");
+            foreach (ushort id in new[] { Belt1, Belt2, SplitterPart })
+                Log($"conveyor {id}: {MachineSimulation.Get(ship.Id, id)?.Status}, {MachineSimulation.Get(ship.Id, id)?.Detail?.Replace("\n", " | ")}");
+        }
+
+        private static Vector3 Axis(Vector3 v) =>
+            Mathf.Abs(v.x) >= Mathf.Abs(v.z) ? new Vector3(Mathf.Sign(v.x), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(v.z));
+
+        private static MachineDef Def(ushort id) => MachineCatalog.TryGet(id, out MachineDef d) ? d : null;
+
         private static void CheckExtractor(TrackedShipServer ship)
         {
             StatefulPart part = ship.GetAllStatefulParts<StorageState>().FirstOrDefault(p => p.Id == ExtractorPart);
@@ -955,8 +1045,10 @@ namespace StellarIndustries.Diagnostics
             int iron = Crafting.CountOf(slots, GameItems.Iron);
             int all = slots.Sum(x => x.Count);
             MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
-            // About 28 s with the rock at 1 item per 6 s
-            bool ok = iron >= 3 && iron <= 6 && all == iron;
+            // About 28 s with the rock at 1 item per 6 s, times the rock's purity (x0.5, x1 or x2)
+            Production.Deposits.Deposit? deposit = Production.Deposits.Find(ship.Id, part, Def(MachineCatalog.Extractor));
+            float factor = deposit != null ? DepositPurity.Factor(deposit.Value.Purity) : 1f;
+            bool ok = iron >= Mathf.FloorToInt(3 * factor) && iron <= Mathf.CeilToInt(6 * factor) && all == iron && iron > 0;
             Log($"{(ok ? "PASS" : "FAIL")} extractor: {iron} iron extracted ({all} items), {rt?.Status} {rt?.Detail}");
         }
 
@@ -1056,10 +1148,11 @@ namespace StellarIndustries.Diagnostics
             var hull = new StringBuilder();
             for (int x = -5; x <= 5; x++)
             {
-                for (int z = -3; z <= 17; z++)
+                for (int z = -13; z <= 17; z++)
                 {
-                    // The 0.12 rows extend the deck on the left only: the cargo ship floats on the right
-                    if (z > 8 && x > 1)
+                    // The 0.12 rows extend the deck forward and the 0.13 rows backward, on the left only:
+                    // the cargo ship floats on the right, and the ship stays balanced on its slope
+                    if ((z > 8 || z < -3) && x > 1)
                         continue;
                     if (hull.Length > 0)
                         hull.Append(',');
@@ -1084,13 +1177,28 @@ namespace StellarIndustries.Diagnostics
                 Part(FabricatorPart, MachineCatalog.Fabricator, 3.6f, 9.3f), Part(AcceleratorPart, MachineCatalog.Accelerator, 0.4f, 9.3f),
                 Part(Gen11, WoodGenerator, -4.3f, 12.4f), Part(CondenserPart, MachineCatalog.WaterCondenser, -2.8f, 12.4f),
                 Part(RecyclerPart, MachineCatalog.Recycler, -1f, 12.4f), Part(RadarPart, MachineCatalog.RadarTower, 0.6f, 12.4f),
-                Part(ReactorPart, MachineCatalog.StellarReactor, -2.5f, 15.6f));
+                Part(ReactorPart, MachineCatalog.StellarReactor, -2.5f, 15.6f),
+                Part(Gen12, WoodGenerator, -4.2f, -11.6f), Part(PolePart, Parts.PowerPoles.PoleMk1, -2.8f, -11.6f), Part(WorkshopE, MachineCatalog.Workshop, -1f, -11.6f));
+            // The conveyor line runs the way the parts face: chest, two belts, splitter, container A ahead and B on its right
+            Vector3 start = _forward.z > 0.5f ? new Vector3(-2.5f, 0f, -9.6f) : _forward.z < -0.5f ? new Vector3(-2.5f, 0f, -4.4f)
+                : _forward.x > 0.5f ? new Vector3(-4.6f, 0f, -7f) : new Vector3(0.6f, 0f, -7f);
+            string Along(int id, int settings, float ahead, float right)
+            {
+                Vector3 p = start + _forward * ahead + _right * right;
+                return Part(id, settings, p.x, p.z);
+            }
+            parts += "," + string.Join(",", Along(SourceChest, Chest, 0f, 0f), Along(Belt1, MachineCatalog.BeltMk1, 0.92f, 0f), Along(Belt2, MachineCatalog.BeltMk1, 1.94f, 0f),
+                Along(SplitterPart, MachineCatalog.Splitter, 2.96f, 0f), Along(OutA, MachineCatalog.IndustrialContainer, 4.08f, 0f),
+                Along(OutB, MachineCatalog.IndustrialContainer, 2.96f, 1.24f));
             // Power cables (type 2): each generator's socket 0 -> its machine's socket 0
             string Cable(int id, ushort from, ushort to) =>
                 $"{{\"id\":{id},\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{from},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{to},\"socketId\":{MachineSimulation.PowerSocket}}}}}";
             string cables = string.Join(",", Cable(1, GeneratorPart, WorkshopA), Cable(2, Gen2, SmelterPart), Cable(3, Gen3, CrusherPart),
                 Cable(4, Gen4, AssemblerPart), Cable(5, Gen5, PressPart), Cable(6, Gen6, ExtractorPart), Cable(7, Gen7, WorkshopD), Cable(9, Gen8, AccumulatorPart), Cable(10, Gen9, FoundryPart), Cable(11, Gen10, RefineryPart),
-                Cable(12, Gen11, CondenserPart), Cable(13, ReactorPart, RecyclerPart));
+                Cable(12, Gen11, CondenserPart), Cable(13, ReactorPart, RecyclerPart),
+                // Through the pole: generator -> pole socket 0, pole socket 1 -> workshop E
+                $"{{\"id\":14,\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{Gen12},\"socketId\":0}},\"plugB\":{{\"shipId\":1,\"partId\":{PolePart},\"socketId\":0}}}}",
+                $"{{\"id\":15,\"type\":2,\"plugA\":{{\"shipId\":1,\"partId\":{PolePart},\"socketId\":1}},\"plugB\":{{\"shipId\":1,\"partId\":{WorkshopE},\"socketId\":{MachineSimulation.PowerSocket}}}}}");
             // Item line (SDModKit item cable, type 3): smelter -> workshop D
             if (itemFrom >= 0)
                 cables += $",{{\"id\":8,\"type\":3,\"plugA\":{{\"shipId\":1,\"partId\":{SmelterPart},\"socketId\":{itemFrom}}},\"plugB\":{{\"shipId\":1,\"partId\":{WorkshopD},\"socketId\":{itemTo}}}}}";

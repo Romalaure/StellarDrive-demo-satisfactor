@@ -16,4 +16,13 @@ Une machine ne consomme que lorsqu'elle travaille. Sa puissance est indiquée su
 L'[Accumulateur](Machine-7613) garde jusqu'à 60 MJ. Quand vos générateurs tournent pour rien, il se charge ; dès que le réseau manque de puissance, il prend le relais. Sa charge est conservée dans la sauvegarde.
 
 ## Câblage
-La prise électrique de chaque machine se trouve à l'arrière, dans le boîtier jaune et noir. La [Tour radar](Machine-7622) n'en a pas : elle n'a pas besoin de courant. Un générateur n'a qu'une prise : pour alimenter plusieurs machines, passez par les répartiteurs électriques du jeu.
+La prise électrique de chaque machine se trouve à l'arrière, dans le boîtier jaune et noir. La [Tour radar](Machine-7622) n'en a pas : elle n'a pas besoin de courant. Un générateur n'a qu'une prise : pour alimenter plusieurs machines, passez par les répartiteurs électriques du jeu ou par un poteau.
+
+## Poteaux électriques
+Les poteaux (onglet « Industrie+ ») portent les câbles au-dessus du sol. Toutes les prises d'un poteau sont sur le même réseau : branchez un générateur sur l'une, des machines sur les autres.
+
+| Poteau | Hauteur | Branchements | Recherche |
+|---|---|---|---|
+| Poteau Mk1 | 2 m | 4 | *Lignes électriques* |
+| Poteau Mk2 | 3 m | 8 | *Haute tension* |
+| Pylône Mk3 | 4 m | 12 | *Haute tension* |

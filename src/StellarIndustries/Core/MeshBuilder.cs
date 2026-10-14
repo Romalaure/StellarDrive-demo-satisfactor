@@ -42,6 +42,13 @@ namespace StellarIndustries.Core
         /// </summary>
         public float PanelSize;
 
+        /// <summary>
+        /// Signs, screens and gauges: the tile is shown the right way up and unmirrored as seen from
+        /// outside the face (its top towards +y, or towards +z on a flat face), instead of being
+        /// turned to follow the face's long side.
+        /// </summary>
+        public bool Upright;
+
         public bool HasGeometry => _triangles.Count > 0;
 
         public int VertexCount => _vertices.Count;
@@ -294,11 +301,44 @@ namespace StellarIndustries.Core
             if (Vector3.Dot(n, outward) < 0f)
                 n = -n;
             n.Normalize();
+            if (Upright)
+            {
+                UprightQuad(p0, p1, p2, p3, n);
+                return;
+            }
             // The panel's long side follows the face's long side, so long beams are not squashed
             bool turn = (p1 - p0).sqrMagnitude > (p3 - p0).sqrMagnitude != Panel.width > Panel.height;
             Vector2 uv0 = At(0f, 0f), uv1 = turn ? At(0f, 1f) : At(1f, 0f), uv2 = At(1f, 1f), uv3 = turn ? At(1f, 0f) : At(0f, 1f);
             Triangle(p0, p1, p2, n, n, n, n, uv0, uv1, uv2);
             Triangle(p0, p2, p3, n, n, n, n, uv0, uv2, uv3);
+        }
+
+        /// <summary>One face of a sign: texture u runs to the viewer's right, v up, whatever the corner order.</summary>
+        private void UprightQuad(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 n)
+        {
+            Vector3 up = Mathf.Abs(n.y) > 0.9f ? Vector3.forward : Vector3.up;
+            // Seen from outside (looking along -n), the viewer's right is n × up
+            Vector3 right = Vector3.Cross(n, up).normalized;
+            up = Vector3.Cross(right, n).normalized;
+            Vector3[] p = { p0, p1, p2, p3 };
+            float sMin = float.MaxValue, sMax = float.MinValue, tMin = float.MaxValue, tMax = float.MinValue;
+            foreach (Vector3 q in p)
+            {
+                float s = Vector3.Dot(q, right), t = Vector3.Dot(q, up);
+                sMin = Mathf.Min(sMin, s);
+                sMax = Mathf.Max(sMax, s);
+                tMin = Mathf.Min(tMin, t);
+                tMax = Mathf.Max(tMax, t);
+            }
+            var uv = new Vector2[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float u = sMax - sMin > 1e-6f ? (Vector3.Dot(p[i], right) - sMin) / (sMax - sMin) : 0.5f;
+                float v = tMax - tMin > 1e-6f ? (Vector3.Dot(p[i], up) - tMin) / (tMax - tMin) : 0.5f;
+                uv[i] = At(u, v);
+            }
+            Triangle(p0, p1, p2, n, n, n, n, uv[0], uv[1], uv[2]);
+            Triangle(p0, p2, p3, n, n, n, n, uv[0], uv[2], uv[3]);
         }
 
         // A point of the current atlas panel

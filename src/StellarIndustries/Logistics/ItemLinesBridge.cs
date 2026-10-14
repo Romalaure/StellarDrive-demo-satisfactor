@@ -105,7 +105,7 @@ namespace StellarIndustries.Logistics
                     if (!ship.TryGetStatefulPart(destId, out StatefulPart now) || !(now.State is StorageState state))
                         return false;
                     MachineSimulation.Read(state, Buffer);
-                    if (!ConveyorRules.CanAccept(to, RecipeBook.ForMachine(to.PartId), MachineControl.Chosen(shipId, destId, to.PartId), Buffer, item, IndustrialItems.MaxStack))
+                    if (!ConveyorRules.CanAccept(to, RecipeBook.Available(to.PartId), MachineControl.Chosen(shipId, destId, to.PartId), Buffer, item, IndustrialItems.MaxStack))
                         return false;
                 }
                 return true;

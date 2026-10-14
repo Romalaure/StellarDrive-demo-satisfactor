@@ -119,6 +119,8 @@ namespace StellarIndustries.Production
                         Storing.Add(new Entry { Ship = ship, Part = part, Def = def, Runtime = rt });
                     else if (def.Dock)
                         Logistics.LoadingDocks.Collect(ship, part, def, rt);
+                    else if (def.IsConveyor)
+                        Logistics.Conveyors.Collect(ship, part, def, rt);
                     else if (def.Container)
                         rt.Status = MachineStatus.Idle;
                     else if (def.Radar)
@@ -133,6 +135,7 @@ namespace StellarIndustries.Production
             foreach (Entry entry in Storing)
                 PrepareAccumulator(power, entry, deltaTime);
             Logistics.LoadingDocks.Run(deltaTime);
+            Logistics.Conveyors.Run(deltaTime);
             if (now >= _nextPrune)
                 Prune(now);
         }
@@ -157,8 +160,9 @@ namespace StellarIndustries.Production
                     return;
                 }
                 Deposits.Deposit d = deposit.Value;
-                rt.Detail = Lang.T($"Gisement : {d.Name} à {d.Distance:0.0} m", $"Deposit: {d.Name} at {d.Distance:0.0} m");
-                RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds, IndustrialItems.NameOf(d.Item));
+                rt.Detail = Lang.T($"Gisement : {d.Name} {Deposits.PurityName(d.Purity)} à {d.Distance:0.0} m ({DepositPurity.Factor(d.Purity):0.#}× la vitesse)",
+                    $"Deposit: {Deposits.PurityName(d.Purity)} {d.Name} at {d.Distance:0.0} m ({DepositPurity.Factor(d.Purity):0.#}× speed)");
+                RecipeDef extraction = RecipeBook.Extraction(def.PartId, d.Item, def.ExtractSeconds / DepositPurity.Factor(d.Purity), IndustrialItems.NameOf(d.Item), d.Purity.ToString());
                 recipe = RecipeSelector.Pick(Buffer, new[] { extraction }, rt.Recipe, IndustrialItems.MaxStack, out status);
             }
             else if (def.FixedOutput != 0)
@@ -184,7 +188,7 @@ namespace StellarIndustries.Production
             else
             {
                 RecipeDef chosen = MachineControl.Chosen(ship.Id, part.Id, def.PartId);
-                recipe = RecipeSelector.Pick(Buffer, RecipeBook.ForMachine(def.PartId), rt.Recipe, chosen, IndustrialItems.MaxStack, out status);
+                recipe = RecipeSelector.Pick(Buffer, RecipeBook.Available(def.PartId), rt.Recipe, chosen, IndustrialItems.MaxStack, out status);
             }
             if (recipe != rt.Recipe)
                 rt.Progress = 0f;

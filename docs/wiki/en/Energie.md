@@ -16,4 +16,13 @@ A machine only draws power while it is working. Its wattage is on its page (see 
 The [Accumulator](Machine-7613) holds up to 60 MJ. When your generators have power to spare it charges up; as soon as the grid runs short, it takes over. Its charge is kept in your save.
 
 ## Wiring
-Each machine's power socket is on the back, in the yellow and black box. The [Radar Tower](Machine-7622) has none: it needs no power. A generator has a single socket: to power several machines, go through the game's power splitters.
+Each machine's power socket is on the back, in the yellow and black box. The [Radar Tower](Machine-7622) has none: it needs no power.
+
+## Power poles
+Poles (the "Industrie+" tab) carry cables above the ground. All the sockets of a pole are on the same grid: plug a generator into one, machines into the others.
+
+| Pole | Height | Connections | Research |
+|---|---|---|---|
+| Power Pole Mk1 | 2 m | 4 | *Power Lines* |
+| Power Pole Mk2 | 3 m | 8 | *High-Voltage Lines* |
+| Power Pylon Mk3 | 4 m | 12 | *High-Voltage Lines* | A generator has a single socket: to power several machines, go through the game's power splitters.

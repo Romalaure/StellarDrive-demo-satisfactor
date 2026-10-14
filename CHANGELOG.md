@@ -1,5 +1,33 @@
 # Journal des changements
 
+## 0.13.0 — convoyeurs, poteaux électriques, scanners
+
+**Convoyeurs** (nouvel onglet « Convoyeurs », recherches *Convoyeurs*, *Convoyeurs rapides*, *Convoyeurs lourds*) :
+tapis Mk1 / Mk2 / Mk3 (1, 2,5 et 6 objets/s), élévateur à godets (monte de 2 m), répartiteur et
+fusionneur. Un convoyeur prend dans la pièce derrière lui et pose dans celle devant lui, sans
+courant ni câble ; les machines gardent leurs règles (elles ne donnent que leurs produits, ne
+prennent que leurs ingrédients). Des caisses roulent sur les tapis quand ils transportent.
+
+**Poteaux électriques** (onglet « Industrie+ ») : Mk1 (2 m, 4 branchements), Mk2 (3 m, 8),
+pylône Mk3 (4 m, 12). Toutes les prises d'un poteau sont sur le même réseau.
+
+**Scanner de gisements en objets** : la touche K demande maintenant un scanner dans l'inventaire.
+Mk1 (atelier, 80 m), Mk2 (assembleuse, 160 m, écran radar, pureté), Mk3 (fabricateur, 300 m,
+repères dans la vue), module de portée (+25 %) et module d'analyse (pureté et rendement). Chaque
+recette attend sa recherche (*Prospection*, *Prospection avancée*, *Analyse géologique*).
+Nouvel affichage : panneau, flèches de direction, radar, repères. Réglage `ScanNeedsScanner`
+pour garder l'ancien fonctionnement.
+
+**Gisements** : chaque rocher a une pureté (impur ×½, normal, pur ×2 pour l'extracteur), la même
+pour tous les joueurs. Les rochers portent des nodules ou des cristaux de leur minerai, plus
+nombreux quand le gisement est riche (purement visuel, réglage `DepositDetails`).
+
+**Machines** : le panneau de visée dit à quoi sert la machine et ce qu'elle produit ; un
+pictogramme de son rôle est fixé à l'arrière. Les panneaux, flèches et écrans des modèles sont
+maintenant à l'endroit (ils étaient tournés ou en miroir).
+
+**Contenu** : pièces 7623-7631, objets 7760-7764, techs 7816-7823, 5 recettes.
+
 ## 0.12.0 — modèles revus, 8 nouvelles machines
 
 **Modèles 3D**

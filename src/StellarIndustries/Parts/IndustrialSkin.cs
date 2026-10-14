@@ -14,7 +14,9 @@ namespace StellarIndustries.Parts
         CopperDark, Aluminum, Steel, Gold, Concrete, Circuit, Biomass, Coal,
         Screen, ScreenAmber, LedGreen, LedRed, Furnace, Gauge, LabelWarning, LabelPower,
         Fan, Glass, IngotIron, IngotCopper, IngotAluminum, IngotSteel, CrushedIron, CrushedCopper,
-        StellarDust, Sack, CableJacket, Plastic, ArrowLabel, ControlPanel, BoltHeads, Winding
+        StellarDust, Sack, CableJacket, Plastic, ArrowLabel, ControlPanel, BoltHeads, Winding,
+        Belt, Stone, VeinIron, VeinCopper, VeinAluminum, StellarCrystal, Ice,
+        IconSmelt, IconShape, IconAssemble, IconExtract, IconPower, IconLogistics, IconQuantum, IconChem
     }
 
     /// <summary>
@@ -27,7 +29,7 @@ namespace StellarIndustries.Parts
     /// </summary>
     internal static class IndustrialSkin
     {
-        private const int Version = 2;
+        private const int Version = 4;
         /// <summary>Border of each tile repeating its edge, so mipmaps never mix two tiles (fraction of a tile).</summary>
         private const float Gutter = 8f / 256f;
         private const int Grid = 8;
@@ -172,7 +174,7 @@ namespace StellarIndustries.Parts
                     int col = x / tilePx;
                     float u = Inner((x % tilePx + 0.5f) / tilePx);
                     var tile = (Tile)(row * Grid + col);
-                    pixels[y * size + x] = (int)tile <= (int)Tile.Winding ? (Color32)sample(tile, u, v) : (Color32)Color.black;
+                    pixels[y * size + x] = (int)tile <= (int)Tile.IconChem ? (Color32)sample(tile, u, v) : (Color32)Color.black;
                 }
             }
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, true, linear);
@@ -509,10 +511,200 @@ namespace StellarIndustries.Parts
                     t.Height = 0.3f + 0.5f * Mathf.Sin(w * Mathf.PI);
                     break;
                 }
+                case Tile.Belt:
+                {
+                    // Rubber belt, its chevrons pointing up the tile (the way the items go)
+                    Flat(ref t, u, v, new Color(0.11f, 0.11f, 0.12f), grain * 0.5f);
+                    float chevron = Mathf.Repeat(v * 2f + Mathf.Abs(u - 0.5f) * 1.2f, 1f);
+                    if (u > 0.14f && u < 0.86f && chevron < 0.16f)
+                    {
+                        t.Albedo = new Color(0.32f, 0.33f, 0.35f);
+                        t.Height = 0.8f;
+                    }
+                    if (u < 0.07f || u > 0.93f)
+                    {
+                        t.Albedo = new Color(0.05f, 0.05f, 0.06f);
+                        t.Height = 0.3f;
+                    }
+                    break;
+                }
+                case Tile.Stone: Stone(ref t, u, v, 91); break;
+                case Tile.VeinIron: Vein(ref t, u, v, new Color(0.42f, 0.2f, 0.14f), new Color(0.3f, 0.3f, 0.34f), 92); break;
+                case Tile.VeinCopper: Vein(ref t, u, v, new Color(0.85f, 0.48f, 0.25f), new Color(0.25f, 0.62f, 0.5f), 93); break;
+                case Tile.VeinAluminum: Vein(ref t, u, v, new Color(0.85f, 0.86f, 0.9f), new Color(0.7f, 0.42f, 0.32f), 94); break;
+                case Tile.StellarCrystal:
+                {
+                    float f = Noise(u * 6f, v * 6f, 95);
+                    Flat(ref t, u, v, Color.Lerp(new Color(0.35f, 0.2f, 0.65f), new Color(0.65f, 0.55f, 1f), f), 0f);
+                    // Facet edges and a glow from inside
+                    float facet = Mathf.Abs(Mathf.Repeat(u * 3f + f, 1f) - 0.5f);
+                    if (facet < 0.04f)
+                        t.Albedo = new Color(0.85f, 0.8f, 1f);
+                    t.Glow = new Color(0.25f, 0.15f, 0.5f) * (0.6f + 0.6f * f);
+                    t.Height = 0.4f + 0.3f * f;
+                    break;
+                }
+                case Tile.Ice:
+                {
+                    float f = Noise(u * 8f, v * 8f, 96);
+                    Flat(ref t, u, v, Color.Lerp(new Color(0.62f, 0.8f, 0.92f), new Color(0.88f, 0.95f, 1f), f), 0f);
+                    if (Mathf.Abs(Noise(u * 5f, v * 5f, 97) - 0.5f) < 0.025f)
+                        t.Albedo = Color.white;
+                    t.Height = 0.45f + 0.2f * f;
+                    break;
+                }
+                case Tile.IconSmelt:
+                {
+                    // Flame over a crucible
+                    Badge(ref t, u, v, new Color(0.75f, 0.25f, 0.1f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool flame = (x * x + (y + 0.02f) * (y + 0.02f) < 0.022f) || (y > -0.02f && y < 0.26f && Mathf.Abs(x + Mathf.Sin(y * 9f) * 0.03f) < (0.26f - y) * 0.55f);
+                    bool pot = y < -0.13f && y > -0.25f && Mathf.Abs(x) < 0.2f - (-0.13f - y) * 0.6f;
+                    if (flame && y > -0.13f || pot)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconShape:
+                {
+                    // A ram coming down on a plate
+                    Badge(ref t, u, v, new Color(0.3f, 0.35f, 0.42f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool shaft = Mathf.Abs(x) < 0.05f && y > 0.02f && y < 0.28f;
+                    bool head = y <= 0.02f && y > -0.12f && Mathf.Abs(x) < (y + 0.12f) * 1.1f;
+                    bool plate = y < -0.16f && y > -0.24f && Mathf.Abs(x) < 0.25f;
+                    if (shaft || head || plate)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconAssemble:
+                {
+                    // A gear
+                    Badge(ref t, u, v, new Color(0.2f, 0.42f, 0.7f));
+                    float x = u - 0.5f, y = v - 0.5f, r = Mathf.Sqrt(x * x + y * y), a = Mathf.Atan2(y, x);
+                    float outer = Mathf.Cos(a * 8f) > 0.2f ? 0.3f : 0.23f;
+                    if (r < outer && r > 0.1f)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconExtract:
+                {
+                    // A drill bit going into the ground
+                    Badge(ref t, u, v, new Color(0.5f, 0.32f, 0.16f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool body = Mathf.Abs(x) < 0.1f && y > 0.08f && y < 0.3f;
+                    bool bit = y <= 0.08f && y > -0.2f && Mathf.Abs(x) < (y + 0.2f) * 0.36f && Mathf.Repeat((y - x * 0.6f) * 12f, 1f) < 0.7f;
+                    bool ground = y < -0.22f && y > -0.27f && Mathf.Abs(x) < 0.28f;
+                    if (body || bit || ground)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconPower:
+                {
+                    Badge(ref t, u, v, new Color(0.85f, 0.62f, 0.05f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool bolt = y > 0f ? Mathf.Abs(x + y * 0.6f - 0.04f) < 0.07f && y < 0.28f : Mathf.Abs(x + y * 0.6f + 0.04f) < 0.07f && y > -0.28f;
+                    if (bolt)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconLogistics:
+                {
+                    // Two arrows, one each way
+                    Badge(ref t, u, v, new Color(0.25f, 0.55f, 0.3f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool top = Mathf.Abs(y - 0.12f) < 0.035f && x > -0.25f && x < 0.12f || x >= 0.12f && x < 0.26f && Mathf.Abs(y - 0.12f) < (0.26f - x) * 0.6f;
+                    bool bottom = Mathf.Abs(y + 0.12f) < 0.035f && x < 0.25f && x > -0.12f || x <= -0.12f && x > -0.26f && Mathf.Abs(y + 0.12f) < (x + 0.26f) * 0.6f;
+                    if (top || bottom)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconQuantum:
+                {
+                    // Three orbits round a nucleus
+                    Badge(ref t, u, v, new Color(0.45f, 0.25f, 0.65f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool atom = x * x + y * y < 0.0025f;
+                    for (int i = 0; i < 3 && !atom; i++)
+                    {
+                        float a = i * Mathf.PI / 3f, c = Mathf.Cos(a), s = Mathf.Sin(a);
+                        float ex = (x * c + y * s) / 0.29f, ey = (-x * s + y * c) / 0.1f;
+                        atom = Mathf.Abs(Mathf.Sqrt(ex * ex + ey * ey) - 1f) < 0.16f;
+                    }
+                    if (atom)
+                        Symbol(ref t);
+                    break;
+                }
+                case Tile.IconChem:
+                {
+                    // A flask
+                    Badge(ref t, u, v, new Color(0.15f, 0.55f, 0.55f));
+                    float x = u - 0.5f, y = v - 0.5f;
+                    bool neck = Mathf.Abs(x) < 0.05f && y > 0.02f && y < 0.26f;
+                    bool body = y <= 0.02f && y > -0.24f && Mathf.Abs(x) < 0.05f + (0.02f - y) * 0.75f;
+                    bool rim = Mathf.Abs(x) < 0.09f && y > 0.23f && y < 0.28f;
+                    if (neck || body || rim)
+                        Symbol(ref t);
+                    break;
+                }
             }
             t.Albedo.a = 1f;
             return t;
         }
+
+        /// <summary>A round sign: colored disc with a white ring on a dark plate.</summary>
+        private static void Badge(ref Texel t, float u, float v, Color color)
+        {
+            Panel(ref t, u, v, new Color(0.16f, 0.17f, 0.19f), 0f, rivets: false);
+            float du = u - 0.5f, dv = v - 0.5f, r = Mathf.Sqrt(du * du + dv * dv);
+            if (r < 0.42f)
+            {
+                t.Albedo = color;
+                t.Height = 0.6f;
+            }
+            else if (r < 0.46f)
+            {
+                t.Albedo = new Color(0.95f, 0.95f, 0.92f);
+                t.Height = 0.7f;
+            }
+        }
+
+        private static void Symbol(ref Texel t)
+        {
+            t.Albedo = new Color(0.97f, 0.97f, 0.94f);
+            t.Height = 0.75f;
+        }
+
+        /// <summary>Weathered rock: grey-brown, lumpy, with cracks.</summary>
+        private static void Stone(ref Texel t, float u, float v, int seed)
+        {
+            float big = Noise(u * 5f, v * 5f, seed), small = Noise(u * 28f, v * 28f, seed + 1);
+            Flat(ref t, u, v, Color.Lerp(new Color(0.34f, 0.32f, 0.3f), new Color(0.56f, 0.53f, 0.48f), big) * (0.88f + 0.24f * small), 0f);
+            t.Height = 0.3f + 0.4f * big + 0.15f * small;
+            if (Mathf.Abs(Noise(u * 7f, v * 7f, seed + 2) - 0.5f) < 0.02f)
+            {
+                t.Albedo *= 0.45f;
+                t.Height = 0.1f;
+            }
+        }
+
+        /// <summary>Rock crossed by veins of ore (main color) with a second mineral at their edges.</summary>
+        private static void Vein(ref Texel t, float u, float v, Color ore, Color edge, int seed)
+        {
+            Stone(ref t, u, v, seed);
+            float n = Noise(u * 4f + Noise(u * 9f, v * 9f, seed + 5) * 1.5f, v * 4f, seed + 3);
+            float d = Mathf.Abs(n - 0.5f);
+            if (d < 0.07f)
+            {
+                float glint = Noise(u * 60f, v * 60f, seed + 4);
+                t.Albedo = ore * (0.8f + 0.4f * glint);
+                t.Height = 0.75f;
+            }
+            else if (d < 0.1f)
+            {
+                t.Albedo = Color.Lerp(t.Albedo, edge, 0.7f);
+            }
+        }
+
 
         /// <summary>A painted plate: flat color, dark outline, light bevel inside, optional corner rivets.</summary>
         private static void Panel(ref Texel t, float u, float v, Color color, float grain, bool rivets)

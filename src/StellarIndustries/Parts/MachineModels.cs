@@ -56,10 +56,14 @@ namespace StellarIndustries.Parts
                 case MachineModel.Recycler: Recycler(kit, w, d); break;
                 case MachineModel.Exchange: Exchange(kit, w, d); break;
                 case MachineModel.Radar: Radar(kit, w, d); break;
+                case MachineModel.Belt: Belt(kit, w, d, def); break;
+                case MachineModel.Lift: Lift(kit, w, d, def.Height); break;
+                case MachineModel.Splitter: Hub(kit, w, d, true); break;
+                case MachineModel.Merger: Hub(kit, w, d, false); break;
                 default: Workshop(kit, w, d); break;
             }
             if (!def.IsLogistics)
-                ServicePanel(kit, w, d, NeedsPower(def));
+                ServicePanel(kit, w, d, NeedsPower(def), RoleIcon(def));
             Transform root = kit.Build(visuals, visuals.gameObject.layer, IndustrialSkin.Material, GameSkin.Ready ? GameSkin.Palette : (Vector2?)null, Vector3.zero);
             root.localScale = Vector3.one * def.Scale;
         }
@@ -90,7 +94,35 @@ namespace StellarIndustries.Parts
         /// <summary>Whether the part has a power socket (machines, generators, accumulators; not the radar).</summary>
         public static bool NeedsPower(Production.MachineDef def) => !def.IsLogistics && (def.Watts > 0f || def.Generates || def.Stores);
 
-        private static void ServicePanel(ModelKit k, float w, float d, bool power)
+        /// <summary>The pictogram of what a machine does, on its plate above the service row.</summary>
+        public static Tile RoleIcon(MachineDef def)
+        {
+            if (def.Generates || def.Stores)
+                return Tile.IconPower;
+            if (def.Extracts || def.FixedOutput != 0 || def.Radar)
+                return Tile.IconExtract;
+            if (def.IsLogistics || def.Sinks || def.PartId == MachineCatalog.ExchangeCounter)
+                return Tile.IconLogistics;
+            switch (def.Model)
+            {
+                case MachineModel.Smelter:
+                case MachineModel.Foundry:
+                    return Tile.IconSmelt;
+                case MachineModel.Assembler:
+                case MachineModel.Fabricator:
+                    return Tile.IconAssemble;
+                case MachineModel.Refinery:
+                    return Tile.IconChem;
+                case MachineModel.Accelerator:
+                case MachineModel.Encoder:
+                case MachineModel.Converter:
+                    return Tile.IconQuantum;
+                default:
+                    return Tile.IconShape;
+            }
+        }
+
+        private static void ServicePanel(ModelKit k, float w, float d, bool power, Tile role)
         {
             float back = -d * 0.5f;
             float y = ServiceHeight;
@@ -112,6 +144,9 @@ namespace StellarIndustries.Parts
             ItemHatch(k, -x, back);
             // Warning plate above the row
             k.Box(Tile.LabelWarning, P(-x - 0.2f, y + 0.08f, back + 0.04f), new Vector3(0.12f, 0.1f, 0.02f));
+            // What the machine is for: a pictogram plate standing on the row, on a bracket
+            k.Box(Tile.DarkSteel, P(0f, y + 0.18f, back + 0.06f), new Vector3(0.06f, 0.07f, 0.03f));
+            k.Box(role, P(0f, y + 0.27f, back + 0.04f), new Vector3(0.17f, 0.17f, 0.02f));
         }
 
         /// <summary>A framed item hatch on a back face at <paramref name="back"/>, at the service row's height.</summary>

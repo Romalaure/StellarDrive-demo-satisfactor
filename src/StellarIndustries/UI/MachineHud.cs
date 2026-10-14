@@ -94,7 +94,7 @@ namespace StellarIndustries.UI
                 _nextLook = 0f;
                 return;
             }
-            RecipeDef[] recipes = RecipeBook.ForMachine(_aimedDef.PartId);
+            RecipeDef[] recipes = RecipeBook.Available(_aimedDef.PartId);
             if (recipes.Length < 2)
                 return;
             RecipeDef chosen = CurrentChoice(_aimed.Ship, _aimed.Part, _aimedDef);
@@ -116,13 +116,22 @@ namespace StellarIndustries.UI
             MachineSimulation.Read(state, Slots);
             Text.Clear();
             Text.Append("<b>").Append(Lang.MachineName(def)).Append("</b>\n");
+            // What it is for, and what it can make
+            string role = Lang.MachineRole(def);
+            if (!string.IsNullOrEmpty(role))
+                Text.Append("<i><color=#9cd>").Append(role).Append("</color></i>\n");
+            RecipeDef[] recipes = RecipeBook.Available(def.PartId);
+            string makes = Products(def, recipes);
+            if (makes != null)
+                Text.Append("<color=#aaa>").Append(Lang.T("Produit : ", "Makes: ")).Append(makes).Append("</color>\n");
             MachineReport? report = InstanceFinder.IsServerStarted ? MachineControl.HostReport(shipId, partId) : MachineControl.ClientReport(shipId, partId, 2f);
-            RecipeDef[] recipes = RecipeBook.ForMachine(def.PartId);
             if (report != null)
             {
                 MachineReport r = report.Value;
                 if (def.IsLogistics)
-                    Text.Append(def.Dock ? (r.Status == MachineStatus.Producing ? Lang.T("<color=#6f8>Transfert en cours</color>", "<color=#6f8>Transferring</color>") : Lang.T("<color=#9aa>Pas de transfert</color>", "<color=#9aa>Not transferring</color>")) : Lang.T("<color=#9aa>Stockage</color>", "<color=#9aa>Storage</color>"));
+                    Text.Append(def.Dock ? (r.Status == MachineStatus.Producing ? Lang.T("<color=#6f8>Transfert en cours</color>", "<color=#6f8>Transferring</color>") : Lang.T("<color=#9aa>Pas de transfert</color>", "<color=#9aa>Not transferring</color>"))
+                        : def.IsConveyor ? (r.Status == MachineStatus.Producing ? Lang.T("<color=#6f8>Transport en cours</color>", "<color=#6f8>Carrying items</color>") : Lang.T("<color=#9aa>À l'arrêt (rien à prendre ou sortie pleine)</color>", "<color=#9aa>Stopped (nothing to take or output full)</color>"))
+                        : Lang.T("<color=#9aa>Stockage</color>", "<color=#9aa>Storage</color>"));
                 else
                     Text.Append(StatusText(r.Status));
                 RecipeDef running = r.RecipeId != null ? RecipeBook.Get(r.RecipeId) : null;
@@ -158,6 +167,29 @@ namespace StellarIndustries.UI
             if (recipes.Length > 1)
                 Text.Append("\n<color=#aaa>[").Append(_key == Key.None ? "N" : _key.ToString()).Append(Lang.T("] recette suivante, Maj+[", "] next recipe, Shift+[")).Append(_key == Key.None ? "N" : _key.ToString()).Append(Lang.T("] précédente</color>", "] previous</color>"));
             return Text.ToString();
+        }
+
+        /// <summary>The products of a machine's recipes, the first few, and how many more wait for a research.</summary>
+        private static string Products(MachineDef def, RecipeDef[] available)
+        {
+            if (def.HasNoRecipe)
+                return null;
+            var names = new System.Collections.Generic.List<string>();
+            foreach (RecipeDef r in available)
+            {
+                string name = IndustrialItems.NameOf(r.Outputs[0].Item);
+                if (!names.Contains(name))
+                    names.Add(name);
+            }
+            if (names.Count == 0)
+                return null;
+            var text = new StringBuilder(string.Join(", ", names.GetRange(0, Math.Min(5, names.Count))));
+            if (names.Count > 5)
+                text.Append(Lang.T($" et {names.Count - 5} autre(s)", $" and {names.Count - 5} more"));
+            int locked = RecipeBook.ForMachine(def.PartId).Length - available.Length;
+            if (locked > 0)
+                text.Append(Lang.T($" (+{locked} après recherche)", $" (+{locked} after research)"));
+            return text.ToString();
         }
 
         private static string Describe(RecipeDef recipe)

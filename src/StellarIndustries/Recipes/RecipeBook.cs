@@ -37,6 +37,8 @@ namespace StellarIndustries.Recipes
         /// <summary>Power while producing; 0 = the machine's own.</summary>
         public float Watts;
         public int Tier;
+        /// <summary>The mod's tech that must be researched before the machine runs it (0: none).</summary>
+        public ushort Tech;
     }
 
     /// <summary>The recipes of every machine, in the order a machine tries them.</summary>
@@ -396,8 +398,70 @@ namespace StellarIndustries.Recipes
                 Id = "exchange.matter", Name = "Matière stellaire condensée", Machine = MachineCatalog.ExchangeCounter, Seconds = 4f, Tier = 3,
                 Inputs = new[] { new ItemAmount(ResourceCatalog.Voucher, 60) },
                 Outputs = new[] { new ItemAmount(ResourceCatalog.StellarMatter, 1) }
+            },
+
+            // ---- 0.13: deposit scanners and their modules, each after its research
+            new RecipeDef
+            {
+                Id = "workshop.scanner1", Name = "Scanner de gisements Mk1", Machine = MachineCatalog.Workshop, Seconds = 20f, Tier = 0, Tech = ScanTech1,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.IronPlate, 4), new ItemAmount(ResourceCatalog.CopperWire, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.ScannerMk1, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.scanner2", Name = "Scanner de gisements Mk2", Machine = MachineCatalog.Assembler, Seconds = 30f, Tier = 2, Tech = ScanTech2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.ScannerMk1, 1), new ItemAmount(ResourceCatalog.CircuitBoard, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.ScannerMk2, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.range_module", Name = "Module de portée", Machine = MachineCatalog.Assembler, Seconds = 20f, Tier = 2, Tech = ScanTech2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.CircuitBoard, 1), new ItemAmount(ResourceCatalog.CopperSheet, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.RangeModule, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.scanner3", Name = "Scanner de gisements Mk3", Machine = MachineCatalog.Fabricator, Seconds = 40f, Tier = 3, Tech = ScanTech3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.ScannerMk2, 1), new ItemAmount(ResourceCatalog.Computer, 1), new ItemAmount(ResourceCatalog.QuartzCrystal, 2) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.ScannerMk3, 1) }
+            },
+            new RecipeDef
+            {
+                Id = "fabricator.analysis_module", Name = "Module d'analyse", Machine = MachineCatalog.Fabricator, Seconds = 30f, Tier = 3, Tech = ScanTech3,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Computer, 1), new ItemAmount(ResourceCatalog.QuartzCrystal, 4), new ItemAmount(ResourceCatalog.FineWire, 6) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule, 1) }
             }
         };
+
+        /// <summary>The prospecting techs (see Parts.IndustryResearch) that unlock the scanner recipes.</summary>
+        public const ushort ScanTech1 = 7821, ScanTech2 = 7822, ScanTech3 = 7823;
+
+        /// <summary>Whether one of the mod's techs is researched (set by the mod; everything is when nothing is set).</summary>
+        public static Func<ushort, bool> TechDone = _ => true;
+
+        /// <summary>The recipes a machine may run now: <see cref="ForMachine"/> without those still waiting for their research.</summary>
+        public static RecipeDef[] Available(ushort machine)
+        {
+            RecipeDef[] all = ForMachine(machine);
+            // One bit per gated recipe that is unlocked: the filtered list is only rebuilt when that changes
+            int key = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i].Tech != 0 && TechDone(all[i].Tech))
+                    key |= 1 << (i % 31);
+                else if (all[i].Tech != 0)
+                    key |= 1 << 31;
+            }
+            if ((key & (1 << 31)) == 0)
+                return all;
+            if (AvailableCache.TryGetValue(machine, out var cached) && cached.Key == key)
+                return cached.Recipes;
+            RecipeDef[] open = all.Where(r => r.Tech == 0 || TechDone(r.Tech)).ToArray();
+            AvailableCache[machine] = (key, open);
+            return open;
+        }
+
+        private static readonly Dictionary<ushort, (int Key, RecipeDef[] Recipes)> AvailableCache = new Dictionary<ushort, (int, RecipeDef[])>();
 
         private static ItemAmount[] In(uint item, int count) => new[] { new ItemAmount(item, count) };
 
@@ -456,9 +520,9 @@ namespace StellarIndustries.Recipes
         /// An extractor's work as a recipe without inputs: one item of its deposit per cycle. Made on
         /// demand (deposits are found in the world), never listed in <see cref="All"/>.
         /// </summary>
-        public static RecipeDef Extraction(ushort machine, uint item, float seconds, string itemName)
+        public static RecipeDef Extraction(ushort machine, uint item, float seconds, string itemName, string variant = null)
         {
-            string id = "extract." + machine + "." + item;
+            string id = "extract." + machine + "." + item + (variant != null ? "." + variant : "");
             if (!Extractions.TryGetValue(id, out RecipeDef recipe))
             {
                 recipe = new RecipeDef

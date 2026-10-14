@@ -69,6 +69,11 @@ namespace StellarIndustries.Content
             [7757] = ("Neuro-Quantum Processor", "A quantum processor paired with logic modules: the brain of tomorrow's machines."),
             [7758] = ("Time Crystal", "A crystal that ticks outside of time, grown in the quantum encoder."),
             [7759] = ("Logic Module", "A small board of fine wire and copper that makes simple decisions."),
+            [7760] = ("Deposit Scanner Mk1", "A handheld scanner: keep it in your inventory and press K to list the minable rocks within 80 m, with their distance and direction."),
+            [7761] = ("Deposit Scanner Mk2", "Reaches 160 m, adds a radar screen and tells the purity of each deposit (impure, normal, pure)."),
+            [7762] = ("Deposit Scanner Mk3", "Reaches 300 m and marks the deposits right in your view for 30 seconds, with their purity and yield."),
+            [7763] = ("Range Module", "A scanner upgrade: +25% range. Up to two count, kept in your inventory."),
+            [7764] = ("Analysis Module", "A scanner upgrade: any scanner then shows the purity of the deposits and the yield an extractor would get."),
         };
 
         public static readonly Dictionary<ushort, (string Name, string Description)> Machines = new Dictionary<ushort, (string, string)>
@@ -95,6 +100,45 @@ namespace StellarIndustries.Content
             [7620] = ("Recycler", "Destroys what you no longer need and pays you in recycling vouchers: the more refined an item, the more it's worth. Spend the vouchers at the exchange counter."),
             [7621] = ("Exchange Counter", "Trades your recycling vouchers for resources: ores, stellar shards, even stellar matter."),
             [7622] = ("Radar Tower", "An antenna that sweeps the area: within 60 m of a tower, the deposit scanner (K key) reaches up to 400 m."),
+            [7623] = ("Conveyor Belt Mk1", "A one-meter belt: it takes the products of the machine (or chest) behind it and puts them into the machine, chest or belt in front of it, 1 item per second. Line several up end to end; the arrows show the way."),
+            [7624] = ("Conveyor Belt Mk2", "A reinforced belt: 2.5 items per second. Placed and linked like the Mk1."),
+            [7625] = ("Conveyor Belt Mk3", "A heavy steel and rubber belt: 6 items per second, for big production lines."),
+            [7626] = ("Bucket Lift", "Lifts items two meters: it takes from behind its foot and drops in front of its top (2.5 items per second). To go from one deck to another or fill a tall machine."),
+            [7627] = ("Splitter", "Takes items from behind and hands them out in turn to the front, left and right (4 items per second): one ore line then feeds several smelters. A blocked output is skipped."),
+            [7628] = ("Merger", "Gathers what comes in from behind, left and right onto a single line out the front (4 items per second)."),
+        };
+
+        /// <summary>One line on what each machine is for.</summary>
+        public static readonly Dictionary<ushort, string> Roles = new Dictionary<ushort, string>
+        {
+            [7601] = "Shapes ingots and ore into basic parts",
+            [7602] = "Melts ore into ingots",
+            [7603] = "Presses, cuts and compacts parts",
+            [7604] = "Crushes ore for a better yield",
+            [7605] = "Puts two parts together into a component",
+            [7606] = "Pulls ore out of a nearby rock, endlessly",
+            [7607] = "Makes power by burning fuel",
+            [7608] = "Storage: a buffer between machines",
+            [7609] = "Moves items to another dock",
+            [7610] = "Makes complex parts (up to 4 ingredients)",
+            [7611] = "Two-input furnace: steel, alloys, quartz",
+            [7612] = "Chemistry: charcoal, plastic, rubber",
+            [7613] = "Stores spare power and gives it back",
+            [7614] = "Stellar matter and quantum processors",
+            [7615] = "Small early-game generator",
+            [7616] = "Makes ice out of thin air",
+            [7617] = "Late-game power plant",
+            [7618] = "Makes the top quantum parts",
+            [7619] = "Turns one ore into another",
+            [7620] = "Destroys surplus for vouchers",
+            [7621] = "Trades vouchers for resources",
+            [7622] = "Extends the deposit scanner's reach",
+            [7623] = "Carries items from one machine to the next",
+            [7624] = "Carries items from one machine to the next",
+            [7625] = "Carries items from one machine to the next",
+            [7626] = "Lifts items up one floor",
+            [7627] = "Splits one line into three outputs",
+            [7628] = "Joins three lines into one",
         };
 
         /// <summary>Recipes whose English name is not simply their first product's.</summary>
@@ -114,6 +158,9 @@ namespace StellarIndustries.Content
             ["exchange.copper"] = "Copper",
             ["exchange.aluminum"] = "Aluminum",
             ["exchange.shards"] = "Stellar Shards",
+            ["workshop.scanner1"] = "Deposit Scanner Mk1",
+            ["assembler.scanner2"] = "Deposit Scanner Mk2",
+            ["fabricator.scanner3"] = "Deposit Scanner Mk3",
         };
 
         public static readonly Dictionary<ushort, string> Techs = new Dictionary<ushort, string>
@@ -133,6 +180,14 @@ namespace StellarIndustries.Content
             [7813] = "Industrial Mapping",
             [7814] = "Quantum Physics",
             [7815] = "Stellar Energy",
+            [7816] = "Conveyors",
+            [7817] = "Fast Conveyors",
+            [7818] = "Heavy Conveyors",
+            [7819] = "Power Lines",
+            [7820] = "High-Voltage Lines",
+            [7821] = "Prospecting",
+            [7822] = "Advanced Prospecting",
+            [7823] = "Geological Analysis",
         };
     }
 }

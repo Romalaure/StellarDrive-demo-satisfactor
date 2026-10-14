@@ -23,7 +23,7 @@ namespace StellarIndustries.Parts
         public const string AnimPrefix = "SI_Anim";
         public const string StatusOn = "SI_StatusOn", StatusOff = "SI_StatusOff";
 
-        private enum Kind { Spin, Bob, Press, Swing, Glow }
+        private enum Kind { Spin, Bob, Press, Swing, Glow, Slide }
 
         private sealed class Piece
         {
@@ -159,6 +159,10 @@ namespace StellarIndustries.Parts
                     p.Transform.localPosition = p.BasePosition - p.Axis * (p.Amplitude * stroke * stroke * _level);
                     break;
                 }
+                case Kind.Slide:
+                    // Along the axis and back to the start, a whole step (amp) at a time: things riding a belt
+                    p.Transform.localPosition = p.BasePosition + p.Axis * Mathf.Repeat(_clock * p.Speed, Mathf.Max(0.01f, p.Amplitude));
+                    break;
                 case Kind.Swing:
                     p.Transform.localRotation = p.BaseRotation * Quaternion.AngleAxis(p.Amplitude * Mathf.Sin(t * Mathf.PI * 2f) * _level, p.Axis);
                     break;

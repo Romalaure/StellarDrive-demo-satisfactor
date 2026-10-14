@@ -50,6 +50,24 @@ namespace StellarIndustries.Parts
                 var bounds = prefab.GetComponent<ShipPartBounds>();
                 Vector3 row;
                 Quaternion rotation;
+                if (def.IsConveyor)
+                {
+                    // Conveyors touch other parts at both ends: their ports go on the right side, low
+                    if (bounds == null || facingBack == null)
+                        continue;
+                    rotation = Quaternion.AngleAxis(-90f, Vector3.up) * facingBack.Value;
+                    for (int i = 0; i < ports.Length; i++)
+                    {
+                        var side = new Vector3(bounds.center.x + bounds.bounds.x * 0.5f + 0.06f, bounds.center.y - bounds.bounds.y * 0.5f + 0.17f,
+                            bounds.center.z + (i - (ports.Length - 1) * 0.5f) * 0.3f);
+                        if ((root.InverseTransformPoint(ports[i].transform.position) - side).sqrMagnitude < 1e-4f)
+                            continue;
+                        ports[i].transform.position = root.TransformPoint(side);
+                        ports[i].transform.rotation = root.rotation * rotation;
+                        moved++;
+                    }
+                    continue;
+                }
                 if (power != null)
                 {
                     row = root.InverseTransformPoint(power.transform.position);
