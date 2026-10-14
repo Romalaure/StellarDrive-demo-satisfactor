@@ -16,7 +16,7 @@ namespace StellarIndustries.Parts
         Fan, Glass, IngotIron, IngotCopper, IngotAluminum, IngotSteel, CrushedIron, CrushedCopper,
         StellarDust, Sack, CableJacket, Plastic, ArrowLabel, ControlPanel, BoltHeads, Winding,
         Belt, Stone, VeinIron, VeinCopper, VeinAluminum, StellarCrystal, Ice,
-        IconSmelt, IconShape, IconAssemble, IconExtract, IconPower, IconLogistics, IconQuantum, IconChem
+        IconSmelt, IconShape, IconAssemble, IconExtract, IconPower, IconLogistics, IconQuantum, IconChem, Sulfur
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ namespace StellarIndustries.Parts
     /// </summary>
     internal static class IndustrialSkin
     {
-        private const int Version = 4;
+        private const int Version = 5;
         /// <summary>Border of each tile repeating its edge, so mipmaps never mix two tiles (fraction of a tile).</summary>
         private const float Gutter = 8f / 256f;
         private const int Grid = 8;
@@ -174,7 +174,7 @@ namespace StellarIndustries.Parts
                     int col = x / tilePx;
                     float u = Inner((x % tilePx + 0.5f) / tilePx);
                     var tile = (Tile)(row * Grid + col);
-                    pixels[y * size + x] = (int)tile <= (int)Tile.IconChem ? (Color32)sample(tile, u, v) : (Color32)Color.black;
+                    pixels[y * size + x] = (int)tile <= (int)Tile.Sulfur ? (Color32)sample(tile, u, v) : (Color32)Color.black;
                 }
             }
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, true, linear);
@@ -529,6 +529,13 @@ namespace StellarIndustries.Parts
                     break;
                 }
                 case Tile.Stone: Stone(ref t, u, v, 91); break;
+                case Tile.Sulfur:
+                {
+                    Granules(ref t, u, v, new Color(0.95f, 0.85f, 0.2f), 98);
+                    if (Noise(u * 50f, v * 50f, 99) > 0.8f)
+                        t.Albedo = new Color(1f, 0.97f, 0.6f);
+                    break;
+                }
                 case Tile.VeinIron: Vein(ref t, u, v, new Color(0.42f, 0.2f, 0.14f), new Color(0.3f, 0.3f, 0.34f), 92); break;
                 case Tile.VeinCopper: Vein(ref t, u, v, new Color(0.85f, 0.48f, 0.25f), new Color(0.25f, 0.62f, 0.5f), 93); break;
                 case Tile.VeinAluminum: Vein(ref t, u, v, new Color(0.85f, 0.86f, 0.9f), new Color(0.7f, 0.42f, 0.32f), 94); break;

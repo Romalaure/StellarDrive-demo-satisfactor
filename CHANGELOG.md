@@ -1,5 +1,19 @@
 # Journal des changements
 
+## 0.16.0 — nouveaux minerais
+
+- **Cinq minerais dans le monde** : charbon, soufre, calcaire, quartz brut et minerai d'or. Environ
+  quatre rochers de fer, de cuivre ou d'aluminium sur dix en contiennent un à la place ; chaque
+  planète en a trois sur cinq. Le choix vient de l'identifiant du rocher dans le jeu : il est le
+  même pour tous les joueurs et à chaque partie. Ils se minent au laser, s'extraient avec
+  l'extracteur, apparaissent au scanner et ont leur couleur sur le rocher.
+- **À quoi ils servent** : charbon (combustible des générateurs, acier au haut fourneau), soufre
+  (caoutchouc, cellules de batterie), calcaire (béton), quartz brut (silice, cristaux de quartz),
+  or (lingots d'or, circuits imprimés). 8 recettes, 6 objets (7768-7773).
+- **Pureté stable** : la pureté des rochers des points chauds du jeu (la plupart des gisements)
+  dépendait de leur position et pouvait changer d'une session à l'autre ; elle vient maintenant de
+  leur identifiant.
+
 ## 0.15.0 — modules montés, scanner en main, tableau de bord
 
 - **Modules montés dans le scanner** : clic droit avec le scanner en main (ou Maj+N, Maj+K) ouvre

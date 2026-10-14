@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using StellarIndustries.Content;
 using StellarIndustries.Core;
 using StellarIndustries.Production;
 using UnityEngine;
@@ -147,6 +148,11 @@ namespace StellarIndustries.Parts
                 case GameItems.StellarShard: return (Tile.StellarCrystal, Tile.StellarCrystal, true, 4);
                 case GameItems.Ice: return (Tile.Ice, Tile.Ice, true, 5);
                 case GameItems.Glass: return (Tile.Glass, Tile.Glass, true, 6);
+                case ResourceCatalog.Coal: return (Tile.Coal, Tile.Coal, false, 8);
+                case ResourceCatalog.Sulfur: return (Tile.Sulfur, Tile.Sulfur, true, 9);
+                case ResourceCatalog.Limestone: return (Tile.Concrete, Tile.Concrete, false, 10);
+                case ResourceCatalog.RawQuartz: return (Tile.Glass, Tile.Glass, true, 11);
+                case ResourceCatalog.GoldOre: return (Tile.Gold, Tile.Gold, false, 12);
                 default: return (Tile.VeinAluminum, Tile.Gold, false, 7);
             }
         }
@@ -170,6 +176,8 @@ namespace StellarIndustries.Parts
             // Whole facets of the rock turn to ore, in patches: more of them when the deposit is rich
             float frequency = 3f / size;
             float threshold = purity == Purity.Impure ? 0.62f : purity == Purity.Normal ? 0.52f : 0.42f;
+            if (ResourceCatalog.Get(item) != null)
+                threshold -= 0.17f;
             float lift = size * 0.004f;
             var b = new MeshBuilder { Panel = IndustrialSkin.Uv(vein) };
             var spots = new List<(Vector3 At, Vector3 Normal)>();

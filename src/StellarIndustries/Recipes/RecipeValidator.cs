@@ -66,6 +66,8 @@ namespace StellarIndustries.Recipes
 
             // Items the recipes need but nothing gives (the game's own items come from the world)
             var produced = new HashSet<uint>(recipeList.SelectMany(r => r.Outputs ?? new ItemAmount[0]).Select(o => o.Item));
+            foreach (ResourceDef res in ResourceCatalog.All.Where(x => x.FoundInWorld))
+                produced.Add(res.Id);
             foreach (MachineDef m in machineList)
             {
                 if (m.FixedOutput != 0)

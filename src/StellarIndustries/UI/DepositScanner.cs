@@ -226,6 +226,11 @@ namespace StellarIndustries.UI
                 case GameItems.StellarShard: return new Color(0.75f, 0.55f, 1f);
                 case GameItems.Ice: return new Color(0.55f, 0.85f, 1f);
                 case GameItems.Glass: return new Color(0.6f, 1f, 0.9f);
+                case ResourceCatalog.Coal: return new Color(0.55f, 0.55f, 0.6f);
+                case ResourceCatalog.Sulfur: return new Color(1f, 0.92f, 0.3f);
+                case ResourceCatalog.Limestone: return new Color(0.92f, 0.88f, 0.75f);
+                case ResourceCatalog.RawQuartz: return new Color(1f, 0.8f, 0.95f);
+                case ResourceCatalog.GoldOre: return new Color(1f, 0.78f, 0.2f);
                 default: return new Color(0.9f, 0.85f, 0.55f);
             }
         }

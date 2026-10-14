@@ -34,6 +34,7 @@
     <Compile Include="..\..\src\StellarIndustries\Recipes\RecipeValidator.cs" Link="Linked\RecipeValidator.cs" />
     <Compile Include="..\..\src\StellarIndustries\Recipes\ItemValues.cs" Link="Linked\ItemValues.cs" />
     <Compile Include="..\..\src\StellarIndustries\Production\DepositPurity.cs" Link="Linked\DepositPurity.cs" />
+    <Compile Include="..\..\src\StellarIndustries\Production\OreConversion.cs" Link="Linked\OreConversion.cs" />
   </ItemGroup>
 
 </Project>

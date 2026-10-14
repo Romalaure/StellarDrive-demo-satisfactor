@@ -49,5 +49,16 @@ Près d'une [Tour radar](Machine-7622) (moins de 60 m), le scanner porte au moin
 
 **Pureté** : chaque rocher est *impur* (un extracteur y travaille à moitié de sa vitesse, le laser en tire moitié moins), *normal* ou *pur* (vitesse et minage doublés). Un gisement riche se voit : ses filons et nodules de minerai sont plus nombreux et plus gros.
 
+## Nouveaux minerais
+Environ quatre rochers de métal sur dix contiennent un minerai du mod à la place du fer, du cuivre ou de l'aluminium. Chaque planète en a trois sur cinq. Ils se minent au laser, s'extraient et se repèrent au scanner comme les autres.
+
+| Minerai | Couleur sur le rocher | Sert à |
+|---|---|---|
+| [Charbon](Objet-7768) | noir | combustible des générateurs, acier au haut fourneau |
+| [Soufre](Objet-7769) | jaune, petits cristaux | caoutchouc (raffinerie), cellules de batterie |
+| [Calcaire](Objet-7770) | blanc cassé | béton (presse) |
+| [Quartz brut](Objet-7771) | cristaux clairs | silice (broyeur), cristaux de quartz (haut fourneau) |
+| [Minerai d'or](Objet-7772) | doré | [lingots d'or](Objet-7773) (fonderie), puis circuits imprimés |
+
 ## Stocker
 Le [Conteneur industriel](Machine-7608) offre 10 emplacements, comme toutes les machines du mod.

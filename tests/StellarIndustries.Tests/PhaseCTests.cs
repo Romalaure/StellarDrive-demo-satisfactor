@@ -217,7 +217,7 @@ namespace StellarIndustries.Tests
                 if (m.Sinks)
                     made.Add(ResourceCatalog.Voucher);
             }
-            foreach (ResourceDef r in ResourceCatalog.All)
+            foreach (ResourceDef r in ResourceCatalog.All.Where(x => !x.FoundInWorld))
                 Assert.Contains(r.Id, made);
         }
     }

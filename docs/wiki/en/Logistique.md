@@ -49,5 +49,16 @@ Within 60 m of a [Radar Tower](Machine-7622), the scanner reaches at least 400 m
 
 **Purity**: every rock is *impure* (an extractor works at half speed there, the laser gets half as much), *normal* or *pure* (double speed and mining). A rich deposit shows: its ore veins and nodules are more numerous and bigger.
 
+## New ores
+About four metal rocks in ten hold one of the mod's ores instead of iron, copper or aluminum. Each planet has three of the five. They are mined with the laser, extracted and found with the scanner like the others.
+
+| Ore | Colour on the rock | Used for |
+|---|---|---|
+| [Coal](Objet-7768) | black | generator fuel, steel in the blast furnace |
+| [Sulfur](Objet-7769) | yellow, small crystals | rubber (refinery), battery cells |
+| [Limestone](Objet-7770) | off-white | concrete (press) |
+| [Raw Quartz](Objet-7771) | clear crystals | silica (crusher), quartz crystals (blast furnace) |
+| [Gold Ore](Objet-7772) | golden | [gold ingots](Objet-7773) (smelter), then circuit boards |
+
 ## Storage
 The [Industrial Container](Machine-7608) has 10 slots, like every machine of the mod.

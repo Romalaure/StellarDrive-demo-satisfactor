@@ -449,6 +449,36 @@ namespace StellarIndustries.Recipes
                 Id = "accelerator.analysis_module2", Name = "Module d'analyse II", Machine = MachineCatalog.Accelerator, Seconds = 40f, Tier = 4, Tech = ScanTech4,
                 Inputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule, 1), new ItemAmount(ResourceCatalog.QuantumProcessor, 1) },
                 Outputs = new[] { new ItemAmount(ResourceCatalog.AnalysisModule2, 1) }
+            },
+
+            // ---- 0.16: the new ores
+            new RecipeDef
+            {
+                Id = "foundry.steel_coal", Name = "Lingot d'acier (charbon)", Machine = MachineCatalog.Foundry, Seconds = 4f, Tier = 2,
+                Inputs = new[] { new ItemAmount(GameItems.Iron, 3), new ItemAmount(ResourceCatalog.Coal, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.SteelIngot, 3) }
+            },
+            R("press.concrete_limestone", "Béton (calcaire)", MachineCatalog.Press, 4f, In(ResourceCatalog.Limestone, 3), Out(ResourceCatalog.Concrete, 2), tier: 1),
+            R("crusher.silica_quartz", "Silice (quartz brut)", MachineCatalog.Crusher, 3f, In(ResourceCatalog.RawQuartz, 1), Out(ResourceCatalog.Silica, 3), tier: 1),
+            R("foundry.quartz_raw", "Cristal de quartz (quartz brut)", MachineCatalog.Foundry, 6f, In(ResourceCatalog.RawQuartz, 3), Out(ResourceCatalog.QuartzCrystal, 2), tier: 2),
+            new RecipeDef
+            {
+                Id = "refinery.rubber_sulfur", Name = "Caoutchouc (soufre)", Machine = MachineCatalog.Refinery, Seconds = 6f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Resin, 2), new ItemAmount(ResourceCatalog.Sulfur, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.Rubber, 3) }
+            },
+            new RecipeDef
+            {
+                Id = "assembler.battery_sulfur", Name = "Cellule de batterie (soufre)", Machine = MachineCatalog.Assembler, Seconds = 10f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.Sulfur, 3), new ItemAmount(ResourceCatalog.AluminumCasing, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.BatteryCell, 1) }
+            },
+            R("smelter.gold", "Lingot d'or", MachineCatalog.Smelter, 4f, In(ResourceCatalog.GoldOre, 2), Out(ResourceCatalog.GoldIngot, 1), tier: 1),
+            new RecipeDef
+            {
+                Id = "assembler.circuit_gold", Name = "Circuit imprimé (or)", Machine = MachineCatalog.Assembler, Seconds = 8f, Tier = 2,
+                Inputs = new[] { new ItemAmount(ResourceCatalog.GoldIngot, 1), new ItemAmount(GameItems.Glass, 1) },
+                Outputs = new[] { new ItemAmount(ResourceCatalog.CircuitBoard, 2) }
             }
         };
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Services;
 using Planets.Objects;
+using Planets.Objects.Common.Model;
 using Ships.Interface.Model.Parts;
 using Ships.Services;
 using StellarIndustries.Content;
@@ -68,19 +69,62 @@ namespace StellarIndustries.Production
         public static Purity PurityOf(MinablePlanetObject rock)
         {
             uint item = rock.dropRate.item != null ? rock.dropRate.item.id : 0u;
-            // The game's own id of a planet object when it has one (the same for every player and every session)
+            (int a, int b, int c) = KeyOf(rock);
+            return DepositPurity.Of(item, a, b, c);
+        }
+
+        /// <summary>
+        /// A rock's key, the same for every player and every session: the game's own id of the
+        /// planet object when it has one (planet first), otherwise its place (half meters) in its
+        /// parent's frame.
+        /// </summary>
+        private static (int Planet, int B, int C) KeyOf(MinablePlanetObject rock)
+        {
             var reference = rock.GetComponent<Planets.Objects.Common.Model.PlanetObjectReference>();
             switch (reference != null ? reference.Id : null)
             {
                 case Planets.Objects.Common.Model.DenseObjectId dense:
-                    return DepositPurity.Of(item, Fold(dense.PlanetId), Fold(dense.PlacedObjectId.ChunkHash) ^ dense.DenseConfigId * 7919, (int)dense.PlacedObjectId.IdWithinChunk);
+                    return (Fold(dense.PlanetId), Fold(dense.PlacedObjectId.ChunkHash) ^ dense.DenseConfigId * 7919, (int)dense.PlacedObjectId.IdWithinChunk);
                 case Planets.Objects.Common.Model.StaticObjectId fixedId:
-                    return DepositPurity.Of(item, Fold(fixedId.PlanetId), 1, fixedId.Index);
+                    return (Fold(fixedId.PlanetId), 1, fixedId.Index);
+                case Planets.Objects.Common.Model.HotspotObjectId hotspot:
+                    return (Fold(hotspot.PlanetId), Fold(hotspot.PlacedObjectId.ChunkHash) ^ 0x5f3759df, (int)hotspot.PlacedObjectId.IdWithinChunk);
             }
-            // Otherwise its place (half meters) in its parent's frame
             Transform t = rock.transform;
             Vector3 p = t.parent != null ? t.localPosition : t.position;
-            return DepositPurity.Of(item, Mathf.RoundToInt(p.x * 2f), Mathf.RoundToInt(p.y * 2f), Mathf.RoundToInt(p.z * 2f));
+            return (Mathf.RoundToInt(p.x * 2f), Mathf.RoundToInt(p.y * 2f), Mathf.RoundToInt(p.z * 2f));
+        }
+
+        private static readonly HarmonyLib.AccessTools.FieldRef<MinablePlanetObject, string> Label = HarmonyLib.AccessTools.FieldRefAccess<MinablePlanetObject, string>("label");
+
+        /// <summary>
+        /// Turns a metal rock into the mod's ore it holds (see <see cref="OreConversion"/>): its
+        /// drop and its name change, on this player's game.
+        /// </summary>
+        public static void Convert(MinablePlanetObject rock)
+        {
+            // Checked every time: the game reuses rock objects, and a reused one gets its metal back
+            if (rock == null || rock.dropRate.item == null)
+                return;
+            uint item = rock.dropRate.item.id;
+            if (!OreConversion.Converts(item))
+                return;
+            (int a, int b, int c) = KeyOf(rock);
+            uint ore = OreConversion.Of(item, a, b, c);
+            Items.Model.ItemSettings settings = ore != item ? IndustrialItems.Find(ore) : null;
+            if (settings == null)
+                return;
+            ItemDropRate drop = rock.dropRate;
+            rock.dropRate = new ItemDropRate { item = settings, amountMin = drop.amountMin, amountMax = drop.amountMax };
+            Label(rock) = IndustrialItems.NameOf(ore);
+        }
+
+        /// <summary>Development: a rock's key and the id type it came from.</summary>
+        public static string DescribeKey(MinablePlanetObject rock)
+        {
+            var reference = rock.GetComponent<Planets.Objects.Common.Model.PlanetObjectReference>();
+            (int a, int b, int c) = KeyOf(rock);
+            return $"{(reference != null ? reference.Id?.GetType().Name ?? "null id" : "no reference")} {a}/{b}/{c}";
         }
 
         private static int Fold(ulong v) => unchecked((int)(v ^ (v >> 32)));
@@ -97,6 +141,7 @@ namespace StellarIndustries.Production
             var list = new List<Rock>();
             foreach (MinablePlanetObject rock in Object.FindObjectsByType<MinablePlanetObject>(FindObjectsSortMode.None))
             {
+                Convert(rock);
                 if (rock == null || rock.dropRate.item == null)
                     continue;
                 uint item = rock.dropRate.item.id;
@@ -179,6 +224,9 @@ namespace StellarIndustries.Production
     [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.GetItemDrop))]
     internal static class MiningPurityPatch
     {
+        /// <summary>A rock mined before any scan still gives the mod's ore it holds.</summary>
+        private static void Prefix(Planets.Objects.MinablePlanetObject __instance) => Deposits.Convert(__instance);
+
         private static void Postfix(Planets.Objects.MinablePlanetObject __instance, ref Items.Model.ItemDrop __result)
         {
             try

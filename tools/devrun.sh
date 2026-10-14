@@ -11,7 +11,7 @@ W="${SAVES:-$USERPROFILE/AppData/LocalLow/CuriousOwlGames/StellarDrive/WorldSave
 L="$GAME/MelonLoader/Latest.log"
 while tasklist //FI "IMAGENAME eq StellarDrive.exe" | grep -q StellarDrive; do sleep 2; done
 cp "$C" "$S/prefs.user.cfg"
-if [ "${FRESH:-0}" = 1 ]; then rm -rf "$W/SI_DevTest"; mkdir -p "$W/SI_DevTest" && cp "$W/${WORLD:-test4}/world.json" "$W/SI_DevTest/world.json"; fi
+if [ "${FRESH:-0}" = 1 ]; then rm -rf "$W/SI_DevTest"; mkdir -p "$W/SI_DevTest" && cp "$W/${WORLD:-test factory}/world.json" "$W/SI_DevTest/world.json"; fi
 EXTRA="DevWorld = \"$(cygpath -m "$W")/SI_DevTest/world.json\"\nDevPhase = ${PHASE:-1}\nDevQuitSeconds = $QUIT.0\nLanguage = \"${LANGUAGE:-auto}\""
 awk -v extra="$EXTRA" '
   /^\[/ { if (insec && !done) { n = split(extra, a, "\n"); for (i = 1; i <= n; i++) print a[i]; done = 1 } insec = ($0 == "[StellarIndustries]") }

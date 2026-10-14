@@ -399,7 +399,8 @@ namespace StellarIndustries.Production
             (GameItems.Wood, 40000f),
             (ResourceCatalog.BiomassBrick, 200000f),
             (ResourceCatalog.Biomass, 15000f),
-            (ResourceCatalog.Charcoal, 300000f)
+            (ResourceCatalog.Charcoal, 300000f),
+            (ResourceCatalog.Coal, 250000f)
         };
 
         /// <summary>What this generator burns.</summary>

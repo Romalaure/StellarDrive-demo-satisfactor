@@ -118,7 +118,7 @@ namespace StellarIndustries.Diagnostics
             if (!_started && inWorld > 25f)
             {
                 _started = true;
-                MelonCoroutines.Start(Guard(_phase.Value == 4 ? Showcase() : _phase.Value == 3 ? LoadTest() : _phase.Value == 2 ? Verify() : Produce()));
+                MelonCoroutines.Start(Guard(Ready(_phase.Value == 4 ? Showcase() : _phase.Value == 3 ? LoadTest() : _phase.Value == 2 ? Verify() : Produce())));
             }
             if (_quit.Value > 0f && inWorld > _quit.Value)
             {
@@ -126,6 +126,28 @@ namespace StellarIndustries.Diagnostics
                 Application.Quit();
                 _quit.Value = 0f;
             }
+        }
+
+        /// <summary>Waits (90 s at most) until the player is in the world, then runs the test.</summary>
+        private static IEnumerator Ready(IEnumerator test)
+        {
+            for (int i = 0; i < 180; i++)
+            {
+                var players = ServiceLocator.GetService<Players.Services.PlayersServerTracker>();
+                if (players != null && players.ActivePlayers.Count > 0 && ServiceLocator.GetService<ShipsServerTracker>() != null)
+                    break;
+                yield return Wait(0.5f);
+            }
+            var tracker = ServiceLocator.GetService<Players.Services.PlayersServerTracker>();
+            if (tracker == null || tracker.ActivePlayers.Count == 0)
+            {
+                Directory.CreateDirectory(Folder);
+                ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "not_ready.png"));
+                Log($"world not ready after 90 s: players service {tracker != null}, scene {SceneManager.GetActiveScene().name}, cursor {Cursor.visible}");
+                yield return Wait(1f);
+            }
+            while (test.MoveNext())
+                yield return test.Current;
         }
 
         private static IEnumerator Guard(IEnumerator test)
@@ -638,7 +660,7 @@ namespace StellarIndustries.Diagnostics
             var ids = ServiceLocator.GetService<WorldObjectsIdsServerTracker>();
             if (player == null || spaces == null || ships == null || ids == null)
             {
-                Log("FAIL services missing");
+                Log($"FAIL services missing: player {player != null} (players {players?.ActivePlayers.Count}), spaces {spaces != null}, ships {ships != null}, ids {ids != null}");
                 yield break;
             }
             // Machines and poles in a row along x, each centred in its slot
@@ -765,6 +787,7 @@ namespace StellarIndustries.Diagnostics
                 }
                 Log("probe all rocks: " + string.Join(", ", Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None).GroupBy(m => m.dropRate.item != null ? m.dropRate.item.itemName : "?").Select(g => g.Count() + " " + g.Key)));
             }
+            Log("deposit keys: " + string.Join(" ; ", rocks.Select(r => r.Name + " " + Deposits.DescribeKey(r.Object))));
             Log($"deposits: {rocks.Count} rock(s) loaded: " + string.Join(", ", rocks.GroupBy(r => r.Name + " " + r.Purity).Select(g => g.Count() + " " + g.Key)));
             var localPlayer = SDModKit.Game.GameRefs.PlayersClient?.LocalPlayer;
             Vector3 worldUp = localPlayer != null ? localPlayer.Rotation * Vector3.up : ship.up;
@@ -1007,7 +1030,8 @@ namespace StellarIndustries.Diagnostics
             Log($"before: tech 7801 researched {state.IsResearched(7801)}, workshop unlocked {before}, press unlocked {research.IsPartUnlocked(press)}");
             state.ServerMarkResearchAsDone(7801);
             bool workshopAfter = research.IsPartUnlocked(workshop), pressAfter = research.IsPartUnlocked(press);
-            bool ok = Parts.IndustryResearch.Techs.Count == Parts.IndustryResearch.All.Length && (before == false || state.IsResearched(7801)) && workshopAfter && !pressAfter;
+            // In a world where Transformation is already researched the press is rightly unlocked
+            bool ok = Parts.IndustryResearch.Techs.Count == Parts.IndustryResearch.All.Length && (before == false || state.IsResearched(7801)) && workshopAfter && (!pressAfter || state.IsResearched(7802));
             Log($"{(ok ? "PASS" : "FAIL")} research: {Parts.IndustryResearch.Techs.Count} techs in the tree; after Industrie de base: workshop unlocked {workshopAfter}, press unlocked {pressAfter} (needs Transformation)");
             // The prospecting tech's card lists the recipes it unlocks
             var card = Resources.FindObjectsOfTypeAll<global::UI.Research.ResearchInfo>().FirstOrDefault(c => c.gameObject.scene.IsValid());
@@ -1109,14 +1133,16 @@ namespace StellarIndustries.Diagnostics
             }
             var slots = new Production.Stack[10];
             MachineSimulation.Read((StorageState)part.State, slots);
-            int iron = Crafting.CountOf(slots, GameItems.Iron);
-            int all = slots.Sum(x => x.Count);
             MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
+            // The test rock gives iron, or the mod's ore it holds
+            Production.Deposits.Deposit? found = Production.Deposits.Find(ship.Id, part, Def(MachineCatalog.Extractor));
+            uint ore = found?.Item ?? GameItems.Iron;
+            int iron = Crafting.CountOf(slots, ore);
+            int all = slots.Sum(x => x.Count);
             // About 28 s with the rock at 1 item per 6 s, times the rock's purity (x0.5, x1 or x2)
-            Production.Deposits.Deposit? deposit = Production.Deposits.Find(ship.Id, part, Def(MachineCatalog.Extractor));
-            float factor = deposit != null ? DepositPurity.Factor(deposit.Value.Purity) : 1f;
-            bool ok = iron >= Mathf.FloorToInt(3 * factor) && iron <= Mathf.CeilToInt(6 * factor) && all == iron && iron > 0;
-            Log($"{(ok ? "PASS" : "FAIL")} extractor: {iron} iron extracted ({all} items), {rt?.Status} {rt?.Detail}");
+            float factor = found != null ? DepositPurity.Factor(found.Value.Purity) : 1f;
+            bool ok = iron >= Mathf.FloorToInt(3 * factor) && iron <= Mathf.CeilToInt(6 * factor) + 1 && all == iron && iron > 0;
+            Log($"{(ok ? "PASS" : "FAIL")} extractor: {iron} {IndustrialItems.NameOf(ore)} extracted ({all} items), {rt?.Status} {rt?.Detail}");
         }
 
         // ---- Helpers

@@ -76,6 +76,12 @@ namespace StellarIndustries.Content
             [7764] = ("Analysis Module", "Fits into the deposit scanner: it shows the purity of the deposits and the yield an extractor would get."),
             [7765] = ("Range Module II", "Fits into the deposit scanner: +50% range."),
             [7766] = ("Range Module III", "Fits into the deposit scanner: doubles the range."),
+            [7768] = ("Coal", "Black, crumbly rock that burns for a long time: generator fuel and the carbon for steel in the blast furnace."),
+            [7769] = ("Sulfur", "Strong-smelling yellow crystals: it hardens rubber and goes into batteries."),
+            [7770] = ("Limestone", "Pale, soft rock: pressed, it makes concrete without stellar dust."),
+            [7771] = ("Raw Quartz", "Quartz taken from the rock: crushed into silica, or grown into crystals in the blast furnace."),
+            [7772] = ("Gold Ore", "Rock veined with gold. The smelter gets gold ingots out of it."),
+            [7773] = ("Gold Ingot", "Molten and cast gold: it conducts and never rusts, ideal for circuits and connectors."),
             [7767] = ("Analysis Module II", "Fits into the deposit scanner: purity, yield, and markers on the deposits in your view for 30 seconds, whatever the scanner."),
         };
 
@@ -165,6 +171,13 @@ namespace StellarIndustries.Content
             ["assembler.scanner2"] = "Deposit Scanner Mk2",
             ["fabricator.scanner3"] = "Deposit Scanner Mk3",
             ["fabricator.range_module2"] = "Range Module II",
+            ["foundry.steel_coal"] = "Steel Ingot (coal)",
+            ["press.concrete_limestone"] = "Concrete (limestone)",
+            ["crusher.silica_quartz"] = "Silica (raw quartz)",
+            ["foundry.quartz_raw"] = "Quartz Crystal (raw quartz)",
+            ["refinery.rubber_sulfur"] = "Rubber (sulfur)",
+            ["assembler.battery_sulfur"] = "Battery Cell (sulfur)",
+            ["assembler.circuit_gold"] = "Circuit Board (gold)",
             ["accelerator.range_module3"] = "Range Module III",
             ["accelerator.analysis_module2"] = "Analysis Module II",
         };

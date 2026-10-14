@@ -46,6 +46,8 @@ namespace StellarIndustries.Content
         public ResourceShape Shape;
         /// <summary>Tech level that makes it obtainable (documentation and validation only for now).</summary>
         public int Tier;
+        /// <summary>Mined from rocks in the world (no recipe makes it): see Production.OreConversion.</summary>
+        public bool FoundInWorld;
     }
 
     /// <summary>
@@ -122,6 +124,12 @@ namespace StellarIndustries.Content
         public const uint RangeModule2 = 7765;
         public const uint RangeModule3 = 7766;
         public const uint AnalysisModule2 = 7767;
+        public const uint Coal = 7768;
+        public const uint Sulfur = 7769;
+        public const uint Limestone = 7770;
+        public const uint RawQuartz = 7771;
+        public const uint GoldOre = 7772;
+        public const uint GoldIngot = 7773;
 
         public static readonly ResourceDef[] All =
         {
@@ -535,6 +543,43 @@ namespace StellarIndustries.Content
                 Id = AnalysisModule2, Name = "Module d'analyse II", Category = ResourceCategory.Advanced, Mass = 0.3f, Tier = 3, MaxStack = 5,
                 Description = "Se monte dans le scanner de gisements : pureté, rendement, et repères sur les gisements dans votre vue pendant 30 secondes, quel que soit le scanner.",
                 MaterialFrom = GameItems.StellarShard
+            },
+            // ---- 0.16: the mod's ores, found in part of the game's metal rocks (see Production.OreConversion)
+            new ResourceDef
+            {
+                Id = Coal, FoundInWorld = true, Name = "Charbon", Category = ResourceCategory.Ore, Mass = 1f, Tier = 0, MaxStack = 100,
+                Description = "Roche noire et friable qui brûle longtemps : combustible des générateurs et carbone de l'acier au haut fourneau.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Sulfur, FoundInWorld = true, Name = "Soufre", Category = ResourceCategory.Ore, Mass = 0.8f, Tier = 1, MaxStack = 100,
+                Description = "Cristaux jaunes à l'odeur forte : il durcit le caoutchouc et entre dans les batteries.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = Limestone, FoundInWorld = true, Name = "Calcaire", Category = ResourceCategory.Ore, Mass = 1.2f, Tier = 0, MaxStack = 100,
+                Description = "Roche claire et tendre : pressée, elle donne du béton sans poussière stellaire.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = RawQuartz, FoundInWorld = true, Name = "Quartz brut", Category = ResourceCategory.Ore, Mass = 0.8f, Tier = 1, MaxStack = 100,
+                Description = "Quartz tiré de la roche : broyé en silice, ou cristallisé au haut fourneau.",
+                MaterialFrom = GameItems.Glass
+            },
+            new ResourceDef
+            {
+                Id = GoldOre, FoundInWorld = true, Name = "Minerai d'or", Category = ResourceCategory.Ore, Mass = 1.5f, Tier = 1, MaxStack = 100,
+                Description = "Roche veinée d'or. La fonderie en tire des lingots d'or.",
+                MaterialFrom = GameItems.Iron
+            },
+            new ResourceDef
+            {
+                Id = GoldIngot, Name = "Lingot d'or", Category = ResourceCategory.Intermediate, Mass = 2f, Tier = 1, MaxStack = 100,
+                Description = "Or fondu et coulé : il conduit sans jamais rouiller, idéal pour les circuits et les connecteurs.",
+                MaterialFrom = GameItems.Iron
             }
         };
 

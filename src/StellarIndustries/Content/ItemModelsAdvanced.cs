@@ -37,6 +37,12 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.QuantumProcessor: QuantumModel(); return true;
                 case ResourceCatalog.StellarMatter: MatterModel(); return true;
                 case ResourceCatalog.StellarFuelRod: FuelRodModel(); return true;
+                case ResourceCatalog.Coal: Lumps(Tile.Coal, 9); return true;
+                case ResourceCatalog.Sulfur: Lumps(Tile.Sulfur, 8); return true;
+                case ResourceCatalog.Limestone: Lumps(Tile.Concrete, 6); return true;
+                case ResourceCatalog.RawQuartz: RawQuartzModel(); return true;
+                case ResourceCatalog.GoldOre: GoldOreModel(); return true;
+                case ResourceCatalog.GoldIngot: Ingots(Tile.Gold); return true;
                 case ResourceCatalog.StellarWaste: WasteModel(); return true;
                 case ResourceCatalog.Voucher: VoucherModel(); return true;
                 case ResourceCatalog.NeuroProcessor: NeuroModel(); return true;
@@ -52,6 +58,25 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.AnalysisModule2: ModuleModel(Tile.Gold, 2); return true;
                 default: return false;
             }
+        }
+
+        // Milky quartz points on a piece of rock
+        private static void RawQuartzModel()
+        {
+            Box(Tile.Stone, V(0f, 0.03f, 0f), V(0.18f, 0.06f, 0.14f), Quaternion.Euler(0f, 20f, 0f));
+            Cyl(Tile.Glass, V(0f, 0.05f, 0f), V(0.02f, 0.18f, 0.01f), 0.03f, 0.03f, 6);
+            Cyl(Tile.Glass, V(0.02f, 0.18f, 0.01f), V(0.025f, 0.22f, 0.012f), 0.03f, 0.003f, 6, capB: false);
+            Cyl(Tile.Glass, V(0.05f, 0.05f, 0.02f), V(0.1f, 0.13f, 0.04f), 0.022f, 0.022f, 6);
+            Cyl(Tile.Glass, V(-0.04f, 0.05f, -0.02f), V(-0.08f, 0.12f, -0.05f), 0.02f, 0.02f, 6);
+        }
+
+        // Lumps of rock with gold nuggets in them
+        private static void GoldOreModel()
+        {
+            Lumps(Tile.Stone, 6);
+            var rnd = new System.Random(23);
+            for (int i = 0; i < 5; i++)
+                Box(Tile.Gold, V((float)rnd.NextDouble() * 0.16f - 0.08f, 0.07f + (float)rnd.NextDouble() * 0.04f, (float)rnd.NextDouble() * 0.16f - 0.08f), V(0.03f, 0.02f, 0.025f), Quaternion.Euler(rnd.Next(0, 60), rnd.Next(0, 360), 0f));
         }
 
         // A fuel rod lying down: aluminium sheath, glowing core seen through windows, end caps
