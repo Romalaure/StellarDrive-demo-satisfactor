@@ -344,6 +344,13 @@ namespace StellarIndustries.Core
         // A point of the current atlas panel
         private Vector2 At(float u, float v) => new Vector2(Panel.xMin + u * Panel.width, Panel.yMin + v * Panel.height);
 
+        /// <summary>One triangle facing <paramref name="normal"/>, its corners at the given places (0-1) of the current panel.</summary>
+        public void Face(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 normal, Vector2 uv0, Vector2 uv1, Vector2 uv2)
+        {
+            Vector3 n = normal.normalized;
+            Triangle(p0, p1, p2, n, n, n, n, At(uv0.x, uv0.y), At(uv1.x, uv1.y), At(uv2.x, uv2.y));
+        }
+
         private void Triangle(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 n0, Vector3 n1, Vector3 n2, Vector3 outward, Vector2 t0, Vector2 t1, Vector2 t2)
         {
             // Unity front faces: Cross(p1 - p0, p2 - p0) points out of the surface

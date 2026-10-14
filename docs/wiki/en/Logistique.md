@@ -7,7 +7,7 @@ Conveyors (the "Convoyeurs" build tab, *Conveyors* research) carry items from on
 - the first belt **takes** from the part behind it (a machine only gives its products, a chest gives anything); every belt **puts** into the part in front of it (a machine only takes its recipes' ingredients);
 - rate: Mk1 1 item/s, [Mk2](Machine-7624) 2.5/s, [Mk3](Machine-7625) 6/s; a belt carries a few items at most, and a full line stops like a real belt;
 - the [Splitter](Machine-7627) hands items out in turn to the front, left and right; the [Merger](Machine-7628) gathers the back, left and right into the front;
-- the [Bucket Lift](Machine-7626) climbs two meters: it takes from behind its foot and drops in front of its top.
+- the [Bucket Lift](Machine-7626) climbs three meters: it takes from behind its foot and drops in front of its top.
 
 Look at a conveyor to see what is linked to its input and output. Conveyors stay inside one ship or base.
 
@@ -30,7 +30,7 @@ Item lines stay inside one ship. To unload a cargo ship into your base, use two 
 Drowning in spare screws or plates? Send them to the [Recycler](Machine-7620): it destroys them and pays you in [recycling vouchers](Objet-7756). The more work an item took, the more it is worth (100 points make a voucher; an ore is worth 1 point). Then trade the vouchers at the [Exchange Counter](Machine-7621) for ore, stellar shards or stellar matter: pick what you want with **N**.
 
 ## Finding deposits
-The deposit scanner is an item: keep it in your inventory and press **K**.
+The deposit scanner is an item: keep it in your inventory and press **N** while not aiming at a machine (or **K**).
 
 | Item | Where | What it does |
 |---|---|---|

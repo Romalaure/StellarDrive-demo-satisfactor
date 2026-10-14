@@ -65,14 +65,19 @@ namespace StellarIndustries.UI
 
         public static void Update()
         {
-            if (_key == Key.None || _keyName != Settings.ScanKey.Value)
+            if (_keyName != Settings.ScanKey.Value)
             {
+                // A second key of its own (K by default; empty or None: only the recipe key)
                 _keyName = Settings.ScanKey.Value;
-                if (!Enum.TryParse(_keyName?.Trim(), true, out _key) || _key == Key.None)
-                    _key = Key.K;
+                if (!Enum.TryParse(_keyName?.Trim(), true, out _key))
+                    _key = Key.None;
             }
             Keyboard keyboard = Keyboard.current;
-            if (keyboard != null && !Cursor.visible && keyboard[_key].wasPressedThisFrame)
+            if (keyboard == null || Cursor.visible)
+                return;
+            // The recipe key scans when no machine is aimed at
+            bool recipeKey = keyboard[MachineHud.RecipeKey].wasPressedThisFrame && !MachineHud.Aiming;
+            if (recipeKey || (_key != Key.None && keyboard[_key].wasPressedThisFrame))
                 Run(null);
         }
 
@@ -311,7 +316,7 @@ namespace StellarIndustries.UI
             }
             if (radar && view != null)
                 DrawRadar(new Rect(rect.xMax - 200f, rect.y + 40f, 186f, 186f), view);
-            string hint = Lang.T($"[{_key}] nouveau balayage — un extracteur doit être à moins de 6 m d'un rocher", $"[{_key}] scan again — an extractor must be within 6 m of a rock");
+            string hint = Lang.T($"[{MachineHud.RecipeKey}] nouveau balayage — un extracteur doit être à moins de 6 m d'un rocher", $"[{MachineHud.RecipeKey}] scan again — an extractor must be within 6 m of a rock");
             if (_gear.ShowsPurity)
                 hint += Lang.T(" (pur ×2, impur ×½)", " (pure ×2, impure ×½)");
             GUI.Label(new Rect(rect.x + 12f, rect.yMax - 22f, rect.width - 20f, 20f), "<color=#9aa>" + hint + "</color>", _small);

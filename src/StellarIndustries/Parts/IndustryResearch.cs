@@ -359,3 +359,67 @@ namespace StellarIndustries.Parts
         }
     }
 }
+
+namespace StellarIndustries.Parts
+{
+    /// <summary>
+    /// The research table's card of a tech lists the parts it unlocks; the mod's prospecting techs
+    /// unlock recipes (the scanners and their modules): those are listed too, one line per recipe
+    /// with its item's icon and the machine that makes it.
+    /// </summary>
+    [HarmonyLib.HarmonyPatch(typeof(global::UI.Research.ResearchInfo), nameof(global::UI.Research.ResearchInfo.Show))]
+    internal static class ResearchRecipesPatch
+    {
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.ResearchInfo, global::UI.Research.TechUnlockItem> Prefab =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.ResearchInfo, global::UI.Research.TechUnlockItem>("techUnlockItemPrefab");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.ResearchInfo, Transform> Content =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.ResearchInfo, Transform>("contentTransform");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.ResearchInfo, Transform> UnlockLabel =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.ResearchInfo, Transform>("unlockLabel");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.TechUnlockItem, UnityEngine.UI.RawImage> Thumbnail =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.TechUnlockItem, UnityEngine.UI.RawImage>("thumbnail");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.TechUnlockItem, UnityEngine.UI.RawImage> Shadow =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.TechUnlockItem, UnityEngine.UI.RawImage>("thumbnailShadow");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.TechUnlockItem, GameObject> Container =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.TechUnlockItem, GameObject>("thumbnailContainer");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.TechUnlockItem, TMPro.TMP_Text> Label =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.TechUnlockItem, TMPro.TMP_Text>("label");
+        private static readonly HarmonyLib.AccessTools.FieldRef<global::UI.Research.TechUnlockItem, UnityEngine.UI.Image> Background =
+            HarmonyLib.AccessTools.FieldRefAccess<global::UI.Research.TechUnlockItem, UnityEngine.UI.Image>("background");
+
+        private static void Postfix(global::UI.Research.ResearchInfo __instance, ResearchSettings researchSettings)
+        {
+            try
+            {
+                IndustryResearch.Tech tech = researchSettings != null ? IndustryResearch.All.FirstOrDefault(t => t.Id == researchSettings.id) : null;
+                if (tech == null || tech.Recipes.Length == 0)
+                    return;
+                var thumbnails = global::Core.Services.ServiceLocator.GetService<Items.Interface.Service.IItemThumbnailProvider>();
+                int index = UnlockLabel(__instance).GetSiblingIndex() + researchSettings.unlockedParts.Length;
+                foreach (string id in tech.Recipes)
+                {
+                    StellarIndustries.Recipes.RecipeDef recipe = StellarIndustries.Recipes.RecipeBook.Get(id);
+                    if (recipe == null)
+                        continue;
+                    uint item = recipe.Outputs[0].Item;
+                    global::UI.Research.TechUnlockItem row = Object.Instantiate(Prefab(__instance), Content(__instance));
+                    row.transform.SetSiblingIndex(++index);
+                    Container(row).SetActive(true);
+                    Texture2D icon = thumbnails?.GetThumbnail(item);
+                    Thumbnail(row).texture = icon;
+                    Shadow(row).texture = icon;
+                    string machine = MachineCatalog.TryGet(recipe.Machine, out MachineDef def) ? Lang.MachineName(def) : "?";
+                    Label(row).text = Lang.T("Recette : ", "Recipe: ") + IndustrialItems.NameOf(item) + " (" + machine + ")";
+                    Color c = Background(row).color;
+                    c.a = 0f;
+                    Background(row).color = c;
+                }
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(Content(__instance) as RectTransform);
+            }
+            catch (System.Exception e)
+            {
+                ErrorLog.Report("research card", e);
+            }
+        }
+    }
+}

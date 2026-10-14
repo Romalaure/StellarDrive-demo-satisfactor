@@ -328,9 +328,9 @@ namespace StellarIndustries.Production
             },
             new MachineDef
             {
-                PartId = ConveyorLift, Name = "Élévateur à godets", Model = MachineModel.Lift, Tier = 1, Mass = 40f, Width = 0.8f, Height = 2f, Depth = 1f,
+                PartId = ConveyorLift, Name = "Élévateur à godets", Model = MachineModel.Lift, Scale = 1.5f, Tier = 1, Mass = 60f, Width = 0.8f, Height = 2f, Depth = 1f,
                 Conveyor = ConveyorKind.Lift, ConveyorRate = 2.5f, ConveyorHold = 6,
-                Description = "Monte les objets de deux mètres : il prend derrière son pied et dépose devant son sommet (2,5 objets par seconde). " +
+                Description = "Monte les objets de trois mètres : il prend derrière son pied et dépose devant son sommet (2,5 objets par seconde). " +
                               "Pour passer d'un pont à l'autre ou remplir une machine haute.",
                 BuildCost = new[] { (ResourceCatalog.IronPlate, 4), (ResourceCatalog.IronRod, 4), (ResourceCatalog.Rotor, 1) }
             },

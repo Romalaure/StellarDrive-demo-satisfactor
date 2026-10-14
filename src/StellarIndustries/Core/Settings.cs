@@ -39,9 +39,9 @@ namespace StellarIndustries.Core
             MachineHudDistance = _category.CreateEntry("MachineHudDistance", 4f,
                 description: "Distance (meters) up to which a machine you look at shows its state.");
             RecipeKey = _category.CreateEntry("RecipeKey", "N",
-                description: "Key that changes the recipe of the machine you look at (Shift + key: previous). A Unity Input System key name: N, B, Y, F6...");
+                description: "Key that changes the recipe of the machine you look at (Shift + key: previous); aimed at nothing, it runs the deposit scanner. A Unity Input System key name: N, B, Y, F6...");
             ScanKey = _category.CreateEntry("ScanKey", "K",
-                description: "Key of the deposit scanner: lists the minable rocks around you for a few seconds.");
+                description: "Second key of the deposit scanner (the recipe key also scans when no machine is aimed at). Empty or None: recipe key only.");
             ScanRadius = _category.CreateEntry("ScanRadius", 80f,
                 description: "Reach of the deposit scanner Mk1 (meters); the Mk2 reaches twice as far, the Mk3 almost four times.");
             ScanNeedsScanner = _category.CreateEntry("ScanNeedsScanner", true,

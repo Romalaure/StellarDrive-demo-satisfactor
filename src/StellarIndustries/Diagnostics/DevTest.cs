@@ -738,6 +738,23 @@ namespace StellarIndustries.Diagnostics
             }
             // The deposits near the player, with their ore model, two views each
             List<Deposits.Rock> rocks = Deposits.Loaded().OrderBy(r => Vector3.Distance(r.Position, camera.transform.position)).ToList();
+            if (rocks.Count > 0)
+            {
+                Deposits.Rock first = rocks[0];
+                Transform rt = first.Object.transform;
+                Log($"probe rock: components {string.Join(",", rt.GetComponents<Component>().Select(c => c.GetType().Name))}, children {rt.childCount}, colliders {string.Join(",", rt.GetComponentsInChildren<Collider>().Select(c => c.GetType().Name + (c is MeshCollider mc && mc.sharedMesh != null ? ":" + mc.sharedMesh.name + "/" + mc.sharedMesh.isReadable + "/" + mc.sharedMesh.vertexCount : "")))}");
+                foreach (MeshFilter mf in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
+                {
+                    Renderer r = mf.GetComponent<Renderer>();
+                    if (r == null || mf.sharedMesh == null || Vector3.Distance(r.bounds.center, first.Position) > 2.5f || r.bounds.size.magnitude > 8f)
+                        continue;
+                    string path = mf.name;
+                    for (Transform t = mf.transform.parent; t != null; t = t.parent)
+                        path = t.name + "/" + path;
+                    Log($"probe renderer near rock: {path} mesh {mf.sharedMesh.name} readable {mf.sharedMesh.isReadable} verts {mf.sharedMesh.vertexCount} mat {r.sharedMaterial?.name} shader {r.sharedMaterial?.shader?.name} pos {mf.transform.position} rot {mf.transform.rotation.eulerAngles} scale {mf.transform.lossyScale}");
+                }
+                Log("probe all rocks: " + string.Join(", ", Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None).GroupBy(m => m.dropRate.item != null ? m.dropRate.item.itemName : "?").Select(g => g.Count() + " " + g.Key)));
+            }
             Log($"deposits: {rocks.Count} rock(s) loaded: " + string.Join(", ", rocks.GroupBy(r => r.Name + " " + r.Purity).Select(g => g.Count() + " " + g.Key)));
             var localPlayer = SDModKit.Game.GameRefs.PlayersClient?.LocalPlayer;
             Vector3 worldUp = localPlayer != null ? localPlayer.Rotation * Vector3.up : ship.up;
@@ -954,6 +971,18 @@ namespace StellarIndustries.Diagnostics
             bool workshopAfter = research.IsPartUnlocked(workshop), pressAfter = research.IsPartUnlocked(press);
             bool ok = Parts.IndustryResearch.Techs.Count == Parts.IndustryResearch.All.Length && (before == false || state.IsResearched(7801)) && workshopAfter && !pressAfter;
             Log($"{(ok ? "PASS" : "FAIL")} research: {Parts.IndustryResearch.Techs.Count} techs in the tree; after Industrie de base: workshop unlocked {workshopAfter}, press unlocked {pressAfter} (needs Transformation)");
+            // The prospecting tech's card lists the recipes it unlocks
+            var card = Resources.FindObjectsOfTypeAll<global::UI.Research.ResearchInfo>().FirstOrDefault(c => c.gameObject.scene.IsValid());
+            Research.Interface.Values.ResearchSettings prospecting = Parts.IndustryResearch.Techs.FirstOrDefault(t => t.id == Recipes.RecipeBook.ScanTech2);
+            if (card == null || prospecting == null)
+            {
+                Log("SKIP research card: no card in the scene");
+                return;
+            }
+            card.Show(prospecting);
+            string[] rows = card.GetComponentsInChildren<TMPro.TMP_Text>(true).Select(t => t.text).Where(t => t != null && (t.StartsWith("Recette") || t.StartsWith("Recipe"))).ToArray();
+            Log($"{(rows.Length == 2 ? "PASS" : "FAIL")} research card of {prospecting.techName}: {string.Join(" | ", rows)}");
+            card.Hide();
         }
 
         // ---- Conveyors

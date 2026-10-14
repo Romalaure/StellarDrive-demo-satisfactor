@@ -28,6 +28,86 @@ namespace StellarIndustries.Content
 
         private static Vector3 V(float x, float y, float z) => new Vector3(x, y, z);
 
+        /// <summary>
+        /// How much bigger than the 0.3 m model the real thing is: a beam or a frame is a metre or
+        /// more long, a screw pile or a chip fits in a hand. Dropped items and the inventory icon
+        /// (framed on the model) use it.
+        /// </summary>
+        public static float RealScale(uint id)
+        {
+            switch (id)
+            {
+                case ResourceCatalog.SteelBeam:
+                case ResourceCatalog.EncasedBeam:
+                case ResourceCatalog.HeavyFrame:
+                    return 3f;
+                case ResourceCatalog.Framework:
+                case ResourceCatalog.SteelPipe:
+                case ResourceCatalog.AssemblyFrame:
+                case ResourceCatalog.EngineBlock:
+                case ResourceCatalog.Supercomputer:
+                case ResourceCatalog.TurboMotor:
+                case ResourceCatalog.StellarFuelRod:
+                    return 2.5f;
+                case ResourceCatalog.IronRod:
+                case ResourceCatalog.Motor:
+                case ResourceCatalog.CoolingSystem:
+                    return 2f;
+                case ResourceCatalog.ReinforcedPlate:
+                case ResourceCatalog.SmartPanel:
+                case ResourceCatalog.ControlUnit:
+                    return 1.8f;
+                case ResourceCatalog.IronPlate:
+                case ResourceCatalog.AluminumSheet:
+                case ResourceCatalog.CopperSheet:
+                case ResourceCatalog.AlloySheet:
+                case ResourceCatalog.Stator:
+                case ResourceCatalog.Computer:
+                    return 1.6f;
+                case ResourceCatalog.Rotor:
+                case ResourceCatalog.Concrete:
+                case ResourceCatalog.WiringHarness:
+                    return 1.5f;
+                case ResourceCatalog.CrushedIron:
+                case ResourceCatalog.CrushedCopper:
+                case ResourceCatalog.StellarDust:
+                case ResourceCatalog.Biomass:
+                case ResourceCatalog.Silica:
+                case ResourceCatalog.Cable:
+                case ResourceCatalog.Plastic:
+                case ResourceCatalog.Rubber:
+                case ResourceCatalog.Resin:
+                case ResourceCatalog.RadioModule:
+                case ResourceCatalog.BatteryCell:
+                case ResourceCatalog.StellarWaste:
+                    return 1.25f;
+                case ResourceCatalog.CircuitBoard:
+                case ResourceCatalog.HeatSink:
+                case ResourceCatalog.QuantumProcessor:
+                case ResourceCatalog.NeuroProcessor:
+                case ResourceCatalog.ScannerMk1:
+                case ResourceCatalog.ScannerMk2:
+                case ResourceCatalog.ScannerMk3:
+                    return 0.85f;
+                case ResourceCatalog.QuartzCrystal:
+                case ResourceCatalog.FineWire:
+                case ResourceCatalog.TimeCrystal:
+                    return 0.75f;
+                case ResourceCatalog.Screws:
+                case ResourceCatalog.Oscillator:
+                case ResourceCatalog.FastConnector:
+                case ResourceCatalog.LogicModule:
+                case ResourceCatalog.RangeModule:
+                case ResourceCatalog.AnalysisModule:
+                    return 0.6f;
+                case ResourceCatalog.StellarMatter:
+                case ResourceCatalog.Voucher:
+                    return 0.5f;
+                default:
+                    return 1f;
+            }
+        }
+
         /// <summary>The model of an item, or false if it has none (falls back to a plain shape).</summary>
         public static bool Build(MeshBuilder m, uint id)
         {

@@ -7,20 +7,20 @@ using UnityEngine.Rendering;
 namespace StellarIndustries.Parts
 {
     /// <summary>
-    /// Makes the game's minable rocks read as ore deposits: each gets, on this player's game
-    /// only, a model of its ore built by the mod and added under the rock (so it goes away when
-    /// the rock is mined): metal ore nodules and nuggets breaking out of the stone, or crystal
-    /// clusters for stellar shards, ice and glass, plus scree around its foot. A pure deposit
-    /// shows more and bigger ore than a normal one, an impure one only a little. Purely visual:
-    /// no collider, nothing saved or sent, the rock itself is untouched. Rocks are looked for
-    /// every few seconds; one mesh is shared by all deposits of the same ore, purity and shape.
+    /// Makes the game's minable rocks read as ore deposits, on this player's game only: veins of
+    /// their ore on the rock's own facets (built from the rock's mesh, a hair above it),
+    /// with a few nuggets, or small crystals for stellar shards, ice and glass. A pure deposit
+    /// shows ore on half its facets and many nuggets, an impure one on a few facets. The game draws each rock with a
+    /// separate "... visual" object at the rock's place; the veins are added under the rock itself
+    /// (they go away when it is mined) at the pose of that visual. Purely visual: no collider,
+    /// nothing saved or sent, the rock is untouched. One mesh is shared by every rock of the same
+    /// shape, ore and purity.
     /// </summary>
     internal static class DepositDecor
     {
         public const string ChildName = "SI_DepositDecor";
-        private const int Variants = 4;
 
-        private static readonly Dictionary<(uint, Purity, int), Mesh> Meshes = new Dictionary<(uint, Purity, int), Mesh>();
+        private static readonly Dictionary<(int, uint, Purity), Mesh> Meshes = new Dictionary<(int, uint, Purity), Mesh>();
         private static float _next;
 
         /// <summary>Rocks decorated since the scene loaded (development log).</summary>
@@ -37,11 +37,22 @@ namespace StellarIndustries.Parts
             if (!Settings.DepositDetails.Value || Time.unscaledTime < _next || !IndustrialSkin.Ready)
                 return;
             _next = Time.unscaledTime + 3f;
+            var pending = new List<Deposits.Rock>();
             foreach (Deposits.Rock rock in Deposits.Loaded())
+            {
+                if (rock.Object != null && rock.Object.transform.Find(ChildName) == null)
+                    pending.Add(rock);
+            }
+            if (pending.Count == 0)
+                return;
+            Dictionary<Vector3Int, List<MeshFilter>> visuals = Visuals();
+            foreach (Deposits.Rock rock in pending)
             {
                 try
                 {
-                    Decorate(rock);
+                    MeshFilter visual = Nearest(visuals, rock.Object.transform.position);
+                    if (visual != null)
+                        Decorate(rock, visual);
                 }
                 catch (System.Exception e)
                 {
@@ -50,139 +61,165 @@ namespace StellarIndustries.Parts
             }
         }
 
-        /// <summary>Adds the ore model under one rock (once).</summary>
-        public static void Decorate(Deposits.Rock rock)
+        private static Vector3Int Key(Vector3 p) => new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
+
+        /// <summary>The visual nearest the rock (within half a metre), looked up in the metre cells around it.</summary>
+        private static MeshFilter Nearest(Dictionary<Vector3Int, List<MeshFilter>> visuals, Vector3 at)
         {
-            Transform t = rock.Object != null ? rock.Object.transform : null;
-            if (t == null || t.Find(ChildName) != null)
-                return;
-            // The game draws the rock elsewhere: its size comes from its collider (the laser's target)
-            Bounds world = new Bounds(t.position, Vector3.zero);
-            bool any = false;
-            foreach (Collider c in t.GetComponentsInChildren<Collider>())
+            MeshFilter best = null;
+            float bestDistance = 0.25f;
+            Vector3Int c = Key(at);
+            for (int x = -1; x <= 1; x++)
             {
-                if (!any)
-                    world = c.bounds;
-                else
-                    world.Encapsulate(c.bounds);
-                any = true;
-            }
-            // A box round a turned rock is larger than the rock: the model is made a little smaller
-            float radius = any ? Mathf.Clamp((world.extents.x + world.extents.y + world.extents.z) / 3f * 0.85f, 0.25f, 6f) : 0.8f;
-            Vector3 center = any ? world.center : t.position;
-            Vector3 up = Up();
-            int variant = (int)((uint)(rock.Position.GetHashCode() & 0x7fffffff) % Variants);
-            Mesh mesh = MeshFor(rock.Item, rock.Purity, variant);
-            var go = new GameObject(ChildName) { layer = t.gameObject.layer };
-            go.transform.SetParent(t, false);
-            // The model is built for a rock 1 wide each side and 1 high, its foot at 0
-            go.transform.position = center - up * radius;
-            go.transform.rotation = Quaternion.FromToRotation(Vector3.up, up) * Quaternion.AngleAxis(variant * 90f, Vector3.up);
-            Vector3 lossy = t.lossyScale;
-            float s = Mathf.Max(0.01f, (Mathf.Abs(lossy.x) + Mathf.Abs(lossy.y) + Mathf.Abs(lossy.z)) / 3f);
-            go.transform.localScale = new Vector3(radius, radius * 2f, radius) / s;
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var renderer = go.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial = IndustrialSkin.Material;
-            renderer.shadowCastingMode = ShadowCastingMode.On;
-            Count++;
-        }
-
-        /// <summary>Which way is up where the player stands (the rocks around share it).</summary>
-        private static Vector3 Up()
-        {
-            var players = SDModKit.Game.GameRefs.PlayersClient;
-            if (players != null && players.LocalPlayer != null)
-                return players.LocalPlayer.Rotation * Vector3.up;
-            return Vector3.up;
-        }
-
-        private enum Style { Metal, Crystal }
-
-        private static (Style Style, Tile Ore, Tile Nugget) Look(uint item)
-        {
-            switch (item)
-            {
-                case GameItems.Iron: return (Style.Metal, Tile.VeinIron, Tile.IngotIron);
-                case GameItems.Copper: return (Style.Metal, Tile.VeinCopper, Tile.Copper);
-                case GameItems.Aluminum: return (Style.Metal, Tile.VeinAluminum, Tile.Aluminum);
-                case GameItems.StellarShard: return (Style.Crystal, Tile.StellarCrystal, Tile.StellarDust);
-                case GameItems.Ice: return (Style.Crystal, Tile.Ice, Tile.Ice);
-                case GameItems.Glass: return (Style.Crystal, Tile.Glass, Tile.Glass);
-                default: return (Style.Metal, Tile.Stone, Tile.Gold);
-            }
-        }
-
-        public static Mesh MeshFor(uint item, Purity purity, int variant)
-        {
-            if (Meshes.TryGetValue((item, purity, variant), out Mesh cached) && cached != null)
-                return cached;
-            var b = new MeshBuilder();
-            var rnd = new System.Random((int)item * 31 + (int)purity * 7 + variant);
-            float R() => (float)rnd.NextDouble();
-            (Style style, Tile ore, Tile nugget) = Look(item);
-            int count = purity == Purity.Impure ? 5 : purity == Purity.Normal ? 9 : 14;
-            float size = purity == Purity.Impure ? 0.9f : purity == Purity.Pure ? 1.35f : 1.1f;
-            float turn = R() * Mathf.PI * 2f;
-            var c = new Vector3(0f, 0.5f, 0f);
-            for (int i = 0; i < count; i++)
-            {
-                // Spread round the rock (golden angle), on its upper flanks
-                float a = turn + i * 2.39996f;
-                float tilt = Mathf.Lerp(0.3f, 1.25f, R());
-                var dir = new Vector3(Mathf.Cos(a) * Mathf.Sin(tilt), Mathf.Cos(tilt), Mathf.Sin(a) * Mathf.Sin(tilt));
-                // The rock's surface that way (a rock 1 wide each side and 1 high, centre at half height)
-                Vector3 surface = c + new Vector3(dir.x, dir.y * 0.5f, dir.z);
-                Vector3 normal = new Vector3(dir.x, dir.y * 2f, dir.z).normalized;
-                if (style == Style.Crystal)
+                for (int y = -1; y <= 1; y++)
                 {
-                    float r = (0.07f + 0.05f * R()) * size, length = (0.35f + 0.3f * R()) * size;
-                    Vector3 root = c + (surface - c) * 0.6f;
-                    Vector3 tip = surface + normal * length;
-                    b.Panel = IndustrialSkin.Uv(ore);
-                    b.Cylinder(root, tip, r, r, 6);
-                    b.Cylinder(tip, tip + (tip - root).normalized * r * 2.2f, r, 0.004f, 6, capB: false);
-                    // A smaller crystal beside it
-                    Vector3 side = Vector3.Cross(normal, Vector3.up).normalized * r * 1.7f;
-                    Vector3 tip2 = surface + side + normal * length * 0.5f;
-                    b.Cylinder(root + side, tip2, r * 0.6f, r * 0.6f, 6);
-                    b.Cylinder(tip2, tip2 + normal * r * 1.3f, r * 0.6f, 0.003f, 6, capB: false);
-                }
-                else
-                {
-                    // A rounded nodule of ore-bearing rock half sunk in the surface, with metal glints on top
-                    Vector3 at = c + (surface - c) * 0.96f;
-                    float r = (0.13f + 0.07f * R()) * size, h = (0.06f + 0.04f * R()) * size;
-                    b.Panel = IndustrialSkin.Uv(ore);
-                    b.Cylinder(at - normal * h, at + normal * h, r, r * 0.72f, 7);
-                    b.Cylinder(at + normal * h, at + normal * h * 1.6f, r * 0.72f, r * 0.35f, 7);
-                    b.Panel = IndustrialSkin.Uv(nugget);
-                    Vector3 side = Vector3.Cross(normal, dir.y > 0.9f ? Vector3.right : Vector3.up).normalized;
-                    for (int g = 0; g < 2; g++)
+                    for (int z = -1; z <= 1; z++)
                     {
-                        Vector3 glint = at + normal * h * 1.2f + side * r * (g == 0 ? 0.45f : -0.3f);
-                        b.Cylinder(glint, glint + normal * r * 0.35f, r * 0.22f, r * 0.08f, 5);
+                        if (!visuals.TryGetValue(c + new Vector3Int(x, y, z), out List<MeshFilter> list))
+                            continue;
+                        foreach (MeshFilter f in list)
+                        {
+                            float d = (f.transform.position - at).sqrMagnitude;
+                            if (f != null && d < bestDistance)
+                            {
+                                bestDistance = d;
+                                best = f;
+                            }
+                        }
                     }
                 }
             }
-            // Scree round the foot: stones and ore chips, half sunk
-            int scree = 8 + (int)purity * 4;
-            for (int i = 0; i < scree; i++)
+            return best;
+        }
+
+        /// <summary>The game's rock visuals ("... visual" objects with a readable mesh), by place.</summary>
+        private static Dictionary<Vector3Int, List<MeshFilter>> Visuals()
+        {
+            var found = new Dictionary<Vector3Int, List<MeshFilter>>();
+            foreach (MeshFilter filter in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
             {
-                float a = turn + i * (Mathf.PI * 2f / scree) + R() * 0.5f;
-                float d = 0.86f + 0.16f * R();
-                float s = (0.12f + 0.12f * R()) * (i % 3 == 0 ? size : 1f);
-                var at = new Vector3(Mathf.Cos(a) * d, 0.06f + s * 0.3f, Mathf.Sin(a) * d);
-                b.Panel = IndustrialSkin.Uv(i % 3 == 0 ? (style == Style.Crystal ? ore : nugget) : Tile.Stone);
-                if (style == Style.Crystal && i % 3 == 0)
-                    b.Cylinder(at - new Vector3(0f, s * 0.3f, 0f), at + new Vector3(0f, s * 1.6f, 0f), s * 0.4f, 0.004f, 6, capB: false);
-                else
-                    b.Box(at, new Vector3(s * 1.3f, s * 0.8f, s), Quaternion.Euler(R() * 40f, R() * 360f, R() * 40f));
+                if (filter.sharedMesh == null || !filter.sharedMesh.isReadable || !filter.name.EndsWith(" visual"))
+                    continue;
+                Vector3Int key = Key(filter.transform.position);
+                if (!found.TryGetValue(key, out List<MeshFilter> list))
+                    found[key] = list = new List<MeshFilter>();
+                list.Add(filter);
             }
-            Mesh mesh = b.Build($"SI_Deposit_{item}_{purity}_{variant}", GameSkin.Ready ? GameSkin.Palette : (Vector2?)null);
+            return found;
+        }
+
+        /// <summary>Adds the veins to one rock (in-game test: finds its visual itself). False if the rock has no readable visual.</summary>
+        public static bool Decorate(Deposits.Rock rock)
+        {
+            if (rock.Object == null || rock.Object.transform.Find(ChildName) != null)
+                return false;
+            MeshFilter visual = Nearest(Visuals(), rock.Object.transform.position);
+            return visual != null && Decorate(rock, visual);
+        }
+
+        private static bool Decorate(Deposits.Rock rock, MeshFilter visual)
+        {
+            Transform t = rock.Object.transform;
+            Mesh mesh = MeshFor(visual.sharedMesh, rock.Item, rock.Purity);
+            if (mesh == null)
+                return false;
+            var go = new GameObject(ChildName) { layer = visual.gameObject.layer };
+            go.transform.SetParent(t, false);
+            go.transform.position = visual.transform.position;
+            go.transform.rotation = visual.transform.rotation;
+            Vector3 v = visual.transform.lossyScale, r = t.lossyScale;
+            go.transform.localScale = new Vector3(v.x / Mathf.Max(1e-4f, r.x), v.y / Mathf.Max(1e-4f, r.y), v.z / Mathf.Max(1e-4f, r.z));
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var renderer = go.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = IndustrialSkin.Material;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            Count++;
+            return true;
+        }
+
+        private static (Tile Vein, Tile Nugget, bool Crystal, int Seed) Look(uint item)
+        {
+            switch (item)
+            {
+                case GameItems.Iron: return (Tile.CrushedIron, Tile.IngotIron, false, 1);
+                case GameItems.Copper: return (Tile.CrushedCopper, Tile.Copper, false, 2);
+                case GameItems.Aluminum: return (Tile.Aluminum, Tile.IngotAluminum, false, 3);
+                case GameItems.StellarShard: return (Tile.StellarCrystal, Tile.StellarCrystal, true, 4);
+                case GameItems.Ice: return (Tile.Ice, Tile.Ice, true, 5);
+                case GameItems.Glass: return (Tile.Glass, Tile.Glass, true, 6);
+                default: return (Tile.VeinAluminum, Tile.Gold, false, 7);
+            }
+        }
+
+        /// <summary>A smooth field over the rock: its level lines are the veins.</summary>
+        private static float Field(Vector3 p, int seed) =>
+            0.5f + 0.25f * Mathf.Sin(p.x * 1.3f + seed + 1.7f * Mathf.Sin(p.y * 0.9f + p.z * 1.1f + seed))
+                 + 0.25f * Mathf.Sin(p.z * 1.7f - seed + 1.3f * Mathf.Sin(p.x * 1.2f - p.y * 0.7f));
+
+        /// <summary>The veins of one rock shape, in the rock mesh's own frame.</summary>
+        public static Mesh MeshFor(Mesh rock, uint item, Purity purity)
+        {
+            if (rock == null || !rock.isReadable)
+                return null;
+            if (Meshes.TryGetValue((rock.GetInstanceID(), item, purity), out Mesh cached) && cached != null)
+                return cached;
+            (Tile vein, Tile nugget, bool crystal, int seed) = Look(item);
+            Vector3[] vertices = rock.vertices;
+            int[] triangles = rock.triangles;
+            float size = Mathf.Max(0.1f, rock.bounds.size.magnitude);
+            // Whole facets of the rock turn to ore, in patches: more of them when the deposit is rich
+            float frequency = 3f / size;
+            float threshold = purity == Purity.Impure ? 0.62f : purity == Purity.Normal ? 0.52f : 0.42f;
+            float lift = size * 0.004f;
+            var b = new MeshBuilder { Panel = IndustrialSkin.Uv(vein) };
+            var spots = new List<(Vector3 At, Vector3 Normal)>();
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                Vector3 a = vertices[triangles[t]], c1 = vertices[triangles[t + 1]], c2 = vertices[triangles[t + 2]];
+                Vector3 normal = Vector3.Cross(c1 - a, c2 - a);
+                if (normal.sqrMagnitude < 1e-10f)
+                    continue;
+                Vector3 centre = (a + c1 + c2) / 3f;
+                // Outwards from the rock's centre
+                if (Vector3.Dot(normal, centre - rock.bounds.center) < 0f)
+                    normal = -normal;
+                normal.Normalize();
+                if (Field(centre * frequency, seed) < threshold)
+                    continue;
+                Vector3 up = normal * lift;
+                // Pulled in a little from the facet's edges, so the rock's own outline still shows
+                Vector3 Inset(Vector3 p) => centre + (p - centre) * 0.97f + up;
+                b.Face(Inset(a), Inset(c1), Inset(c2), normal, new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.1f), new Vector2(0.5f, 0.9f));
+                spots.Add((centre + up, normal));
+            }
+            // Nuggets (metals) or small crystals (shards, ice, glass) on the veins
+            int count = purity == Purity.Impure ? 2 : purity == Purity.Normal ? 5 : 10;
+            var rnd = new System.Random(seed * 101 + (int)purity);
+            b.Panel = IndustrialSkin.Uv(nugget);
+            for (int k = 0; k < count && spots.Count > 0; k++)
+            {
+                (Vector3 at, Vector3 n) = spots[rnd.Next(spots.Count)];
+                float s = size * (0.012f + 0.01f * (float)rnd.NextDouble()) * (purity == Purity.Pure ? 1.4f : 1f);
+                if (crystal)
+                {
+                    Vector3 lean = Vector3.Cross(n, Vector3.up).sqrMagnitude > 0.01f ? Vector3.Cross(n, Vector3.up).normalized : Vector3.right;
+                    Vector3 axis = (n + lean * ((float)rnd.NextDouble() - 0.5f) * 0.6f).normalized;
+                    Vector3 tip = at + axis * s * 5f;
+                    b.Cylinder(at - axis * s, tip, s, s * 0.9f, 6);
+                    b.Cylinder(tip, tip + axis * s * 1.6f, s * 0.9f, s * 0.05f, 6, capB: false);
+                }
+                else
+                {
+                    b.Cylinder(at - n * s * 0.6f, at + n * s * 0.9f, s * 1.3f, s * 0.7f, 5);
+                }
+            }
+            if (!b.HasGeometry)
+                return null;
+            Mesh mesh = b.Build($"SI_Veins_{rock.name}_{item}_{purity}", GameSkin.Ready ? GameSkin.Palette : (Vector2?)null);
             mesh.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            Meshes[(item, purity, variant)] = mesh;
+            Meshes[(rock.GetInstanceID(), item, purity)] = mesh;
             return mesh;
         }
+
     }
 }

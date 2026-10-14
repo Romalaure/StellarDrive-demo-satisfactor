@@ -4,8 +4,8 @@
 | Key | What it does |
 |---|---|
 | Look at a machine | See its state, recipe, progress, power and contents |
-| `N` | Next recipe (Shift+N: previous), or change a dock's mode |
-| `K` | Scan the deposits around you (needs a deposit scanner in your inventory) |
+| `N` on a machine | Next recipe (Shift+N: previous), or change a dock's mode |
+| `N` elsewhere (or `K`) | Scan the deposits around you (needs a deposit scanner in your inventory) |
 | `F7` | Open the factory overview |
 | `G` | Open the game's guide, where this wiki lives |
 

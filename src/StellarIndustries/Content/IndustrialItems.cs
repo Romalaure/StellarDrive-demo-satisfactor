@@ -135,6 +135,7 @@ namespace StellarIndustries.Content
                     BuildShape(builder, def.Shape);
                 }
                 visual.AddComponent<MeshFilter>().sharedMesh = builder.Build(settings.name, Parts.GameSkin.Palette);
+                visual.transform.localScale = Vector3.one * ItemModels.RealScale(def.Id);
                 visual.AddComponent<MeshRenderer>().sharedMaterial = material;
                 settings.itemObject = root;
             }

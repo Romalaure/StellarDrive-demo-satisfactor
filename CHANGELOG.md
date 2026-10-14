@@ -1,5 +1,24 @@
 # Journal des changements
 
+## 0.14.0 — gisements, modèles d'objets, touche N
+
+- **Gisements** : les blocs posés sur les rochers sont remplacés par des facettes du rocher
+  lui-même couvertes de minerai (fer, cuivre, aluminium, éclats, glace), dans le style du jeu ;
+  plus de facettes sur un gisement pur. Toujours désactivable (`DepositDetails`).
+- **Recherche** : la fiche des techs *Prospection*, *Prospection avancée* et *Analyse géologique*
+  liste maintenant les recettes qu'elles débloquent (scanners et modules), avec leur machine.
+- **Touche N** : sur une machine, elle change la recette ; ailleurs, elle lance le scanner.
+  K reste disponible (réglage `ScanKey`, vide pour la retirer).
+- **Objets à taille réelle** : poutres, cadres, tuyaux, moteurs ou barres de combustible sont
+  à leur vraie taille (jusqu'à 3 fois le modèle), les vis, puces et modules tiennent dans la main.
+- **Modèles** : chaque objet du mod a son propre modèle ; la barre de combustible, le déchet
+  stellaire, le bon de recyclage, le processeur neuro-quantique, le cristal temporel et le module
+  logique n'avaient qu'une forme générique.
+- **Élévateur à godets** une fois et demie plus grand (monte de 3 m).
+
+Note : le soufre, l'acide sulfurique et leurs gisements viennent du mod StellarFactory (un autre
+auteur), pas de Stellar Industries : leurs modèles ne peuvent être corrigés que dans ce mod.
+
 ## 0.13.0 — convoyeurs, poteaux électriques, scanners
 
 **Convoyeurs** (nouvel onglet « Convoyeurs », recherches *Convoyeurs*, *Convoyeurs rapides*, *Convoyeurs lourds*) :

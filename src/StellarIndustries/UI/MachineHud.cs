@@ -33,6 +33,12 @@ namespace StellarIndustries.UI
         private static Key _key = Key.None;
         private static string _keyName;
 
+        /// <summary>Whether a machine is aimed at (the recipe key then changes its recipe instead of scanning).</summary>
+        public static bool Aiming => _aimedDef != null;
+
+        /// <summary>The recipe key (N by default), also the scanner's key when no machine is aimed at.</summary>
+        public static Key RecipeKey => _key == Key.None ? Key.N : _key;
+
         /// <summary>Development: a machine to describe as if aimed at (in-game test screenshots).</summary>
         public static (uint Ship, ushort Part)? Forced;
 

@@ -103,7 +103,7 @@ namespace StellarIndustries.Content
             [7623] = ("Conveyor Belt Mk1", "A one-meter belt: it takes the products of the machine (or chest) behind it and puts them into the machine, chest or belt in front of it, 1 item per second. Line several up end to end; the arrows show the way."),
             [7624] = ("Conveyor Belt Mk2", "A reinforced belt: 2.5 items per second. Placed and linked like the Mk1."),
             [7625] = ("Conveyor Belt Mk3", "A heavy steel and rubber belt: 6 items per second, for big production lines."),
-            [7626] = ("Bucket Lift", "Lifts items two meters: it takes from behind its foot and drops in front of its top (2.5 items per second). To go from one deck to another or fill a tall machine."),
+            [7626] = ("Bucket Lift", "Lifts items three meters: it takes from behind its foot and drops in front of its top (2.5 items per second). To go from one deck to another or fill a tall machine."),
             [7627] = ("Splitter", "Takes items from behind and hands them out in turn to the front, left and right (4 items per second): one ore line then feeds several smelters. A blocked output is skipped."),
             [7628] = ("Merger", "Gathers what comes in from behind, left and right onto a single line out the front (4 items per second)."),
         };

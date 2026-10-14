@@ -36,6 +36,12 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.TurboMotor: TurboModel(); return true;
                 case ResourceCatalog.QuantumProcessor: QuantumModel(); return true;
                 case ResourceCatalog.StellarMatter: MatterModel(); return true;
+                case ResourceCatalog.StellarFuelRod: FuelRodModel(); return true;
+                case ResourceCatalog.StellarWaste: WasteModel(); return true;
+                case ResourceCatalog.Voucher: VoucherModel(); return true;
+                case ResourceCatalog.NeuroProcessor: NeuroModel(); return true;
+                case ResourceCatalog.TimeCrystal: TimeCrystalModel(); return true;
+                case ResourceCatalog.LogicModule: LogicModuleModel(); return true;
                 case ResourceCatalog.ScannerMk1: ScannerModel(Tile.PaintedOrange, 1); return true;
                 case ResourceCatalog.ScannerMk2: ScannerModel(Tile.PaintedBlue, 2); return true;
                 case ResourceCatalog.ScannerMk3: ScannerModel(Tile.PaintedGreen, 3); return true;
@@ -43,6 +49,81 @@ namespace StellarIndustries.Content
                 case ResourceCatalog.AnalysisModule: ModuleModel(Tile.Gold); return true;
                 default: return false;
             }
+        }
+
+        // A fuel rod lying down: aluminium sheath, glowing core seen through windows, end caps
+        private static void FuelRodModel()
+        {
+            Cyl(Tile.Aluminum, V(-0.13f, 0.035f, 0f), V(0.13f, 0.035f, 0f), 0.032f, 0.032f, 12);
+            for (int i = 0; i < 3; i++)
+            {
+                float x = -0.08f + i * 0.08f;
+                Cyl(Tile.StellarCrystal, V(x - 0.02f, 0.035f, 0f), V(x + 0.02f, 0.035f, 0f), 0.034f, 0.034f, 12);
+            }
+            Cyl(Tile.Concrete, V(-0.15f, 0.035f, 0f), V(-0.13f, 0.035f, 0f), 0.036f, 0.036f, 12);
+            Cyl(Tile.Concrete, V(0.13f, 0.035f, 0f), V(0.15f, 0.035f, 0f), 0.036f, 0.036f, 12);
+            Cyl(Tile.Hazard, V(0.15f, 0.035f, 0f), V(0.16f, 0.035f, 0f), 0.02f, 0.02f, 8);
+        }
+
+        // A dented waste drum: rusty steel, hazard band, warning label
+        private static void WasteModel()
+        {
+            Cyl(Tile.Rust, V(0f, 0f, 0f), V(0f, 0.2f, 0f), 0.085f, 0.08f, 14);
+            Cyl(Tile.Hazard, V(0f, 0.08f, 0f), V(0f, 0.11f, 0f), 0.087f, 0.087f, 14);
+            Cyl(Tile.DarkSteel, V(0f, 0.2f, 0f), V(0f, 0.21f, 0f), 0.082f, 0.082f, 14);
+            Cyl(Tile.DarkSteel, V(0.03f, 0.21f, 0.02f), V(0.03f, 0.225f, 0.02f), 0.015f, 0.015f, 8);
+            Box(Tile.LabelWarning, V(0f, 0.15f, 0.083f), V(0.06f, 0.05f, 0.004f));
+        }
+
+        // A little stack of printed vouchers held by a band
+        private static void VoucherModel()
+        {
+            for (int i = 0; i < 5; i++)
+                Box(i % 2 == 0 ? Tile.PaintedGreen : Tile.Plastic, V(0.004f * (i % 3), 0.003f + i * 0.005f, 0.003f * (i % 2)), V(0.16f, 0.004f, 0.08f), Quaternion.Euler(0f, i * 3f, 0f));
+            Box(Tile.Gold, V(0f, 0.016f, 0f), V(0.02f, 0.03f, 0.082f));
+        }
+
+        // A large chip: dark package on a green board, a glowing quantum core, pins all round
+        private static void NeuroModel()
+        {
+            Box(Tile.Circuit, V(0f, 0.006f, 0f), V(0.2f, 0.012f, 0.2f));
+            Box(Tile.PaintedDark, V(0f, 0.02f, 0f), V(0.12f, 0.016f, 0.12f));
+            Box(Tile.StellarCrystal, V(0f, 0.03f, 0f), V(0.06f, 0.006f, 0.06f));
+            for (int i = -2; i <= 2; i++)
+            {
+                Box(Tile.Gold, V(i * 0.022f, 0.014f, 0.068f), V(0.008f, 0.004f, 0.02f));
+                Box(Tile.Gold, V(i * 0.022f, 0.014f, -0.068f), V(0.008f, 0.004f, 0.02f));
+                Box(Tile.Gold, V(0.068f, 0.014f, i * 0.022f), V(0.02f, 0.004f, 0.008f));
+                Box(Tile.Gold, V(-0.068f, 0.014f, i * 0.022f), V(0.02f, 0.004f, 0.008f));
+            }
+        }
+
+        // A cluster of glowing hexagonal crystals on a dark base
+        private static void TimeCrystalModel()
+        {
+            Cyl(Tile.DarkSteel, V(0f, 0f, 0f), V(0f, 0.025f, 0f), 0.09f, 0.08f, 8);
+            (Vector3 Foot, Vector3 Tip, float R)[] spikes =
+            {
+                (V(0f, 0.02f, 0f), V(0f, 0.22f, 0f), 0.035f),
+                (V(0.04f, 0.02f, 0.01f), V(0.09f, 0.15f, 0.03f), 0.025f),
+                (V(-0.035f, 0.02f, 0.02f), V(-0.08f, 0.14f, 0.05f), 0.022f),
+                (V(0f, 0.02f, -0.04f), V(0.01f, 0.13f, -0.09f), 0.02f)
+            };
+            foreach ((Vector3 foot, Vector3 tip, float r) in spikes)
+            {
+                Cyl(Tile.StellarCrystal, foot, tip, r, r, 6);
+                Cyl(Tile.StellarCrystal, tip, tip + (tip - foot).normalized * r * 1.8f, r, 0.002f, 6, capB: false);
+            }
+        }
+
+        // A small logic board: a few chips and an edge connector
+        private static void LogicModuleModel()
+        {
+            Box(Tile.Circuit, V(0f, 0.006f, 0f), V(0.18f, 0.012f, 0.11f));
+            Box(Tile.PaintedDark, V(-0.04f, 0.017f, 0.01f), V(0.05f, 0.01f, 0.04f));
+            Box(Tile.PaintedDark, V(0.03f, 0.016f, -0.02f), V(0.03f, 0.008f, 0.03f));
+            Box(Tile.LedRed, V(0.06f, 0.016f, 0.035f), V(0.012f, 0.006f, 0.012f));
+            Box(Tile.Gold, V(0.085f, 0.009f, 0f), V(0.012f, 0.004f, 0.09f));
         }
 
         // A handheld scanner: grip, body with its screen, an antenna per tier

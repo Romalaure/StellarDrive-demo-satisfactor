@@ -4,8 +4,8 @@
 | Touche | À quoi ça sert |
 |---|---|
 | Regarder une machine | Voir son état, sa recette, sa progression, son énergie et son contenu |
-| `N` | Passer à la recette suivante (Maj+N : la précédente), ou changer le mode d'un quai |
-| `K` | Scanner les gisements autour de vous (il faut un scanner de gisements dans l'inventaire) |
+| `N` sur une machine | Passer à la recette suivante (Maj+N : la précédente), ou changer le mode d'un quai |
+| `N` ailleurs (ou `K`) | Scanner les gisements autour de vous (il faut un scanner de gisements dans l'inventaire) |
 | `F7` | Ouvrir le tableau de bord de l'usine |
 | `G` | Ouvrir le guide du jeu, où se trouve ce wiki |
 
