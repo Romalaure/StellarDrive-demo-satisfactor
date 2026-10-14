@@ -45,7 +45,7 @@ namespace StellarIndustries.Diagnostics
     ///    iron in workshop A and checks it produces again, then quits.
     /// Lines start with "dev:" in MelonLoader/Latest.log.
     /// </summary>
-    internal static class DevTest
+    internal static partial class DevTest
     {
         private const string GameScene = "MainGame";
         private const ushort WoodGenerator = 60, IronFloor = 1;
@@ -118,7 +118,7 @@ namespace StellarIndustries.Diagnostics
             if (!_started && inWorld > 25f)
             {
                 _started = true;
-                MelonCoroutines.Start(Guard(Ready(_phase.Value == 4 ? Showcase() : _phase.Value == 3 ? LoadTest() : _phase.Value == 2 ? Verify() : Produce())));
+                MelonCoroutines.Start(Guard(Ready(_phase.Value == 5 ? Factory() : _phase.Value == 4 ? Showcase() : _phase.Value == 3 ? LoadTest() : _phase.Value == 2 ? Verify() : Produce())));
             }
             if (_quit.Value > 0f && inWorld > _quit.Value)
             {

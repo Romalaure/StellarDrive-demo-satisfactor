@@ -4,14 +4,15 @@
 
 Un mod d'industrie pour **StellarDrive Demo**. Vous partez de quelques lingots de fer, et petit à petit vous montez une vraie usine : des machines qui extraient le minerai, le fondent, le façonnent et l'assemblent, des générateurs pour tout alimenter, des lignes d'objets pour faire circuler la production… jusqu'à l'accélérateur de particules et au réacteur stellaire.
 
-![Les machines de Stellar Industries](Mods/thumbnail.png)
+![Une usine Stellar Industries en marche : lignes de convoyeurs, centrale à réacteurs stellaires, pylônes, foreuses sur des gisements](docs/images/usine.png)
 
 ## Ce que vous y trouverez
 
-- **22 machines** dans deux onglets de construction :
+- **30 machines et 3 poteaux électriques** dans trois onglets de construction :
   - « Industrie » : atelier, fonderie, presse, broyeur, assembleuse, fabricateur, haut fourneau, raffinerie, accélérateur de particules, encodeur quantique et convertisseur ;
-  - « Industrie+ » : brûleur à biomasse, générateur à combustion, réacteur stellaire, accumulateur, extracteur, condenseur d'eau, tour radar, conteneur, quai de transfert, recycleur et comptoir d'échange.
-- **59 objets et 72 recettes**, des plaques de fer aux cristaux temporels.
+  - « Industrie+ » : brûleur à biomasse, générateur à combustion, réacteur stellaire, accumulateur, extracteurs Mk1 et Mk2, foreuse de gisement, condenseur d'eau, tour radar, conteneur, quai de transfert, recycleur, comptoir d'échange et poteaux électriques ;
+  - « Convoyeurs » : tapis Mk1 à Mk3, élévateur, répartiteur et fusionneur.
+- **73 objets et 88 recettes**, des plaques de fer aux cristaux temporels, dont cinq minerais à trouver dans le monde (charbon, soufre, calcaire, quartz, or) et des gisements inépuisables.
 - **Recycler et échanger** : le recycleur paie vos surplus en bons, le comptoir les échange contre des ressources.
 - **Convoyeurs** : tapis Mk1 à Mk3, élévateur, répartiteur et fusionneur, branchés directement sur les machines.
 - **Poteaux électriques** de 4 à 12 branchements.
@@ -67,10 +68,11 @@ An industry mod for **StellarDrive Demo**. You start with a handful of iron ingo
 
 ### What's inside
 
-- **22 machines** in two build tabs:
+- **30 machines and 3 power poles** in three build tabs:
   - "Industrie": workshop, smelter, press, crusher, assembler, fabricator, blast furnace, refinery, particle accelerator, quantum encoder and converter;
-  - "Industrie+": biomass burner, combustion generator, stellar reactor, accumulator, extractor, water condenser, radar tower, container, transfer dock, recycler and exchange counter.
-- **59 items and 72 recipes**, from iron plates to time crystals.
+  - "Industrie+": biomass burner, combustion generator, stellar reactor, accumulator, extractors Mk1 and Mk2, deposit drill, water condenser, radar tower, container, transfer dock, recycler, exchange counter and power poles;
+  - "Convoyeurs": belts Mk1 to Mk3, lift, splitter and merger.
+- **73 items and 88 recipes**, from iron plates to time crystals, including five ores to find in the world (coal, sulfur, limestone, quartz, gold) and inexhaustible deposits.
 - **Recycle and trade**: the recycler pays for your surplus in vouchers, the exchange counter trades them for resources.
 - **Conveyors**: Mk1 to Mk3 belts, a lift, a splitter and a merger, linked straight to the machines.
 - **Power poles** with 4 to 12 connections.

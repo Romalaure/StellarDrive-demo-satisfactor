@@ -10,6 +10,9 @@
   tout le rocher, l'or presque tout.
 - **Extracteur Mk2** (recherche *Extraction avancée*) : 1 objet toutes les 3 s, portée 8 m.
 - **Foreuse de gisement** (recherche *Forage profond*) : 1 objet toutes les 1,5 s, 4 kW.
+- **Nouvelle image de présentation** : une usine complète en marche (4 lignes de convoyeurs, centrale
+  à trois réacteurs, pylônes, foreuses sur des gisements), construite et photographiée par le test
+  en jeu (phase 5).
 - Les rochers « statiques » des planètes (dessinés par un autre objet du jeu) reçoivent eux aussi
   leur minerai dessiné.
 
