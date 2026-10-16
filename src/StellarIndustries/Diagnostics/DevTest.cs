@@ -432,6 +432,7 @@ namespace StellarIndustries.Diagnostics
                 Log("FAIL no machine found after reload (is the test ship loaded? saved: " + saved + ")");
                 yield break;
             }
+            LogReach(test);
             Log("saved was: " + saved);
             string now = Contents(test);
             Log(now == saved ? "PASS contents identical after reload: " + now : "FAIL contents differ after reload: " + now);
@@ -451,6 +452,49 @@ namespace StellarIndustries.Diagnostics
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
             MachineSimulation.Runtime acc = MachineSimulation.Get(test.Id, AccumulatorPart);
             Log($"{(acc != null && acc.Stored >= 100000f ? "PASS" : "FAIL")} accumulator charge after reload: {acc?.Stored:0} J ({acc?.Detail})");
+        }
+
+        /// <summary>Development: where the extractor and the real rocks are seen from, with the player aboard or not.</summary>
+        private static void LogReach(TrackedShipServer ship)
+        {
+            var player = SDModKit.Game.GameRefs.PlayersClient?.LocalPlayer;
+            Camera camera = Camera.main;
+            Vector3? at = ship.TryGetStatefulPart(ExtractorPart, out StatefulPart part) ? Deposits.WorldPosition(ship.Id, part) : null;
+            Log($"reach: player space {player?.SpaceId}, ship {ship.Id} space {ship.SpaceId}, ship visual {ShipVisual(ship.Id)?.position}, extractor {at}, camera {camera?.transform.position}");
+            if (at == null)
+                return;
+            List<Deposits.Rock> all = Deposits.Loaded();
+            foreach (Deposits.Rock r in all.Where(r => r.Shape != null).OrderByDescending(r => r.Shape.Value.size.magnitude).Take(4))
+                Log($"reach: big rock {r.Name} ({r.Object.name}) colliders {r.Shape.Value.size}, at {Vector3.Distance(r.Position, at.Value):0.0} m from the extractor");
+            Log($"reach: {all.Count(r => r.Shape == null)}/{all.Count} rock(s) without collider");
+            foreach (Planets.Objects.MinablePlanetObject m in Object.FindObjectsByType<Planets.Objects.MinablePlanetObject>(FindObjectsSortMode.None))
+            {
+                Bounds b = new Bounds(m.transform.position, Vector3.zero);
+                foreach (Collider c in m.GetComponentsInChildren<Collider>())
+                    b.Encapsulate(c.bounds);
+                if (b.size.magnitude > 2.5f)
+                    Log($"reach: large minable {m.name} item {m.dropRate.item?.itemName} colliders {b.size} {string.Join(",", m.GetComponentsInChildren<Collider>().Select(c => c.GetType().Name + (c.isTrigger ? "(trigger)" : "")))}");
+            }
+            var big = new List<string>();
+            foreach (Renderer r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (r.bounds.size.magnitude < 4f || r.bounds.size.magnitude > 80f || Vector3.Distance(r.bounds.center, camera != null ? camera.transform.position : at.Value) > 600f)
+                    continue;
+                string n = r.name.ToLowerInvariant();
+                if (!(n.Contains("crystal") || n.Contains("cristal") || n.Contains("rock") || n.Contains("ice") || n.Contains("ore")))
+                    continue;
+                var minable = r.GetComponentInParent<Planets.Objects.MinablePlanetObject>();
+                string path = r.name;
+                for (Transform t = r.transform.parent; t != null && path.Length < 160; t = t.parent)
+                    path = t.name + "/" + path;
+                big.Add($"{path} size {r.bounds.size.magnitude:0.0} minable {(minable != null ? minable.dropRate.item?.itemName : "no")}");
+            }
+            Log($"reach: {big.Count} big rock/crystal renderer(s): " + string.Join(" ; ", big.Distinct().Take(25)));
+            foreach (Deposits.Rock r in all.OrderBy(r => Vector3.Distance(r.Position, at.Value)).Take(3))
+            {
+                MeshFilter visual = Parts.DepositDecor.VisualOf(r);
+                Log($"reach: rock {r.Name} physics {r.Position} visual {(visual != null ? visual.transform.position.ToString() : "none")}, extractor to rock {Vector3.Distance(r.Position, at.Value):0.0} m, camera to rock {(camera != null ? Vector3.Distance(r.Position, camera.transform.position).ToString("0.0") : "-")} m");
+            }
         }
 
         // ---- Looks and animations
@@ -1094,7 +1138,9 @@ namespace StellarIndustries.Diagnostics
 
         /// <summary>
         /// The scanner's report, then: with no rock in reach the extractor must stay idle; a test
-        /// rock (a game MinablePlanetObject giving iron, on this PC only) is then set 3 m from it.
+        /// rock (a game MinablePlanetObject giving iron, on this PC only) is then set beside it: a big
+        /// one, drawn 8 m wide around a small collider, its centre 6.5 m away (beyond the reach) and
+        /// its side 2.5 m away, like the big crystals players set extractors against.
         /// </summary>
         private static void PlaceDevRock(TrackedShipServer ship)
         {
@@ -1113,17 +1159,36 @@ namespace StellarIndustries.Diagnostics
                 Log("FAIL extractor position unknown");
                 return;
             }
-            _devRock = new GameObject("SI_DevRock");
-            _devRock.transform.position = at.Value + new Vector3(0f, 0f, 3f);
-            // The rock moves with the ship (a big test ship can still settle or slide on the ground)
+            // Real rocks are measured to their surface (colliders), not to their centre
+            foreach (Deposits.Rock r in Deposits.Loaded().OrderBy(r => Vector3.Distance(r.Position, at.Value)).Take(5))
+            {
+                MeshFilter visual = Parts.DepositDecor.VisualOf(r);
+                Bounds? seen = visual != null ? visual.GetComponent<Renderer>()?.bounds : null;
+                Log($"real rock {r.Name}: centre {Vector3.Distance(r.Position, at.Value):0.0} m, surface {Deposits.DistanceTo(r, at.Value):0.0} m, " +
+                    $"colliders {(r.Shape != null ? r.Shape.Value.size.ToString() + " off " + (r.Shape.Value.center - r.Position).magnitude.ToString("0.0") : "none")}, " +
+                    $"visual {(seen != null ? seen.Value.size.ToString() + " off " + (seen.Value.center - r.Position).magnitude.ToString("0.0") : "none")}");
+            }
             Transform shipVisual = ShipVisual(ship.Id);
+            // Away from the test ship, so that the big rock covers no other machine
+            Vector3 away = shipVisual != null ? Vector3.ProjectOnPlane(at.Value - shipVisual.position, shipVisual.up) : Vector3.forward;
+            away = away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward;
+            _devRock = new GameObject("SI_DevRock");
+            _devRock.transform.position = at.Value + away * 6.5f;
+            var look = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.Destroy(look.GetComponent<Collider>());
+            look.name = "SI_DevRock look";
+            look.transform.SetParent(_devRock.transform, false);
+            look.transform.localScale = Vector3.one * 8f;
+            look.GetComponent<Renderer>().forceRenderingOff = true;
+            _devRock.AddComponent<SphereCollider>().radius = 0.6f;
+            // The rock moves with the ship (a big test ship can still settle or slide on the ground)
             if (shipVisual != null)
                 _devRock.transform.SetParent(shipVisual, true);
             var minable = _devRock.AddComponent<Planets.Objects.MinablePlanetObject>();
             minable.dropRate = new Planets.Objects.Common.Model.ItemDropRate { item = IndustrialItems.Find(GameItems.Iron), amountMin = 1, amountMax = 2 };
             _devRockItem = minable.dropRate.item != null ? minable.dropRate.item.itemName : "?";
             Deposits.Rescan();
-            Log($"test rock ({_devRockItem}) set 3 m from the extractor at {at.Value}");
+            Log($"big test rock ({_devRockItem}) set beside the extractor at {at.Value}: centre {Vector3.Distance(_devRock.transform.position, at.Value):0.0} m");
         }
 
         /// <summary>The 12 iron went from the chest along both belts and were shared by the splitter between the two containers.</summary>

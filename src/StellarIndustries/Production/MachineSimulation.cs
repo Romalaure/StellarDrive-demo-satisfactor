@@ -149,14 +149,15 @@ namespace StellarIndustries.Production
             if (def.Extracts)
             {
                 // An extractor's only "recipe" is one item of the rock within its reach
-                Deposits.Deposit? deposit = Deposits.Find(ship.Id, part, def);
+                Deposits.Deposit? deposit = Deposits.Find(ship.Id, part, def, out Deposits.Deposit? nearest);
                 if (deposit == null)
                 {
                     rt.Recipe = null;
                     rt.Progress = 0f;
                     rt.Watts = 0f;
                     rt.Status = MachineStatus.NoDeposit;
-                    rt.Detail = Lang.T($"Aucun rocher minable à moins de {def.ExtractRadius:0} m", $"No minable rock within {def.ExtractRadius:0} m");
+                    rt.Detail = Lang.T($"Aucun rocher minable à moins de {def.ExtractRadius:0} m", $"No minable rock within {def.ExtractRadius:0} m") +
+                                (nearest != null ? Lang.T($"\nLe plus proche : {nearest.Value.Name} à {nearest.Value.Distance:0.0} m", $"\nNearest: {nearest.Value.Name} at {nearest.Value.Distance:0.0} m") : "");
                     return;
                 }
                 Deposits.Deposit d = deposit.Value;

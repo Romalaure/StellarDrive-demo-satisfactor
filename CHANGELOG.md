@@ -1,5 +1,13 @@
 # Journal des changements
 
+## 0.17.1 — correctif des extracteurs
+
+- **Extracteur collé à un gros rocher** : il affichait « Aucun gisement à portée » contre un grand
+  rocher ou un cristal, car la portée (6 m, 8 m pour le Mk2) se mesurait jusqu'au centre du
+  rocher. Elle se mesure maintenant jusqu'à sa surface (ses colliders et son modèle).
+- Quand rien n'est à portée, le panneau de l'extracteur indique le rocher le plus proche et sa
+  distance (« Le plus proche : Fer à 9,3 m »).
+
 ## 0.17.0 — gisements inépuisables, extracteurs Mk2 et foreuse
 
 - **Gisements inépuisables** : environ un rocher sur huit (tous minerais) ne se casse jamais au

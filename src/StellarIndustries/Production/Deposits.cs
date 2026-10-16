@@ -40,12 +40,14 @@ namespace StellarIndustries.Production
             public Purity Purity;
             /// <summary>Inexhaustible deposit (see <see cref="OreConversion.IsNode"/>).</summary>
             public bool Node;
+            /// <summary>The rock's solid shape (its colliders, world box), null if it has none.</summary>
+            public Bounds? Shape;
         }
 
         private const float ScanInterval = 3f;
 
         private static readonly List<Rock> Rocks = new List<Rock>();
-        private static readonly Dictionary<(uint, ushort), (Deposit? Found, float Time)> Cache = new Dictionary<(uint, ushort), (Deposit?, float)>();
+        private static readonly Dictionary<(uint, ushort), (Deposit? Found, Deposit? Nearest)> Cache = new Dictionary<(uint, ushort), (Deposit?, Deposit?)>();
         private static float _nextScan;
         private static ShipsClientTracker _client;
 
@@ -55,6 +57,7 @@ namespace StellarIndustries.Production
         {
             Rocks.Clear();
             Cache.Clear();
+            Shapes.Clear();
             _nextScan = 0f;
             _client = null;
         }
@@ -165,6 +168,7 @@ namespace StellarIndustries.Production
         public static List<Rock> Loaded()
         {
             var list = new List<Rock>();
+            Dictionary<Vector3Int, List<MeshFilter>> visuals = null;
             foreach (MinablePlanetObject rock in Object.FindObjectsByType<MinablePlanetObject>(FindObjectsSortMode.None))
             {
                 Convert(rock);
@@ -181,11 +185,69 @@ namespace StellarIndustries.Production
                 list.Add(new Rock
                 {
                     Object = rock, Item = item, Position = rock.transform.position, Purity = PurityOf(rock), Node = IsNode(rock),
-                    Name = IndustrialItems.NameOf(item)
+                    Name = IndustrialItems.NameOf(item), Shape = ShapeOf(rock, ref visuals)
                 });
             }
             return list;
         }
+
+        /// <summary>Rock shapes already measured, by rock object (the game reuses rock objects elsewhere: the place is checked).</summary>
+        private static readonly Dictionary<int, (Vector3 At, Bounds? Shape)> Shapes = new Dictionary<int, (Vector3, Bounds?)>();
+
+        /// <summary>
+        /// The box around a rock: its solid colliders and its drawn model (some big rocks and
+        /// crystals have a small collider and a much bigger look). A big rock's centre can be
+        /// meters away from a machine set against it. Triggers and huge volumes are left out.
+        /// </summary>
+        private static Bounds? ShapeOf(MinablePlanetObject rock, ref Dictionary<Vector3Int, List<MeshFilter>> visuals)
+        {
+            Vector3 at = rock.transform.position;
+            int id = rock.GetInstanceID();
+            if (Shapes.TryGetValue(id, out var known) && (known.At - at).sqrMagnitude < 0.01f)
+                return known.Shape;
+            Bounds? shape = null;
+            void Add(Bounds b)
+            {
+                if (b.size.magnitude > 150f || (b.center - at).magnitude > 75f)
+                    return;
+                if (shape == null)
+                    shape = b;
+                else
+                {
+                    Bounds all = shape.Value;
+                    all.Encapsulate(b);
+                    shape = all;
+                }
+            }
+            foreach (Collider c in rock.GetComponentsInChildren<Collider>())
+            {
+                if (c != null && c.enabled && !c.isTrigger)
+                    Add(c.bounds);
+            }
+            bool drawn = false;
+            foreach (Renderer r in rock.GetComponentsInChildren<Renderer>())
+            {
+                if (r != null && r.name != Parts.DepositDecor.ChildName && !(r is ParticleSystemRenderer))
+                {
+                    Add(r.bounds);
+                    drawn = true;
+                }
+            }
+            if (!drawn)
+            {
+                // Hotspot rocks are drawn by a separate object at the same place
+                visuals = visuals ?? Parts.DepositDecor.Visuals();
+                Renderer seen = Parts.DepositDecor.Nearest(visuals, at)?.GetComponent<Renderer>();
+                if (seen != null)
+                    Add(seen.bounds);
+            }
+            Shapes[id] = (at, shape);
+            return shape;
+        }
+
+        /// <summary>Distance from a point to a rock's surface (its collider box), or to its centre if it has no collider.</summary>
+        public static float DistanceTo(Rock rock, Vector3 at) =>
+            rock.Shape != null ? Mathf.Sqrt(rock.Shape.Value.SqrDistance(at)) : Vector3.Distance(at, rock.Position);
 
         private static void Scan()
         {
@@ -195,6 +257,8 @@ namespace StellarIndustries.Production
             _nextScan = now + ScanInterval;
             Rocks.Clear();
             Cache.Clear();
+            if (Shapes.Count > 4000)
+                Shapes.Clear();
             Rocks.AddRange(Loaded());
         }
 
@@ -202,31 +266,38 @@ namespace StellarIndustries.Production
         public static void Rescan() => _nextScan = 0f;
 
         /// <summary>Host: the rock nearest to this extractor within its reach, or null.</summary>
-        public static Deposit? Find(uint shipId, StatefulPart part, MachineDef def)
+        public static Deposit? Find(uint shipId, StatefulPart part, MachineDef def) => Find(shipId, part, def, out _);
+
+        /// <summary>Host: the rock nearest to this extractor within its reach, or null; <paramref name="nearest"/> is the nearest loaded rock at any distance.</summary>
+        public static Deposit? Find(uint shipId, StatefulPart part, MachineDef def, out Deposit? nearest)
         {
             Scan();
             if (Cache.TryGetValue((shipId, part.Id), out var cached))
+            {
+                nearest = cached.Nearest;
                 return cached.Found;
-            Deposit? found = null;
+            }
+            nearest = null;
             if (_client == null)
                 _client = ServiceLocator.GetService<ShipsClientTracker>();
             if (_client != null && _client.TryGetShipVisualTransform(shipId, out Transform ship) && ship != null)
             {
                 Vector3 at = ship.TransformPoint(part.LocalPosition);
-                float best = def.ExtractRadius;
+                float best = float.MaxValue;
                 foreach (Rock rock in Rocks)
                 {
                     // A rock mined away since the last scan
                     if (rock.Object == null)
                         continue;
-                    float d = Vector3.Distance(at, rock.Position);
-                    if (d > best)
+                    float d = DistanceTo(rock, at);
+                    if (d >= best)
                         continue;
                     best = d;
-                    found = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity, Node = rock.Node };
+                    nearest = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity, Node = rock.Node };
                 }
             }
-            Cache[(shipId, part.Id)] = (found, Time.unscaledTime);
+            Deposit? found = nearest != null && nearest.Value.Distance <= def.ExtractRadius ? nearest : null;
+            Cache[(shipId, part.Id)] = (found, nearest);
             return found;
         }
 

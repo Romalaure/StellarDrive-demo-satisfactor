@@ -127,6 +127,15 @@ jeu donnant du fer, créé par le test à 3 m) : PASS 5 fers extraits en ~30 s. 
 a trouvé les **vrais** rochers du monde (« Iron : 6 rocher(s), le plus proche à 39 m ») ;
 l'extraction depuis un vrai rocher n'a pas été testée (aucun à moins de 6 m du vaisseau de test).
 
+0.17.1 (16/10/2026), extracteur contre un gros rocher (bug signalé par un joueur : extracteur
+collé à un grand cristal, « No deposit in reach ») : la portée se mesurait jusqu'au centre du
+rocher. Le rocher de test est maintenant gros (dessiné sur 8 m autour d'un petit collider de
+1,2 m, centre à 6,5 m de l'extracteur, hors de portée par l'ancienne mesure) : PASS 6 minerais
+extraits, « Gisement … à 1.0 m ». Mesures des vrais rochers du monde « test factory » : colliders
+1,23 m, modèle ~1,5 m, centre à 0,2-0,3 m du pivot ; aucun grand cristal chargé près du joueur,
+le cristal du joueur n'a donc pas été mesuré lui-même. Phase 1 : 26 PASS, 0 FAIL ; phase 2 :
+5 PASS, 0 FAIL ; tests unitaires 66/66.
+
 Résultat 0.1.0 (11/10/2026) :
 
 | Vérification | Résultat |

@@ -66,7 +66,7 @@ namespace StellarIndustries.Parts
         private static Vector3Int Key(Vector3 p) => new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
 
         /// <summary>The visual nearest the rock (within half a metre), looked up in the metre cells around it.</summary>
-        private static MeshFilter Nearest(Dictionary<Vector3Int, List<MeshFilter>> visuals, Vector3 at)
+        internal static MeshFilter Nearest(Dictionary<Vector3Int, List<MeshFilter>> visuals, Vector3 at)
         {
             MeshFilter best = null;
             float bestDistance = 0.25f;
@@ -95,7 +95,7 @@ namespace StellarIndustries.Parts
         }
 
         /// <summary>The game's rock visuals (objects with a readable mesh, by the game's naming), by place.</summary>
-        private static Dictionary<Vector3Int, List<MeshFilter>> Visuals()
+        internal static Dictionary<Vector3Int, List<MeshFilter>> Visuals()
         {
             var found = new Dictionary<Vector3Int, List<MeshFilter>>();
             foreach (MeshFilter filter in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
@@ -143,6 +143,10 @@ namespace StellarIndustries.Parts
             MeshFilter visual = Own(rock) ?? Nearest(Visuals(), rock.Object.transform.position);
             return visual != null && Decorate(rock, visual);
         }
+
+        /// <summary>Development: the game's visual of a rock, or null.</summary>
+        public static MeshFilter VisualOf(Deposits.Rock rock) =>
+            rock.Object == null ? null : Own(rock) ?? Nearest(Visuals(), rock.Object.transform.position);
 
         /// <summary>Some rocks (the planets' static objects) carry their mesh themselves rather than a separate visual.</summary>
         private static MeshFilter Own(Deposits.Rock rock)
