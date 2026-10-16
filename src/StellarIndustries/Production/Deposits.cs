@@ -268,37 +268,46 @@ namespace StellarIndustries.Production
         /// <summary>Host: the rock nearest to this extractor within its reach, or null.</summary>
         public static Deposit? Find(uint shipId, StatefulPart part, MachineDef def) => Find(shipId, part, def, out _);
 
-        /// <summary>Host: the rock nearest to this extractor within its reach, or null; <paramref name="nearest"/> is the nearest loaded rock at any distance.</summary>
+        /// <summary>
+        /// Host: the rock nearest to this extractor within its reach, or null; <paramref name="nearest"/>
+        /// is the nearest rock loaded here at any distance. A rock seen only by a client near the
+        /// extractor counts too (<see cref="DepositReports"/>).
+        /// </summary>
         public static Deposit? Find(uint shipId, StatefulPart part, MachineDef def, out Deposit? nearest)
         {
             Scan();
-            if (Cache.TryGetValue((shipId, part.Id), out var cached))
+            if (!Cache.TryGetValue((shipId, part.Id), out var cached))
             {
-                nearest = cached.Nearest;
-                return cached.Found;
+                Deposit? near = null;
+                if (_client == null)
+                    _client = ServiceLocator.GetService<ShipsClientTracker>();
+                if (_client != null && _client.TryGetShipVisualTransform(shipId, out Transform ship) && ship != null)
+                    near = NearestTo(ship.TransformPoint(part.LocalPosition));
+                cached = (near != null && near.Value.Distance <= def.ExtractRadius ? near : null, near);
+                Cache[(shipId, part.Id)] = cached;
             }
-            nearest = null;
-            if (_client == null)
-                _client = ServiceLocator.GetService<ShipsClientTracker>();
-            if (_client != null && _client.TryGetShipVisualTransform(shipId, out Transform ship) && ship != null)
+            nearest = cached.Nearest;
+            return cached.Found ?? DepositReports.Reported(shipId, part.Id, def);
+        }
+
+        /// <summary>The rock loaded on this game nearest to a point (distance to its surface), or null.</summary>
+        public static Deposit? NearestTo(Vector3 at)
+        {
+            Scan();
+            Deposit? nearest = null;
+            float best = float.MaxValue;
+            foreach (Rock rock in Rocks)
             {
-                Vector3 at = ship.TransformPoint(part.LocalPosition);
-                float best = float.MaxValue;
-                foreach (Rock rock in Rocks)
-                {
-                    // A rock mined away since the last scan
-                    if (rock.Object == null)
-                        continue;
-                    float d = DistanceTo(rock, at);
-                    if (d >= best)
-                        continue;
-                    best = d;
-                    nearest = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity, Node = rock.Node };
-                }
+                // A rock mined away since the last scan
+                if (rock.Object == null)
+                    continue;
+                float d = DistanceTo(rock, at);
+                if (d >= best)
+                    continue;
+                best = d;
+                nearest = new Deposit { Item = rock.Item, Name = rock.Name, Position = rock.Position, Distance = d, Purity = rock.Purity, Node = rock.Node };
             }
-            Deposit? found = nearest != null && nearest.Value.Distance <= def.ExtractRadius ? nearest : null;
-            Cache[(shipId, part.Id)] = (found, nearest);
-            return found;
+            return nearest;
         }
 
         /// <summary>The machine's world position as the host sees it (null if its ship is not shown).</summary>

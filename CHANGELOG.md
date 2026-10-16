@@ -7,6 +7,9 @@
   rocher. Elle se mesure maintenant jusqu'à sa surface (ses colliders et son modèle).
 - Quand rien n'est à portée, le panneau de l'extracteur indique le rocher le plus proche et sa
   distance (« Le plus proche : Fer à 9,3 m »).
+- **Multijoueur** : un extracteur travaille aussi quand l'hôte est loin. Le jeu ne charge les
+  rochers que près de chaque joueur : les joueurs proches d'un extracteur signalent maintenant à
+  l'hôte le rocher qu'ils voient à sa portée (toutes les 3 s ; l'hôte vérifie l'objet et la portée).
 
 ## 0.17.0 — gisements inépuisables, extracteurs Mk2 et foreuse
 

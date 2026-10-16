@@ -33,7 +33,9 @@ namespace StellarIndustries.Core
         /// <summary>Server to one client: its scanner's modules, Text is "id,id,..." (A: 1 if the last change was refused).</summary>
         ScannerModules = 10,
         /// <summary>Client to server: I mined an inexhaustible deposit, give me item A times B.</summary>
-        NodeMined = 11
+        NodeMined = 11,
+        /// <summary>Client to server: extractor A/B has a rock within reach on my game, Text from <see cref="Production.DepositReports.Encode"/>.</summary>
+        DepositSeen = 12
     }
 
     /// <summary>

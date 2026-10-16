@@ -387,6 +387,7 @@ namespace StellarIndustries.Diagnostics
             Log($"workshop E behind the pole: {MachineSimulation.Get(ship.Id, WorkshopE)?.Status}");
             if (_devRock != null)
                 Object.Destroy(_devRock);
+            yield return CheckClientReports(ship);
             Check(ship, WorkshopB, (GameItems.Iron, 6));
             Check(ship, WorkshopC, full);
             // A last change just before saving, so the save holds a mid-production state
@@ -1207,6 +1208,33 @@ namespace StellarIndustries.Diagnostics
             Mathf.Abs(v.x) >= Mathf.Abs(v.z) ? new Vector3(Mathf.Sign(v.x), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(v.z));
 
         private static MachineDef Def(ushort id) => MachineCatalog.TryGet(id, out MachineDef d) ? d : null;
+
+        /// <summary>
+        /// Multiplayer: with no rock in reach on the host, a client's reports (sent through the
+        /// mod's network message, handled as from the host's own client) make the extractor work;
+        /// when they stop, it stops.
+        /// </summary>
+        private static IEnumerator CheckClientReports(TrackedShipServer ship)
+        {
+            Deposits.Rescan();
+            MachineDef def = Def(MachineCatalog.Extractor);
+            string report = DepositReports.Encode(new Deposits.Deposit { Item = GameItems.Iron, Purity = Purity.Pure, Distance = 2.5f });
+            int before = Crafting.CountOf(Stacks(ship, ExtractorPart), GameItems.Iron);
+            for (int i = 0; i < 6; i++)
+            {
+                SINet.SendToServer(SIMessageKind.DepositSeen, ship.Id, ExtractorPart, report);
+                yield return Wait(2f);
+            }
+            MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
+            int made = Crafting.CountOf(Stacks(ship, ExtractorPart), GameItems.Iron) - before;
+            Log($"{(made >= 2 && rt?.Status == MachineStatus.Producing ? "PASS" : "FAIL")} extractor fed by a client's report (no rock on the host): {made} iron in 12 s, {rt?.Status} {rt?.Detail}");
+            // A report too far for this extractor is refused
+            SINet.SendToServer(SIMessageKind.DepositSeen, ship.Id, ExtractorPart, DepositReports.Encode(new Deposits.Deposit { Item = GameItems.Iron, Distance = def.ExtractRadius + 1f }));
+            bool refused = DepositReports.Reported(ship.Id, ExtractorPart, def) == null;
+            yield return Wait(10f);
+            rt = MachineSimulation.Get(ship.Id, ExtractorPart);
+            Log($"{(refused && rt?.Status == MachineStatus.NoDeposit ? "PASS" : "FAIL")} client reports stopped: {rt?.Status} (out-of-reach report refused: {refused})");
+        }
 
         private static void CheckExtractor(TrackedShipServer ship)
         {

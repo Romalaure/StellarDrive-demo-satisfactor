@@ -36,6 +36,7 @@ namespace StellarIndustries
             MachineActivity.Install();
             UI.ScannerModules.Install();
             NodeMiningPatch.Install();
+            DepositReports.Install();
             ApplyPatches();
             Log.Msg("ready");
         }
@@ -113,6 +114,7 @@ namespace StellarIndustries
             MachineSimulation.Forget();
             MachineControl.Forget();
             Deposits.Forget();
+            DepositReports.Forget();
             Logistics.LoadingDocks.Forget();
             Logistics.Conveyors.Forget();
             if (_partsRegistered)
@@ -232,6 +234,7 @@ namespace StellarIndustries
                 Parts.IndustryResearch.Tick();
                 UI.MachineHud.Update();
                 UI.DepositScanner.Update();
+                DepositReports.Update();
                 UI.ScannerModules.Update();
                 Parts.DepositDecor.Update();
                 Diagnostics.FactoryOverview.Update();

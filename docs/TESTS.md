@@ -136,6 +136,12 @@ extraits, « Gisement … à 1.0 m ». Mesures des vrais rochers du monde « tes
 le cristal du joueur n'a donc pas été mesuré lui-même. Phase 1 : 26 PASS, 0 FAIL ; phase 2 :
 5 PASS, 0 FAIL ; tests unitaires 66/66.
 
+0.17.1, multijoueur (hôte loin de la base d'un client) : simulé sur un seul PC. Le rocher de test
+retiré, le test envoie six rapports « client » par le message réseau du mod (traités par le même
+gestionnaire que ceux d'un vrai client) : PASS 4 fers en 12 s (« Iron pur à 2.5 m ») ; rapports
+arrêtés : PASS retour à « aucun gisement » en moins de 10 s, rapport hors de portée refusé.
+Phase 1 : 28 PASS, 0 FAIL. Non testé avec deux vrais joueurs.
+
 Résultat 0.1.0 (11/10/2026) :
 
 | Vérification | Résultat |
