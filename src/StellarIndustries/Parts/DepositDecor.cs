@@ -28,38 +28,120 @@ namespace StellarIndustries.Parts
         /// <summary>Rocks decorated since the scene loaded (development log).</summary>
         public static int Count { get; private set; }
 
+        /// <summary>Decorations shown now (development log).</summary>
+        public static int Live => All.Count;
+
         public static void Forget()
         {
             _next = 0f;
+            _nextCheck = 0f;
             Count = 0;
+            All.Clear();
+            NotFound.Clear();
         }
+
+        /// <summary>One decoration made, and what it was made for.</summary>
+        private sealed class Made
+        {
+            public GameObject Go;
+            public Planets.Objects.MinablePlanetObject Rock;
+            public MeshFilter Visual;
+            public Renderer Look;
+            public Mesh Source;
+            /// <summary>The decoration's own mesh (an inexhaustible deposit's), destroyed with it.</summary>
+            public Mesh Own;
+            public uint Item;
+            public Vector3 At;
+        }
+
+        private static readonly List<Made> All = new List<Made>();
+        /// <summary>Rocks whose drawn model was not found, and when to look again.</summary>
+        private static readonly Dictionary<int, float> NotFound = new Dictionary<int, float>();
+        private static float _nextCheck;
 
         public static void Update()
         {
-            if (!Settings.DepositDetails.Value || Time.unscaledTime < _next || !IndustrialSkin.Ready)
+            if (!Settings.DepositDetails.Value || !IndustrialSkin.Ready)
                 return;
-            _next = Time.unscaledTime + 3f;
-            var pending = new List<Deposits.Rock>();
-            foreach (Deposits.Rock rock in Deposits.Loaded())
+            float now = Time.unscaledTime;
+            if (now >= _nextCheck)
             {
-                if (rock.Object != null && rock.Object.transform.Find(ChildName) == null)
-                    pending.Add(rock);
+                _nextCheck = now + 0.5f;
+                Check();
+            }
+            if (now < _next)
+                return;
+            _next = now + 3f;
+            var pending = new List<Deposits.Rock>();
+            foreach (Deposits.Rock rock in Deposits.Current)
+            {
+                if (rock.Object == null || rock.Object.transform.Find(ChildName) != null)
+                    continue;
+                // A rock without a model found is looked at again only now and then (a whole scene search)
+                if (NotFound.TryGetValue(rock.Object.GetInstanceID(), out float retry) && now < retry)
+                    continue;
+                pending.Add(rock);
             }
             if (pending.Count == 0)
                 return;
-            Dictionary<Vector3Int, List<MeshFilter>> visuals = Visuals();
+            Dictionary<Vector3Int, List<MeshFilter>> visuals = null;
             foreach (Deposits.Rock rock in pending)
             {
                 try
                 {
-                    MeshFilter visual = Own(rock) ?? Nearest(visuals, rock.Object.transform.position);
-                    if (visual != null)
-                        Decorate(rock, visual);
+                    MeshFilter visual = Own(rock);
+                    if (visual == null)
+                    {
+                        visuals = visuals ?? Visuals();
+                        visual = Nearest(visuals, rock.Object.transform.position);
+                    }
+                    if (visual != null && Decorate(rock, visual))
+                        NotFound.Remove(rock.Object.GetInstanceID());
+                    else
+                        NotFound[rock.Object.GetInstanceID()] = now + 10f;
                 }
                 catch (System.Exception e)
                 {
                     ErrorLog.Report("deposit look", e);
                 }
+            }
+            if (NotFound.Count > 2000)
+                NotFound.Clear();
+        }
+
+        /// <summary>
+        /// Takes a decoration away as soon as it no longer fits its rock: the rock mined, its model
+        /// hidden or swapped, or the rock object reused by the game for another rock elsewhere.
+        /// Otherwise the ore would float in the air where a rock used to be. The rock gets a new
+        /// one at the next pass if it is still there.
+        /// </summary>
+        private static void Check()
+        {
+            for (int i = All.Count - 1; i >= 0; i--)
+            {
+                Made m = All[i];
+                bool keep;
+                try
+                {
+                    keep = m.Go != null && m.Rock != null && m.Visual != null && m.Visual.gameObject.activeInHierarchy && (m.Look == null || m.Look.enabled) &&
+                           m.Visual.sharedMesh == m.Source && m.Rock.dropRate.item != null && m.Rock.dropRate.item.id == m.Item && m.Rock.CurrentHealth > 0f &&
+                           (m.Rock.transform.position - m.At).sqrMagnitude < 0.01f && (m.Visual.transform.position - m.Go.transform.position).sqrMagnitude < 0.01f;
+                }
+                catch (System.Exception)
+                {
+                    keep = false;
+                }
+                if (keep)
+                    continue;
+                if (m.Go != null)
+                {
+                    // Out of the rock at once, so that the next pass can make the right one
+                    m.Go.transform.SetParent(null, false);
+                    Object.Destroy(m.Go);
+                }
+                if (m.Own != null)
+                    Object.Destroy(m.Own);
+                All.RemoveAt(i);
             }
         }
 
@@ -177,6 +259,11 @@ namespace StellarIndustries.Parts
             var renderer = go.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = IndustrialSkin.Material;
             renderer.shadowCastingMode = ShadowCastingMode.Off;
+            All.Add(new Made
+            {
+                Go = go, Rock = rock.Object, Visual = visual, Look = visual.GetComponent<Renderer>(), Source = visual.sharedMesh,
+                Own = rock.Node ? mesh : null, Item = rock.Item, At = t.position
+            });
             Count++;
             return true;
         }

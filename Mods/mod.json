@@ -2,7 +2,7 @@
     "id": "StellarIndustries",
     "name": "Stellar Industries",
     "author": "Romalaure",
-    "version": "0.17.1",
+    "version": "0.18.0",
     "description": "Build your own factory in StellarDrive! Dig ore, smelt it, shape it and assemble it with 30 machines, power them with the game's grid and power poles, move everything on conveyor belts and find rich and inexhaustible deposits with the scanner. 73 items, from iron plates to time crystals, recycling and trading, a research branch, animated machines and an in-game wiki (press G). English and French. Needs SDModKit; Item Lines recommended. / Montez votre usine dans StellarDrive : 30 machines pour extraire, fondre, faconner et assembler, des convoyeurs, des poteaux electriques, des scanners, des gisements inepuisables, 73 objets, recyclage et echange, une branche de recherche, des machines animees et un wiki dans le jeu (touche G). Necessite SDModKit.",
     "thumbnail": "thumbnail.png"
 }

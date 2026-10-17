@@ -1,5 +1,18 @@
 # Journal des changements
 
+## 0.18.0 — gisements inépuisables pour les extracteurs, minerais qui ne flottent plus
+
+- **Gisements inépuisables réservés aux extracteurs** : le laser de minage ne les entame plus
+  (c'était une mine gratuite sans fin). Leur nom l'indique : « gisement inépuisable : extracteurs
+  seulement ».
+- **Minerai qui flottait dans les airs** : le minerai dessiné sur un rocher restait parfois en
+  place après que le rocher avait été miné ou que le jeu avait réutilisé l'objet ailleurs. Il
+  disparaît maintenant avec le rocher et revient s'il réapparaît.
+- **Optimisation** : une seule recherche des rochers toutes les 3 s pour les extracteurs, le
+  décor et le scanner (au lieu de plusieurs), infos des rochers gardées en mémoire, plus de
+  recherche dans toute la scène toutes les 3 s pour les rochers dont le modèle est introuvable.
+  Le mod ne remplit plus le journal du jeu de « NetworkManager not found » au menu.
+
 ## 0.17.1 — correctif des extracteurs
 
 - **Extracteur collé à un gros rocher** : il affichait « Aucun gisement à portée » contre un grand

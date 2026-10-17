@@ -70,7 +70,7 @@ namespace StellarIndustries.UI
                 return;
             _aimed = (ship.Id, part.Id);
             _aimedDef = def;
-            if (!InstanceFinder.IsServerStarted && Time.unscaledTime >= _nextAsk)
+            if (!SINet.IsServer && Time.unscaledTime >= _nextAsk)
             {
                 _nextAsk = Time.unscaledTime + 0.5f;
                 SINet.SendToServer(SIMessageKind.StatusRequest, ship.Id, part.Id, "");
@@ -94,7 +94,7 @@ namespace StellarIndustries.UI
             {
                 // Off -> send -> receive -> off
                 string[] modes = { "", Logistics.LoadingDocks.Send, Logistics.LoadingDocks.Receive };
-                string current = InstanceFinder.IsServerStarted ? MachineControl.Choices.Get(_aimed.Ship, _aimed.Part) : MachineControl.ClientReport(_aimed.Ship, _aimed.Part, 5f)?.ChosenId;
+                string current = SINet.IsServer ? MachineControl.Choices.Get(_aimed.Ship, _aimed.Part) : MachineControl.ClientReport(_aimed.Ship, _aimed.Part, 5f)?.ChosenId;
                 int index = Math.Max(0, Array.IndexOf(modes, current ?? ""));
                 SINet.SendToServer(SIMessageKind.SetRecipe, _aimed.Ship, _aimed.Part, modes[(index + (back ? 2 : 1)) % 3]);
                 _nextLook = 0f;
@@ -111,7 +111,7 @@ namespace StellarIndustries.UI
 
         private static RecipeDef CurrentChoice(uint ship, ushort part, MachineDef def)
         {
-            if (InstanceFinder.IsServerStarted)
+            if (SINet.IsServer)
                 return MachineControl.Chosen(ship, part, def.PartId);
             MachineReport? report = MachineControl.ClientReport(ship, part, 5f);
             return report?.ChosenId != null ? RecipeBook.Get(report.Value.ChosenId) : null;
@@ -130,7 +130,7 @@ namespace StellarIndustries.UI
             string makes = Products(def, recipes);
             if (makes != null)
                 Text.Append("<color=#aaa>").Append(Lang.T("Produit : ", "Makes: ")).Append(makes).Append("</color>\n");
-            MachineReport? report = InstanceFinder.IsServerStarted ? MachineControl.HostReport(shipId, partId) : MachineControl.ClientReport(shipId, partId, 2f);
+            MachineReport? report = SINet.IsServer ? MachineControl.HostReport(shipId, partId) : MachineControl.ClientReport(shipId, partId, 2f);
             if (report != null)
             {
                 MachineReport r = report.Value;
@@ -156,7 +156,7 @@ namespace StellarIndustries.UI
                     RecipeDef chosen = r.ChosenId != null ? RecipeBook.Get(r.ChosenId) : null;
                     Text.Append(Lang.T("\nMode : ", "\nMode: ")).Append(chosen != null ? "<color=#8cf>" + Lang.RecipeName(chosen) + Lang.T(" uniquement</color>", " only</color>") : Lang.T("automatique", "automatic"));
                 }
-                if (!Settings.Enabled.Value && InstanceFinder.IsServerStarted)
+                if (!Settings.Enabled.Value && SINet.IsServer)
                     Text.Append(Lang.T("\n(production désactivée dans les réglages)", "\n(production turned off in the settings)"));
             }
             else

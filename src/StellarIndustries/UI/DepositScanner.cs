@@ -167,7 +167,7 @@ namespace StellarIndustries.UI
             }
             ScannerSound.Scan();
             Vector3 at = PlayerAccess.WorldPosition;
-            foreach (Deposits.Rock rock in Deposits.Loaded())
+            foreach (Deposits.Rock rock in Deposits.Current)
             {
                 if (Vector3.Distance(at, rock.Position) <= _gear.Range)
                     Hits.Add(new Hit { Item = rock.Item, Name = IndustrialItems.NameOf(rock.Item), Position = rock.Position, Purity = rock.Purity, Node = rock.Node });

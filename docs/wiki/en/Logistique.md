@@ -61,7 +61,7 @@ About four metal rocks in ten hold one of the mod's ores instead of iron, copper
 | [Gold Ore](Objet-7772) | golden | [gold ingots](Objet-7773) (smelter), then circuit boards |
 
 ## Inexhaustible deposits and extractors
-About one rock in eight is an **inexhaustible deposit**: a crown of ore points and glowing purple shards, "∞" on the scanner. The laser never breaks it (it gives its items every time), and an extractor next to it works **2.5 times faster**.
+About one rock in eight is an **inexhaustible deposit**: a crown of ore points and glowing purple shards, "∞" on the scanner. It is for extractors only: the mining laser does not wear it down at all. An extractor next to it works **2.5 times faster**.
 
 | Extractor | Speed | Reach | Research |
 |---|---|---|---|

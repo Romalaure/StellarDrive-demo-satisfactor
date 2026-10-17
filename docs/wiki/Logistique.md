@@ -61,7 +61,7 @@ Environ quatre rochers de métal sur dix contiennent un minerai du mod à la pla
 | [Minerai d'or](Objet-7772) | doré | [lingots d'or](Objet-7773) (fonderie), puis circuits imprimés |
 
 ## Gisements inépuisables et extracteurs
-Environ un rocher sur huit est un **gisement inépuisable** : couronne de pointes de minerai et d'éclats violets lumineux, « ∞ » au scanner. Le laser ne le casse jamais (il rend ses objets à chaque fois), et un extracteur posé à côté y travaille **2,5 fois plus vite**.
+Environ un rocher sur huit est un **gisement inépuisable** : couronne de pointes de minerai et d'éclats violets lumineux, « ∞ » au scanner. Il est réservé aux extracteurs : le laser de minage ne l'entame pas. Un extracteur posé à côté y travaille **2,5 fois plus vite**.
 
 | Extracteur | Vitesse | Portée | Recherche |
 |---|---|---|---|

@@ -871,23 +871,25 @@ namespace StellarIndustries.Diagnostics
             File.WriteAllBytes(Path.Combine(Folder, "deposits.png"), rockSheet.EncodeToPNG());
             Object.Destroy(rockSheet);
             Log($"deposits: {shown} photographed, {Parts.DepositDecor.Count} decorated in all");
-            // The laser on an inexhaustible deposit: it stays, and what it gives reaches the inventory
+            // The laser on an inexhaustible deposit: no wear, nothing given (extractors only)
             Deposits.Rock? node = rocks.Where(r => r.Node && r.Object != null).Cast<Deposits.Rock?>().FirstOrDefault();
             if (node != null)
             {
                 var minable = node.Value.Object;
                 var before = SDModKit.Game.PlayerAccess.CurrentCounts();
                 int had = before.TryGetValue(node.Value.Item, out int h) ? h : 0;
+                float health = minable.CurrentHealth;
                 minable.ReduceHealth(minable.MaxHealth + 1f);
                 yield return Wait(1f);
                 var after = SDModKit.Game.PlayerAccess.CurrentCounts();
                 int has = after.TryGetValue(node.Value.Item, out int n2) ? n2 : 0;
-                Log($"{(minable != null && minable.CurrentHealth > 0f && has > had ? "PASS" : "FAIL")} inexhaustible deposit mined: {IndustrialItems.NameOf(node.Value.Item)} {had} -> {has}, rock still there {minable != null}, health {minable?.CurrentHealth:0.0}");
+                Log($"{(minable != null && minable.CurrentHealth == health && has == had ? "PASS" : "FAIL")} inexhaustible deposit not minable by the laser: {IndustrialItems.NameOf(node.Value.Item)} {had} -> {has}, health {health:0.0} -> {minable?.CurrentHealth:0.0}");
             }
             else
             {
-                Log("SKIP inexhaustible deposit mining: none loaded near the player");
+                Log("SKIP inexhaustible deposit and the laser: none loaded near the player");
             }
+            yield return CheckDecorFollows(rocks);
             camera.targetTexture = null;
             RenderTexture.ReleaseTemporary(target);
             Object.Destroy(shot);
@@ -905,6 +907,53 @@ namespace StellarIndustries.Diagnostics
         }
 
         /// <summary>The host gets a Mk2 and three modules, fits two (Mk2: 3 slots), sees the effect, takes one out.</summary>
+        /// <summary>
+        /// The ore drawn on a rock must never float on its own: hidden with the rock's model, gone
+        /// when the rock object moves (the game reuses rock objects), back on the rock afterwards.
+        /// No churn: decorations stay put while nothing changes.
+        /// </summary>
+        private static IEnumerator CheckDecorFollows(List<Deposits.Rock> rocks)
+        {
+            float wait = 0f;
+            while (Parts.DepositDecor.Live == 0 && wait < 8f)
+            {
+                yield return Wait(1f);
+                wait += 1f;
+            }
+            int made = Parts.DepositDecor.Count, live = Parts.DepositDecor.Live;
+            yield return Wait(4f);
+            Log($"{(Parts.DepositDecor.Count == made && Parts.DepositDecor.Live == live && live > 0 ? "PASS" : "FAIL")} deposit decorations steady: {live} shown, {Parts.DepositDecor.Count - made} remade in 4 s");
+            Deposits.Rock? pick = rocks.Where(r => r.Object != null && !r.Node && r.Object.transform.Find(Parts.DepositDecor.ChildName) != null && Parts.DepositDecor.VisualOf(r) != null)
+                .Cast<Deposits.Rock?>().FirstOrDefault();
+            if (pick == null)
+            {
+                Log("SKIP deposit decoration follow: no decorated rock with a separate model");
+                yield break;
+            }
+            Transform rock = pick.Value.Object.transform;
+            MeshFilter visual = Parts.DepositDecor.VisualOf(pick.Value);
+            bool own = visual.transform.IsChildOf(rock);
+            // Mined: the game hides the rock's model
+            visual.gameObject.SetActive(false);
+            yield return Wait(1.2f);
+            bool hidden = rock.Find(Parts.DepositDecor.ChildName) == null;
+            visual.gameObject.SetActive(true);
+            // A rock whose model was not found is looked at again after 10 s
+            yield return Wait(14f);
+            bool back = rock.Find(Parts.DepositDecor.ChildName) != null;
+            Log($"{(hidden && back ? "PASS" : "FAIL")} ore follows the rock's model: gone when hidden {hidden}, back when shown {back}");
+            // Reused: the rock object moved elsewhere (its own model with it only if it carries it)
+            if (!own)
+            {
+                Vector3 was = rock.position;
+                rock.position = was + rock.up * 3f;
+                yield return Wait(1.2f);
+                bool gone = rock.Find(Parts.DepositDecor.ChildName) == null;
+                rock.position = was;
+                Log($"{(gone ? "PASS" : "FAIL")} no ore left floating when the rock object moves away from its model: {gone}");
+            }
+        }
+
         private static IEnumerator CheckModules()
         {
             foreach (uint item in new[] { ResourceCatalog.ScannerMk2, ResourceCatalog.RangeModule2, ResourceCatalog.AnalysisModule2, ResourceCatalog.RangeModule })

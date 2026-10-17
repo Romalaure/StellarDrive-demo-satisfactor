@@ -136,6 +136,14 @@ extraits, « Gisement … à 1.0 m ». Mesures des vrais rochers du monde « tes
 le cristal du joueur n'a donc pas été mesuré lui-même. Phase 1 : 26 PASS, 0 FAIL ; phase 2 :
 5 PASS, 0 FAIL ; tests unitaires 66/66.
 
+0.18.0 (18/10/2026), phase 4 (gisements, monde « test factory ») : PASS laser sur un gisement
+inépuisable (vie 2.0 → 2.0, rien donné) ; PASS décors stables (17 affichés, aucun refait en 4 s) ;
+PASS minerai retiré quand le modèle du rocher est caché, remis quand il revient ; PASS aucun
+minerai flottant quand l'objet rocher est déplacé. Phase 1 : 28 PASS, 0 FAIL ; phase 2 : 5 PASS,
+0 FAIL (un premier essai de phase 1 avait raté le quai : vaisseau glissé, quais à 4,5 m ; une
+phase 2 avait chargé le monde de TF Advanced, dont le harnais tournait en même temps :
+`tools/devrun.sh` prend maintenant le verrou partagé `UserData/harness.lock`).
+
 0.17.1, multijoueur (hôte loin de la base d'un client) : simulé sur un seul PC. Le rocher de test
 retiré, le test envoie six rapports « client » par le message réseau du mod (traités par le même
 gestionnaire que ceux d'un vrai client) : PASS 4 fers en 12 s (« Iron pur à 2.5 m ») ; rapports

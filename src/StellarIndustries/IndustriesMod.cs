@@ -8,7 +8,7 @@ using StellarIndustries.Core;
 using StellarIndustries.Production;
 using StellarIndustries.Recipes;
 
-[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.17.1", "Romalaure")]
+[assembly: MelonInfo(typeof(IndustriesMod), "Stellar Industries", "0.18.0", "Romalaure")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: MelonOptionalDependencies("SDModKit")]
 [assembly: HarmonyDontPatchAll]
@@ -35,7 +35,6 @@ namespace StellarIndustries
             Diagnostics.FactoryOverview.Install();
             MachineActivity.Install();
             UI.ScannerModules.Install();
-            NodeMiningPatch.Install();
             DepositReports.Install();
             ApplyPatches();
             Log.Msg("ready");

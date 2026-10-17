@@ -36,7 +36,7 @@ namespace StellarIndustries.Production
 
         public static bool IsActive(uint ship, ushort part)
         {
-            if (InstanceFinder.IsServerStarted)
+            if (SINet.IsServer)
             {
                 MachineSimulation.Runtime rt = MachineSimulation.Get(ship, part);
                 return rt != null && Working(rt.Status);
@@ -49,7 +49,7 @@ namespace StellarIndustries.Production
         /// <summary>Host: sends the working machines to the clients.</summary>
         public static void Update()
         {
-            if (!InstanceFinder.IsServerStarted || Time.unscaledTime < _nextSend)
+            if (!SINet.IsServer || Time.unscaledTime < _nextSend)
                 return;
             _nextSend = Time.unscaledTime + 1f;
             Text.Clear();

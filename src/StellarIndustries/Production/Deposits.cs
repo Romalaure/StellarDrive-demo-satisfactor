@@ -57,7 +57,7 @@ namespace StellarIndustries.Production
         {
             Rocks.Clear();
             Cache.Clear();
-            Shapes.Clear();
+            Infos.Clear();
             _nextScan = 0f;
             _client = null;
         }
@@ -143,7 +143,7 @@ namespace StellarIndustries.Production
                 return;
             string label = Label(rock);
             string name = string.IsNullOrEmpty(label) ? IndustrialItems.NameOf(rock.dropRate.item.id) : label;
-            string mark = Lang.T(" (gisement inépuisable)", " (inexhaustible deposit)");
+            string mark = Lang.T(" (gisement inépuisable : extracteurs seulement)", " (inexhaustible deposit: extractors only)");
             if (!name.EndsWith(mark))
                 Label(rock) = name + mark;
         }
@@ -164,47 +164,76 @@ namespace StellarIndustries.Production
         /// <summary>Rich-text color of a purity in the scanner and the machine panel.</summary>
         public static string PurityColor(Purity purity) => purity == Purity.Impure ? "#e98" : purity == Purity.Pure ? "#7f9" : "#ddd";
 
-        /// <summary>Every extractable rock loaded on this player's game (a fresh search: call it seldom).</summary>
+        /// <summary>Every extractable rock loaded on this player's game (a fresh search: call it seldom, or use <see cref="Current"/>).</summary>
         public static List<Rock> Loaded()
         {
             var list = new List<Rock>();
+            var seen = new HashSet<(uint, Vector3Int)>();
             Dictionary<Vector3Int, List<MeshFilter>> visuals = null;
             foreach (MinablePlanetObject rock in Object.FindObjectsByType<MinablePlanetObject>(FindObjectsSortMode.None))
             {
+                if (rock == null)
+                    continue;
                 Convert(rock);
-                MarkNode(rock);
-                if (rock == null || rock.dropRate.item == null)
+                if (rock.dropRate.item == null)
                     continue;
                 uint item = rock.dropRate.item.id;
                 if (!Extractable(item))
                     continue;
                 // A rock can carry the component twice (same place): it is one deposit
                 Vector3 at = rock.transform.position;
-                if (list.Exists(r => r.Item == item && (r.Position - at).sqrMagnitude < 0.01f))
+                if (!seen.Add((item, Vector3Int.RoundToInt(at * 10f))))
                     continue;
+                Info info = InfoOf(rock, item, at, ref visuals);
                 list.Add(new Rock
                 {
-                    Object = rock, Item = item, Position = rock.transform.position, Purity = PurityOf(rock), Node = IsNode(rock),
-                    Name = IndustrialItems.NameOf(item), Shape = ShapeOf(rock, ref visuals)
+                    Object = rock, Item = item, Position = at, Purity = info.Purity, Node = info.Node,
+                    Name = IndustrialItems.NameOf(item), Shape = info.Shape
                 });
             }
             return list;
         }
 
-        /// <summary>Rock shapes already measured, by rock object (the game reuses rock objects elsewhere: the place is checked).</summary>
-        private static readonly Dictionary<int, (Vector3 At, Bounds? Shape)> Shapes = new Dictionary<int, (Vector3, Bounds?)>();
+        /// <summary>The rocks loaded on this game, from the last search (at most a few seconds old).</summary>
+        public static List<Rock> Current
+        {
+            get
+            {
+                Scan();
+                return Rocks;
+            }
+        }
+
+        private struct Info
+        {
+            public Vector3 At;
+            public uint Item;
+            public Purity Purity;
+            public bool Node;
+            public Bounds? Shape;
+        }
+
+        /// <summary>What is known of each rock object (the game reuses rock objects elsewhere: the place and the item are checked).</summary>
+        private static readonly Dictionary<int, Info> Infos = new Dictionary<int, Info>();
+
+        private static Info InfoOf(MinablePlanetObject rock, uint item, Vector3 at, ref Dictionary<Vector3Int, List<MeshFilter>> visuals)
+        {
+            int id = rock.GetInstanceID();
+            if (Infos.TryGetValue(id, out Info known) && known.Item == item && (known.At - at).sqrMagnitude < 0.01f)
+                return known;
+            MarkNode(rock);
+            var info = new Info { At = at, Item = item, Purity = PurityOf(rock), Node = IsNode(rock), Shape = ShapeOf(rock, at, ref visuals) };
+            Infos[id] = info;
+            return info;
+        }
 
         /// <summary>
         /// The box around a rock: its solid colliders and its drawn model (some big rocks and
         /// crystals have a small collider and a much bigger look). A big rock's centre can be
         /// meters away from a machine set against it. Triggers and huge volumes are left out.
         /// </summary>
-        private static Bounds? ShapeOf(MinablePlanetObject rock, ref Dictionary<Vector3Int, List<MeshFilter>> visuals)
+        private static Bounds? ShapeOf(MinablePlanetObject rock, Vector3 at, ref Dictionary<Vector3Int, List<MeshFilter>> visuals)
         {
-            Vector3 at = rock.transform.position;
-            int id = rock.GetInstanceID();
-            if (Shapes.TryGetValue(id, out var known) && (known.At - at).sqrMagnitude < 0.01f)
-                return known.Shape;
             Bounds? shape = null;
             void Add(Bounds b)
             {
@@ -241,7 +270,6 @@ namespace StellarIndustries.Production
                 if (seen != null)
                     Add(seen.bounds);
             }
-            Shapes[id] = (at, shape);
             return shape;
         }
 
@@ -257,8 +285,8 @@ namespace StellarIndustries.Production
             _nextScan = now + ScanInterval;
             Rocks.Clear();
             Cache.Clear();
-            if (Shapes.Count > 4000)
-                Shapes.Clear();
+            if (Infos.Count > 4000)
+                Infos.Clear();
             Rocks.AddRange(Loaded());
         }
 
@@ -328,48 +356,24 @@ namespace StellarIndustries.Production
     /// Mining a rock with the laser gives as much as its purity says too: half on an impure
     /// rock (at least one), twice as much on a pure one, like the extractors.
     /// </summary>
+    /// <summary>
+    /// Inexhaustible deposits are for the extractors only: the mining laser does not wear them
+    /// down (they would be an endless free mine for a player otherwise).
+    /// </summary>
     [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.ReduceHealth))]
     internal static class NodeMiningPatch
     {
-        private static readonly HarmonyLib.AccessTools.FieldRef<Planets.Objects.MinablePlanetObject, float> Health =
-            HarmonyLib.AccessTools.FieldRefAccess<Planets.Objects.MinablePlanetObject, float>("_currentHealth");
-
-        /// <summary>
-        /// On the miner's game: a deposit that would break is whole again instead, and the host is
-        /// asked for what breaking it would have given.
-        /// </summary>
-        private static bool Prefix(Planets.Objects.MinablePlanetObject __instance, float amount)
+        private static bool Prefix(Planets.Objects.MinablePlanetObject __instance)
         {
             try
             {
-                if (Health(__instance) <= 0f || Health(__instance) - amount > 0f || !Deposits.IsNode(__instance))
-                    return true;
-                Health(__instance) = __instance.MaxHealth;
-                Items.Model.ItemDrop drop = __instance.GetItemDrop();
-                if (drop.Quantity > 0)
-                    SINet.SendToServer(SIMessageKind.NodeMined, drop.ItemId, drop.Quantity, "");
-                return false;
+                return !Deposits.IsNode(__instance);
             }
             catch (System.Exception e)
             {
                 ErrorLog.Report("inexhaustible deposit", e);
                 return true;
             }
-        }
-
-        /// <summary>Host: gives a player what they mined from an inexhaustible deposit (ores only, a few at a time).</summary>
-        public static void Install()
-        {
-            SINet.OnServer(SIMessageKind.NodeMined, (sender, item, count, text) =>
-            {
-                if (!Deposits.Extractable(item) || count == 0 || count > 12 || IndustrialItems.Find(item) == null)
-                    return;
-                var players = SDModKit.Game.GameRefs.PlayersServer;
-                Players.TrackedPlayerServer player = players == null ? null : sender == null || sender.IsLocalClient
-                    ? System.Linq.Enumerable.FirstOrDefault(players.ActivePlayers, p => p != null && p.IsHost)
-                    : System.Linq.Enumerable.FirstOrDefault(players.ActivePlayers, p => p != null && p.ConnectionId == sender.ClientId);
-                player?.AddItemToInventory(new Items.Model.ItemDrop { ItemId = item, Quantity = (byte)count });
-            });
         }
     }
 

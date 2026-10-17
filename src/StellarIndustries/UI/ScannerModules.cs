@@ -178,7 +178,7 @@ namespace StellarIndustries.UI
 
         public static void Save(string worldDirectory)
         {
-            if (string.IsNullOrEmpty(worldDirectory) || !InstanceFinder.IsServerStarted)
+            if (string.IsNullOrEmpty(worldDirectory) || !SINet.IsServer)
                 return;
             string path = Path.Combine(worldDirectory, FileName);
             if (!_changed && File.Exists(path) || Fitted.Count == 0 && !File.Exists(path))

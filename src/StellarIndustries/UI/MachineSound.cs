@@ -67,7 +67,7 @@ namespace StellarIndustries.UI
                 return 0f;
             Vector3 ear = camera.transform.position;
             float nearest = Reach;
-            bool host = InstanceFinder.IsServerStarted;
+            bool host = SINet.IsServer;
             foreach (var ship in _ships.VisuallyLoadedShip)
             {
                 if (!_ships.TryGetShipVisualTransform(ship.Id, out Transform frame) || frame == null)

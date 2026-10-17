@@ -32,7 +32,7 @@ namespace StellarIndustries.Core
         ScannerRequest = 9,
         /// <summary>Server to one client: its scanner's modules, Text is "id,id,..." (A: 1 if the last change was refused).</summary>
         ScannerModules = 10,
-        /// <summary>Client to server: I mined an inexhaustible deposit, give me item A times B.</summary>
+        /// <summary>No longer sent (0.17: mining an inexhaustible deposit with the laser; 0.18: extractors only).</summary>
         NodeMined = 11,
         /// <summary>Client to server: extractor A/B has a rock within reach on my game, Text from <see cref="Production.DepositReports.Encode"/>.</summary>
         DepositSeen = 12
@@ -81,7 +81,20 @@ namespace StellarIndustries.Core
 
         public static void OnClient(SIMessageKind kind, ClientHandler handler) => ClientHandlers[kind] = handler;
 
-        public static bool IsServer => InstanceFinder.IsServerStarted;
+        /// <summary>
+        /// Whether this game is the host. Read from FishNet's list of managers: InstanceFinder logs
+        /// "NetworkManager not found" on every call while there is none (main menu).
+        /// </summary>
+        public static bool IsServer
+        {
+            get
+            {
+                NetworkManager network = Current;
+                return network != null && network.IsServerStarted;
+            }
+        }
+
+        private static NetworkManager Current => NetworkManager.Instances.Count > 0 ? NetworkManager.Instances[0] : null;
 
         public static void Update() => EnsureHandlers();
 
@@ -129,7 +142,7 @@ namespace StellarIndustries.Core
 
         private static void EnsureHandlers()
         {
-            NetworkManager network = InstanceFinder.NetworkManager;
+            NetworkManager network = Current;
             if (network == _network)
                 return;
             if (_network != null)

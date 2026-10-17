@@ -9,7 +9,11 @@ GAME="${GAME:-/g/SteamLibrary/steamapps/common/StellarDrive Demo}"
 C="$GAME/UserData/MelonPreferences.cfg"
 W="${SAVES:-$USERPROFILE/AppData/LocalLow/CuriousOwlGames/StellarDrive/WorldSaves}"
 L="$GAME/MelonLoader/Latest.log"
-while tasklist //FI "IMAGENAME eq StellarDrive.exe" | grep -q StellarDrive; do sleep 2; done
+LOCK="$GAME/UserData/harness.lock"
+# Other mods' test harnesses share the game: wait for theirs, hold the lock during ours
+while [ -f "$LOCK" ] || tasklist //FI "IMAGENAME eq StellarDrive.exe" | grep -q StellarDrive; do sleep 2; done
+echo "stellar-industries devrun" > "$LOCK"
+trap 'rm -f "$LOCK"' EXIT
 cp "$C" "$S/prefs.user.cfg"
 if [ "${FRESH:-0}" = 1 ]; then rm -rf "$W/SI_DevTest"; mkdir -p "$W/SI_DevTest" && cp "$W/${WORLD:-test factory}/world.json" "$W/SI_DevTest/world.json"; fi
 EXTRA="DevWorld = \"$(cygpath -m "$W")/SI_DevTest/world.json\"\nDevPhase = ${PHASE:-1}\nDevQuitSeconds = $QUIT.0\nLanguage = \"${LANGUAGE:-auto}\""

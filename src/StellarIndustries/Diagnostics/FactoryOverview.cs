@@ -184,7 +184,7 @@ namespace StellarIndustries.Diagnostics
             if (!_open || Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 1f;
-            if (InstanceFinder.IsServerStarted)
+            if (SINet.IsServer)
                 _shown = Take();
             else
                 SINet.SendToServer(SIMessageKind.OverviewRequest, 0, 0, "");
