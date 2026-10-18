@@ -72,4 +72,4 @@ About one rock in eight is an **inexhaustible deposit**: a crown of ore points a
 Purity (×½, ×1, ×2) and an inexhaustible deposit (×2.5) add to these speeds.
 
 ## Storage
-The [Industrial Container](Machine-7608) has 10 slots, like every machine of the mod.
+The [Industrial Container](Machine-7608) has 40 slots: scroll the grid (mouse wheel or the bar on its right) to reach the last ones. It is light (15 kg empty), to serve as a cargo ship's hold; what it holds weighs as usual.

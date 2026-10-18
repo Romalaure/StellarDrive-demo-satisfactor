@@ -2,7 +2,7 @@
 
 Quelques choses que le mod ne fait pas, et pourquoi.
 
-- **10 emplacements par machine** : les machines utilisent le stockage du jeu, qui en a 10.
+- **10 emplacements par machine** : les machines utilisent le stockage du jeu, qui en a 10. Seul le [Conteneur industriel](Machine-7608) en a 40.
 - **Pas de fluides** (pétrole, eau en tuyaux…) : le jeu ne permet pas d'ajouter de nouveaux réservoirs. C'est pour ça que la [Raffinerie](Machine-7612) travaille la biomasse plutôt que le pétrole.
 - **Pas d'eau en tuyaux, donc pas de pompe à eau** : le [Condenseur d'eau](Machine-7616) produit de la glace à la place, que les recettes utilisent comme eau.
 - **Pas de nucléaire dangereux** : le [Réacteur stellaire](Machine-7617) ne fait ni radiations ni explosion ; il s'arrête simplement si ses déchets ne sont pas évacués.

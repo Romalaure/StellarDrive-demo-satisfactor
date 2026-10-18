@@ -94,7 +94,7 @@ namespace StellarIndustries.Content
             [7605] = ("Assembler", "Puts several parts together into components: reinforced plates, rotors, stators, frames, circuits..."),
             [7606] = ("Extractor", "Drills the nearest minable rock (within 6 m) and pulls its ore out without ever using it up: one item every 6 s. Set it on a ship or a base on the ground, next to a rock, and give it power."),
             [7607] = ("Combustion Generator", "Burns logs, biomass, bricks or charcoal and powers its grid with up to 6,000 W. It only burns what the grid actually uses."),
-            [7608] = ("Industrial Container", "A reinforced crate with 10 slots: a buffer between machines, or the hold of a cargo ship."),
+            [7608] = ("Industrial Container", "A light crate with 40 slots (scroll the grid): a buffer between machines, or the hold of a cargo ship."),
             [7609] = ("Transfer Dock", "Moves items to another dock, for example from a cargo ship to a base. Look at it and press N: off, send or receive. A sending dock empties into the nearest receiving dock within 4 m, even on another ship."),
             [7610] = ("Fabricator", "A robotic cell with two arms: motors, computers, heavy frames and other parts with up to 4 ingredients."),
             [7611] = ("Blast Furnace", "A two-input furnace: steel with charcoal (better yield), aluminum-copper alloy, quartz crystals."),

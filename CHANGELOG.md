@@ -1,5 +1,15 @@
 # Journal des changements
 
+## 0.19.0 — conteneur industriel ×4 et plus léger
+
+- **40 emplacements** au lieu de 10 dans le conteneur industriel. Toutes les cases sont visibles
+  dans le menu du coffre : la grille défile avec la molette ou la barre orange à droite. Les
+  conteneurs déjà construits passent à 40 emplacements au chargement, sans rien perdre. Les
+  lignes d'objets (Item Lines), le joueur et la sauvegarde utilisent les 40 cases.
+- **4 fois plus léger** : 15 kg à vide au lieu de 60, pour en faire la soute d'un vaisseau.
+  Les objets rangés dedans gardent leur poids.
+- Multijoueur : l'hôte et les joueurs doivent avoir la même version du mod.
+
 ## 0.18.0 — gisements inépuisables pour les extracteurs, minerais qui ne flottent plus
 
 - **Gisements inépuisables réservés aux extracteurs** : le laser de minage ne les entame plus

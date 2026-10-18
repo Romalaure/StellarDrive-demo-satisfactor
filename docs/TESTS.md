@@ -144,6 +144,16 @@ minerai flottant quand l'objet rocher est déplacé. Phase 1 : 28 PASS, 0 FAIL ;
 phase 2 avait chargé le monde de TF Advanced, dont le harnais tournait en même temps :
 `tools/devrun.sh` prend maintenant le verrou partagé `UserData/harness.lock`).
 
+0.19.0 (18/10/2026), conteneur industriel à 40 emplacements : le test écrit un état de 10
+emplacements (comme une sauvegarde d'avant 0.19), puis pose 7 vis en case 35 par la fonction du
+jeu (`SetChestSlot`). PASS 40 emplacements (le jeu en voit 40), case 35 = 7 vis, masse 15 kg ;
+PASS 57 vis au total ; PASS menu ouvert par la vraie interaction du jeu : 40 cases, défilement
+jusqu'en bas (captures `container_top.png` / `container_bottom.png` : 2 rangées visibles, barre
+orange dans la marge, masse affichée 20,7 kg). Phase 2 : PASS conteneur après rechargement
+(40 emplacements, case 35 = 7 vis) ; contenu identique ; 6 PASS, 0 FAIL. Phase 1 : 30 PASS,
+0 FAIL. Tests unitaires 66/66. Non testé : deux vrais joueurs (le format réseau est vérifié
+par le chemin de l'hôte seulement).
+
 0.17.1, multijoueur (hôte loin de la base d'un client) : simulé sur un seul PC. Le rocher de test
 retiré, le test envoie six rapports « client » par le message réseau du mod (traités par le même
 gestionnaire que ceux d'un vrai client) : PASS 4 fers en 12 s (« Iron pur à 2.5 m ») ; rapports

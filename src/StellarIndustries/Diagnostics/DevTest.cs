@@ -283,6 +283,8 @@ namespace StellarIndustries.Diagnostics
             // Dock A sends to the cargo ship's dock
             ship.UpdatePartState(DockA, new StorageState { InventorySlots = Slots((GameItems.Iron, 12), (GameItems.Copper, 5)) });
             ship.UpdatePartState(ContainerPart, new StorageState { InventorySlots = Slots((ResourceCatalog.Screws, 50)) });
+            // 0.19: the container has 40 slots, the game's own slot move reaches the last ones
+            ship.SetChestSlot(ContainerPart, 35, Slot(ResourceCatalog.Screws, 7));
             Log($"dock A send: {MachineControl.SetChoice(shipId, DockA, Logistics.LoadingDocks.Send)}, cargo dock receive: {MachineControl.SetChoice(_cargoId, CargoDock, Logistics.LoadingDocks.Receive)}");
             // Workshop D runs on the mod's combustion generator, fed with 2 logs
             ship.UpdatePartState(Gen7, new StorageState { InventorySlots = Slots((GameItems.Wood, 2)) });
@@ -366,7 +368,7 @@ namespace StellarIndustries.Diagnostics
             MachineSimulation.Runtime acc = MachineSimulation.Get(ship.Id, AccumulatorPart);
             Log($"{(acc != null && acc.Stored > 10000f ? "PASS" : "FAIL")} accumulator charged from the generator's spare power: {acc?.Stored:0} J, {acc?.Status}, {acc?.Detail}");
             Check(ship, DockA);
-            Check(ship, ContainerPart, (ResourceCatalog.Screws, 50));
+            Check(ship, ContainerPart, (ResourceCatalog.Screws, 57));
             TrackedShipServer cargoShip = ships.GetShip(_cargoId);
             Log($"dock A: {MachineSimulation.Get(shipId, DockA)?.Detail}");
             if (cargoShip != null)
@@ -388,6 +390,7 @@ namespace StellarIndustries.Diagnostics
             if (_devRock != null)
                 Object.Destroy(_devRock);
             yield return CheckClientReports(ship);
+            yield return CheckContainer(ship);
             Check(ship, WorkshopB, (GameItems.Iron, 6));
             Check(ship, WorkshopC, full);
             // A last change just before saving, so the save holds a mid-production state
@@ -439,6 +442,7 @@ namespace StellarIndustries.Diagnostics
             Log(now == saved ? "PASS contents identical after reload: " + now : "FAIL contents differ after reload: " + now);
             _checked = true;
             // The press's recipe choice came back from the companion file
+            CheckContainerSlots(test, "after reload");
             string choice = MachineControl.Choices.Get(test.Id, PressPart);
             Log(choice == "press.cable" ? "PASS press recipe choice kept after reload: " + choice : "FAIL press recipe choice after reload: " + (choice ?? "automatic"));
             // Production starts again after the reload
@@ -453,6 +457,46 @@ namespace StellarIndustries.Diagnostics
             Check(test, PressPart, (ResourceCatalog.IronRod, 2), (ResourceCatalog.Cable, 1));
             MachineSimulation.Runtime acc = MachineSimulation.Get(test.Id, AccumulatorPart);
             Log($"{(acc != null && acc.Stored >= 100000f ? "PASS" : "FAIL")} accumulator charge after reload: {acc?.Stored:0} J ({acc?.Detail})");
+        }
+
+        /// <summary>The container has its 40 slots and the 7 screws put in slot 35.</summary>
+        private static void CheckContainerSlots(TrackedShipServer ship, string when)
+        {
+            StatefulPart part = ship.GetAllStatefulParts<StorageState>().FirstOrDefault(p => p.Id == ContainerPart);
+            var state = part?.State as StorageState;
+            int count = state != null ? Logistics.BigContainer.Count(state) : 0;
+            InventorySlot last = count > 35 ? state.GetSlot(35) : default;
+            bool pass = count == Logistics.BigContainer.Slots && state.SlotCount == count && last.HasItem && last.ItemId == ResourceCatalog.Screws && last.Quantity == 7;
+            Log($"{(pass ? "PASS" : "FAIL")} container {when}: {count} slots (game sees {state?.SlotCount}), slot 35 {(last.HasItem ? last.Quantity + "x" + last.ItemId : "empty")}, part mass {part?.Settings?.Mass}");
+        }
+
+        /// <summary>The container's chest menu opens with its 40 slots in a scroll view that scrolls to the last row.</summary>
+        private static IEnumerator CheckContainer(TrackedShipServer ship)
+        {
+            CheckContainerSlots(ship, "in game");
+            var interact = ServiceLocator.GetService<Managers.Interface.Services.IShipInteractionNetworkService>();
+            if (interact == null)
+            {
+                Log("FAIL container menu: no interaction service");
+                yield break;
+            }
+            interact.StartInteractWithPart(new Managers.Interface.Model.PartInteractNetworkRequest { ShipId = ship.Id, PartId = ContainerPart });
+            yield return Wait(1.5f);
+            UnityEngine.UI.ScrollRect scroll = UI.ContainerMenu.Open;
+            int shown = scroll != null ? scroll.content.GetComponentsInChildren<global::UI.Inventory.InventorySlotUI>(true).Length : 0;
+            Directory.CreateDirectory(Folder);
+            ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "container_top.png"));
+            yield return Wait(0.5f);
+            if (scroll != null)
+                UI.ContainerMenu.ScrollBy(scroll, -20, 1000f);
+            yield return Wait(0.5f);
+            ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "container_bottom.png"));
+            yield return Wait(0.5f);
+            float at = scroll != null ? scroll.verticalNormalizedPosition : -1f;
+            Log($"{(scroll != null && shown == Logistics.BigContainer.Slots && at < 0.01f ? "PASS" : "FAIL")} container menu: {shown} slots shown, scrolled to {at:0.00} " +
+                $"(view {scroll?.viewport.rect.size}, content {scroll?.content.rect.size})");
+            interact.StopInteract();
+            yield return Wait(0.5f);
         }
 
         /// <summary>Development: where the extractor and the real rocks are seen from, with the player aboard or not.</summary>
@@ -1293,7 +1337,7 @@ namespace StellarIndustries.Diagnostics
                 Log("FAIL extractor missing");
                 return;
             }
-            var slots = new Production.Stack[10];
+            var slots = new Production.Stack[Logistics.BigContainer.Count((StorageState)part.State)];
             MachineSimulation.Read((StorageState)part.State, slots);
             MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, ExtractorPart);
             // The test rock gives iron, or the mod's ore it holds
@@ -1317,7 +1361,7 @@ namespace StellarIndustries.Diagnostics
                 Log($"FAIL part {partId} missing");
                 return;
             }
-            var slots = new Production.Stack[10];
+            var slots = new Production.Stack[Logistics.BigContainer.Count((StorageState)part.State)];
             MachineSimulation.Read((StorageState)part.State, slots);
             var have = slots.Where(s => !s.IsEmpty).GroupBy(s => s.Item).ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
             var want = expected.GroupBy(e => e.Item).ToDictionary(g => g.Key, g => g.Sum(e => e.Count));
@@ -1344,7 +1388,7 @@ namespace StellarIndustries.Diagnostics
             {
                 if (!MachineCatalog.TryGet(part.Settings.id, out _))
                     continue;
-                var slots = new Production.Stack[10];
+                var slots = new Production.Stack[Logistics.BigContainer.Count((StorageState)part.State)];
                 MachineSimulation.Read((StorageState)part.State, slots);
                 text.Append('[').Append(part.Id).Append(':');
                 foreach (Production.Stack s in slots)
@@ -1361,7 +1405,7 @@ namespace StellarIndustries.Diagnostics
             {
                 if (!MachineCatalog.TryGet(part.Settings.id, out _))
                     continue;
-                var slots = new Production.Stack[10];
+                var slots = new Production.Stack[Logistics.BigContainer.Count((StorageState)part.State)];
                 MachineSimulation.Read((StorageState)part.State, slots);
                 MachineSimulation.Runtime rt = MachineSimulation.Get(ship.Id, part.Id);
                 text.Append($"[{part.Id} {rt?.Status.ToString() ?? "-"} {rt?.Recipe?.Id ?? "-"} {(rt != null ? (rt.Progress * 100f).ToString("0", CultureInfo.InvariantCulture) : "-")}% {(rt != null ? (rt.Watts * rt.PowerRate).ToString("0", CultureInfo.InvariantCulture) : "-")}W:");

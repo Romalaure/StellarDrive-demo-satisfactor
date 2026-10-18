@@ -2,7 +2,7 @@
 
 A few things the mod does not do, and why.
 
-- **10 slots per machine**: the machines use the game's own storage, which has 10.
+- **10 slots per machine**: the machines use the game's own storage, which has 10. Only the [Industrial Container](Machine-7608) has 40.
 - **No fluids** (oil, water in pipes…): the game doesn't let mods add new kinds of tanks. That's why the [Refinery](Machine-7612) works with biomass rather than oil.
 - **No piped water, so no water pump**: the [Water Condenser](Machine-7616) makes ice instead, which the recipes use as water.
 - **No dangerous nuclear power**: the [Stellar Reactor](Machine-7617) has no radiation and never explodes; it simply stops when its waste is not taken out.

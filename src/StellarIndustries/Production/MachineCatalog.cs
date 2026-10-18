@@ -204,9 +204,9 @@ namespace StellarIndustries.Production
             },
             new MachineDef
             {
-                PartId = IndustrialContainer, Name = "Conteneur industriel", Model = MachineModel.Container, Tier = 2, Watts = 0f, Mass = 60f, Height = 1.2f,
+                PartId = IndustrialContainer, Name = "Conteneur industriel", Model = MachineModel.Container, Tier = 2, Watts = 0f, Mass = 15f, Height = 1.2f,
                 Container = true,
-                Description = "Caisse renforcée de 10 emplacements : tampon entre machines (lignes d'objets) ou soute d'un vaisseau cargo.",
+                Description = "Caisse légère de 40 emplacements (faites défiler la grille) : tampon entre machines (lignes d'objets) ou soute d'un vaisseau cargo.",
                 BuildCost = new[] { (ResourceCatalog.IronPlate, 8), (ResourceCatalog.Screws, 16) }
             },
             new MachineDef

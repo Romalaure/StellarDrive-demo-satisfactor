@@ -72,4 +72,4 @@ Environ un rocher sur huit est un **gisement inépuisable** : couronne de pointe
 La pureté (×½, ×1, ×2) et le gisement inépuisable (×2,5) s'ajoutent à ces vitesses.
 
 ## Stocker
-Le [Conteneur industriel](Machine-7608) offre 10 emplacements, comme toutes les machines du mod.
+Le [Conteneur industriel](Machine-7608) offre 40 emplacements : la grille défile (molette ou barre à droite) pour atteindre les derniers. Il est léger (15 kg à vide), pour servir de soute à un vaisseau cargo ; ce qu'il contient pèse son poids habituel.
