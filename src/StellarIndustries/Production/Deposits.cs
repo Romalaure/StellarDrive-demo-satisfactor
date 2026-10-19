@@ -136,16 +136,23 @@ namespace StellarIndustries.Production
             Label(rock) = IndustrialItems.NameOf(ore);
         }
 
-        /// <summary>Names an inexhaustible deposit as such (its label, shown when aimed at).</summary>
-        private static void MarkNode(MinablePlanetObject rock)
+        /// <summary>
+        /// What the game shows when a rock is aimed at with the laser: its ore, its purity and,
+        /// for an inexhaustible deposit, that only extractors draw from it (the laser does nothing
+        /// there). Worked out at each look, so no later change of the rock can wipe it.
+        /// </summary>
+        public static string LabelOf(MinablePlanetObject rock, string label)
         {
-            if (!IsNode(rock))
-                return;
-            string label = Label(rock);
-            string name = string.IsNullOrEmpty(label) ? IndustrialItems.NameOf(rock.dropRate.item.id) : label;
-            string mark = Lang.T(" (gisement inépuisable : extracteurs seulement)", " (inexhaustible deposit: extractors only)");
-            if (!name.EndsWith(mark))
-                Label(rock) = name + mark;
+            Convert(rock);
+            if (rock.dropRate.item == null || !Extractable(rock.dropRate.item.id))
+                return label;
+            string name = Label(rock);
+            if (string.IsNullOrEmpty(name))
+                name = IndustrialItems.NameOf(rock.dropRate.item.id);
+            name += " (" + PurityName(PurityOf(rock)) + ")";
+            if (IsNode(rock))
+                name += Lang.T(" : gisement inépuisable, extracteurs seulement", ": inexhaustible deposit, extractors only");
+            return name;
         }
 
         /// <summary>Development: a rock's key and the id type it came from.</summary>
@@ -221,7 +228,6 @@ namespace StellarIndustries.Production
             int id = rock.GetInstanceID();
             if (Infos.TryGetValue(id, out Info known) && known.Item == item && (known.At - at).sqrMagnitude < 0.01f)
                 return known;
-            MarkNode(rock);
             var info = new Info { At = at, Item = item, Purity = PurityOf(rock), Node = IsNode(rock), Shape = ShapeOf(rock, at, ref visuals) };
             Infos[id] = info;
             return info;
@@ -373,6 +379,22 @@ namespace StellarIndustries.Production
             {
                 ErrorLog.Report("inexhaustible deposit", e);
                 return true;
+            }
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(Planets.Objects.MinablePlanetObject), nameof(Planets.Objects.MinablePlanetObject.Label), HarmonyLib.MethodType.Getter)]
+    internal static class RockLabelPatch
+    {
+        private static void Postfix(Planets.Objects.MinablePlanetObject __instance, ref string __result)
+        {
+            try
+            {
+                __result = Deposits.LabelOf(__instance, __result);
+            }
+            catch (System.Exception e)
+            {
+                ErrorLog.Report("rock label", e);
             }
         }
     }

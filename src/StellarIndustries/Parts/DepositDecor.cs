@@ -11,7 +11,7 @@ namespace StellarIndustries.Parts
     /// <summary>
     /// Makes the game's minable rocks read as ore deposits, on this player's game only: veins of
     /// their ore on the rock's own facets (built from the rock's mesh, a hair above it),
-    /// with a few nuggets, or small crystals for stellar shards, ice and glass. A pure deposit
+    /// with a few rough nuggets, or clusters of crystals for stellar shards, ice, glass, sulfur and quartz. A pure deposit
     /// shows ore on half its facets and many nuggets, an impure one on a few facets. The game draws each rock with a
     /// separate "... visual" object at the rock's place; the veins are added under the rock itself
     /// (they go away when it is mined) at the pose of that visual. Purely visual: no collider,
@@ -301,6 +301,22 @@ namespace StellarIndustries.Parts
             0.5f + 0.25f * Mathf.Sin(p.x * 1.3f + seed + 1.7f * Mathf.Sin(p.y * 0.9f + p.z * 1.1f + seed))
                  + 0.25f * Mathf.Sin(p.z * 1.7f - seed + 1.3f * Mathf.Sin(p.x * 1.2f - p.y * 0.7f));
 
+        /// <summary>How much of the rock its ore covers (the field's threshold: lower is more).</summary>
+        private static float Threshold(uint item, Purity purity)
+        {
+            switch (item)
+            {
+                // Coal and limestone are beds: most of the rock is the ore itself
+                case ResourceCatalog.Coal: return purity == Purity.Impure ? 0.4f : purity == Purity.Normal ? 0.3f : 0.2f;
+                case ResourceCatalog.Limestone: return purity == Purity.Impure ? 0.38f : purity == Purity.Normal ? 0.28f : 0.18f;
+                // The others are veins in the host rock, told apart by their crystals or nuggets
+                case ResourceCatalog.Sulfur:
+                case ResourceCatalog.RawQuartz:
+                case ResourceCatalog.GoldOre: return purity == Purity.Impure ? 0.58f : purity == Purity.Normal ? 0.5f : 0.42f;
+                default: return purity == Purity.Impure ? 0.62f : purity == Purity.Normal ? 0.52f : 0.42f;
+            }
+        }
+
         /// <summary>The veins of one rock shape, in the rock mesh's own frame.</summary>
         public static Mesh MeshFor(Mesh rock, uint item, Purity purity, bool node = false, Vector3 up = default)
         {
@@ -315,13 +331,8 @@ namespace StellarIndustries.Parts
             float size = Mathf.Max(0.1f, rock.bounds.size.magnitude);
             // Whole facets of the rock turn to ore, in patches: more of them when the deposit is rich
             float frequency = 3f / size;
-            float threshold = purity == Purity.Impure ? 0.62f : purity == Purity.Normal ? 0.52f : 0.42f;
-            // The mod's ores cover the whole rock (gold most of it), so they never pass for the metal the rock was
-            if (ResourceCatalog.Get(item) != null)
-                threshold = item == ResourceCatalog.GoldOre ? 0.35f : -1f;
-            if (node)
-                threshold -= 0.2f;
-            float lift = size * 0.004f;
+            float threshold = Threshold(item, purity) - (node ? 0.08f : 0f);
+            float lift = size * 0.005f;
             var b = new MeshBuilder { Panel = IndustrialSkin.Uv(vein) };
             var spots = new List<(Vector3 At, Vector3 Normal)>();
             for (int t = 0; t + 2 < triangles.Length; t += 3)
@@ -337,35 +348,37 @@ namespace StellarIndustries.Parts
                 normal.Normalize();
                 if (Field(centre * frequency, seed) < threshold)
                     continue;
-                Vector3 raise = normal * lift;
-                // Pulled in a little from the facet's edges, so the rock's own outline still shows
-                Vector3 Inset(Vector3 p) => centre + (p - centre) * 0.97f + raise;
-                b.Face(Inset(a), Inset(c1), Inset(c2), normal, new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.1f), new Vector2(0.5f, 0.9f));
-                spots.Add((centre + raise, normal));
+                // Each corner is pushed out from the rock's centre, the same for every facet that
+                // shares it: neighbouring ore facets stay joined (no crack showing the rock's edge line)
+                Vector3 Raise(Vector3 p) => p + (p - rock.bounds.center).normalized * lift;
+                // Each facet shows its own patch of the ore's texture, from the tile's inside only:
+                // the tile's outline never draws lines across the rock
+                Vector3 tx = Vector3.Cross(normal, Mathf.Abs(normal.y) < 0.9f ? Vector3.up : Vector3.right).normalized, ty = Vector3.Cross(normal, tx);
+                var origin = new Vector2(0.3f + 0.4f * Hash01(centre, 1), 0.3f + 0.4f * Hash01(centre, 2));
+                Vector2 Uv(Vector3 p)
+                {
+                    Vector3 d = p - centre;
+                    Vector2 uv = origin + new Vector2(Vector3.Dot(d, tx), Vector3.Dot(d, ty)) * (0.5f / size);
+                    return new Vector2(Mathf.Clamp(uv.x, 0.18f, 0.82f), Mathf.Clamp(uv.y, 0.18f, 0.82f));
+                }
+                b.Face(Raise(a), Raise(c1), Raise(c2), normal, Uv(a), Uv(c1), Uv(c2));
+                spots.Add(((Raise(a) + Raise(c1) + Raise(c2)) / 3f, normal));
             }
-            // Nuggets (metals) or small crystals (shards, ice, glass) on the veins
-            int count = purity == Purity.Impure ? 2 : purity == Purity.Normal ? 5 : 10;
+            // Nuggets (metals, coal, limestone, gold) or clusters of crystals (shards, ice, glass, sulfur, quartz) on the veins
+            int count = purity == Purity.Impure ? 3 : purity == Purity.Normal ? 6 : 10;
             var rnd = new System.Random(seed * 101 + (int)purity);
             b.Panel = IndustrialSkin.Uv(nugget);
             for (int k = 0; k < count && spots.Count > 0; k++)
             {
                 (Vector3 at, Vector3 n) = spots[rnd.Next(spots.Count)];
-                float s = size * (0.012f + 0.01f * (float)rnd.NextDouble()) * (purity == Purity.Pure ? 1.4f : 1f);
+                float s = size * (0.014f + 0.012f * (float)rnd.NextDouble()) * (purity == Purity.Pure ? 1.3f : 1f);
                 if (crystal)
-                {
-                    Vector3 lean = Vector3.Cross(n, Vector3.up).sqrMagnitude > 0.01f ? Vector3.Cross(n, Vector3.up).normalized : Vector3.right;
-                    Vector3 axis = (n + lean * ((float)rnd.NextDouble() - 0.5f) * 0.6f).normalized;
-                    Vector3 tip = at + axis * s * 5f;
-                    b.Cylinder(at - axis * s, tip, s, s * 0.9f, 6);
-                    b.Cylinder(tip, tip + axis * s * 1.6f, s * 0.9f, s * 0.05f, 6, capB: false);
-                }
+                    Cluster(b, at, n, s, 2 + rnd.Next(3), rnd);
                 else
-                {
-                    b.Cylinder(at - n * s * 0.6f, at + n * s * 0.9f, s * 1.3f, s * 0.7f, 5);
-                }
+                    Lump(b, at, n, s * 1.4f, rnd);
             }
             if (node)
-                Crown(b, vertices, up, size, crystal, nugget);
+                Crown(b, vertices, up, size, crystal, nugget, rnd);
             if (!b.HasGeometry)
                 return null;
             Mesh mesh = b.Build($"SI_Veins_{rock.name}_{item}_{purity}{(node ? "_node" : "")}", GameSkin.Ready ? GameSkin.Palette : (Vector2?)null);
@@ -375,11 +388,72 @@ namespace StellarIndustries.Parts
             return mesh;
         }
 
+        /// <summary>A number in 0-1 from a place (the same on every game).</summary>
+        private static float Hash01(Vector3 p, int salt)
+        {
+            unchecked
+            {
+                uint h = (uint)Mathf.RoundToInt(p.x * 97f) * 73856093u ^ (uint)Mathf.RoundToInt(p.y * 97f) * 19349663u ^ (uint)Mathf.RoundToInt(p.z * 97f) * 83492791u ^ (uint)salt * 2654435761u;
+                h ^= h >> 13;
+                h *= 1274126177u;
+                h ^= h >> 16;
+                return (h & 0xffffu) / 65535f;
+            }
+        }
+
         /// <summary>
-        /// An inexhaustible deposit's crown: big ore points on its top, among glowing stellar
-        /// shards, so it is told from an ordinary rock from afar.
+        /// A rough nugget half sunk in the rock: an octahedron with its corners pulled at random,
+        /// flat faces like the game's own rocks.
         /// </summary>
-        private static void Crown(MeshBuilder b, Vector3[] vertices, Vector3 up, float size, bool crystal, Tile ore)
+        private static void Lump(MeshBuilder b, Vector3 at, Vector3 n, float s, System.Random rnd)
+        {
+            Vector3 t1 = Vector3.Cross(n, Mathf.Abs(n.y) < 0.9f ? Vector3.up : Vector3.right).normalized, t2 = Vector3.Cross(n, t1);
+            float spin = (float)rnd.NextDouble() * Mathf.PI;
+            Vector3 u = t1 * Mathf.Cos(spin) + t2 * Mathf.Sin(spin), w = Vector3.Cross(n, u);
+            float R() => 0.75f + 0.5f * (float)rnd.NextDouble();
+            Vector3 centre = at + n * s * 0.15f;
+            Vector3 top = centre + n * s * 0.8f * R(), bottom = centre - n * s * 0.6f;
+            Vector3[] ring = { centre + u * s * R(), centre + w * s * R(), centre - u * s * R(), centre - w * s * R() };
+            for (int i = 0; i < 4; i++)
+            {
+                Vector3 p = ring[i], q = ring[(i + 1) % 4];
+                FaceOut(b, top, p, q, centre);
+                FaceOut(b, bottom, q, p, centre);
+            }
+        }
+
+        private static void FaceOut(MeshBuilder b, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 inside)
+        {
+            Vector3 normal = Vector3.Cross(p1 - p0, p2 - p0);
+            if (Vector3.Dot(normal, (p0 + p1 + p2) / 3f - inside) < 0f)
+                normal = -normal;
+            b.Face(p0, p1, p2, normal, new Vector2(0.3f, 0.3f), new Vector2(0.7f, 0.3f), new Vector2(0.5f, 0.7f));
+        }
+
+        /// <summary>A few six-sided crystals growing from one spot, leaning apart, of different lengths.</summary>
+        private static void Cluster(MeshBuilder b, Vector3 at, Vector3 n, float s, int count, System.Random rnd)
+        {
+            Vector3 t1 = Vector3.Cross(n, Mathf.Abs(n.y) < 0.9f ? Vector3.up : Vector3.right).normalized, t2 = Vector3.Cross(n, t1);
+            for (int i = 0; i < count; i++)
+            {
+                float angle = (i + (float)rnd.NextDouble() * 0.5f) * Mathf.PI * 2f / count;
+                Vector3 lean = t1 * Mathf.Cos(angle) + t2 * Mathf.Sin(angle);
+                // The first is the biggest and stands straightest
+                float r = s * (i == 0 ? 1f : 0.55f + 0.35f * (float)rnd.NextDouble());
+                Vector3 axis = (n + lean * (i == 0 ? 0.15f : 0.35f + 0.35f * (float)rnd.NextDouble())).normalized;
+                Vector3 foot = at + lean * s * (i == 0 ? 0f : 0.8f) - axis * r;
+                Vector3 shoulder = foot + axis * r * (3.5f + 2f * (float)rnd.NextDouble());
+                b.Cylinder(foot, shoulder, r, r, 6, capA: false, capB: false);
+                b.Cylinder(shoulder, shoulder + axis * r * 1.4f, r, r * 0.08f, 6, capA: false, capB: false);
+            }
+        }
+
+        /// <summary>
+        /// An inexhaustible deposit's crown: a big outcrop of its ore on the rock's top (crystals
+        /// or nuggets), with stellar shards glowing in its cracks, so it is told from an ordinary
+        /// rock from afar.
+        /// </summary>
+        private static void Crown(MeshBuilder b, Vector3[] vertices, Vector3 up, float size, bool crystal, Tile ore, System.Random rnd)
         {
             if (up.sqrMagnitude < 0.5f)
                 up = Vector3.up;
@@ -393,21 +467,30 @@ namespace StellarIndustries.Parts
             {
                 if (tops.All(t => (t - v).sqrMagnitude > size * size * 0.02f))
                     tops.Add(v);
-                if (tops.Count == 6)
+                if (tops.Count == 4)
                     break;
             }
             for (int i = 0; i < tops.Count; i++)
             {
                 Vector3 at = tops[i];
-                Vector3 axis = ((at - centre).normalized * 0.5f + up).normalized;
-                bool glow = i % 2 == 1;
-                float r = size * (glow ? 0.025f : 0.04f), length = size * (glow ? 0.18f : 0.24f);
-                b.Panel = IndustrialSkin.Uv(glow ? Tile.StellarCrystal : ore);
-                Vector3 tip = at + axis * length;
-                b.Cylinder(at - axis * r * 2f, tip, r, crystal || glow ? r * 0.9f : r * 0.6f, 6);
-                b.Cylinder(tip, tip + axis * r * 2.2f, crystal || glow ? r * 0.9f : r * 0.6f, 0.003f, 6, capB: false);
+                Vector3 axis = ((at - centre).normalized * 0.4f + up).normalized;
+                if (i == 0 || i == 2)
+                {
+                    b.Panel = IndustrialSkin.Uv(ore);
+                    if (crystal)
+                        Cluster(b, at, axis, size * (i == 0 ? 0.035f : 0.025f), i == 0 ? 5 : 3, rnd);
+                    else
+                    {
+                        Lump(b, at, axis, size * (i == 0 ? 0.07f : 0.05f), rnd);
+                        Lump(b, at + Vector3.Cross(axis, up.normalized).normalized * size * 0.04f, axis, size * 0.035f, rnd);
+                    }
+                }
+                else
+                {
+                    b.Panel = IndustrialSkin.Uv(Tile.StellarCrystal);
+                    Cluster(b, at, axis, size * 0.018f, 3, rnd);
+                }
             }
         }
-
     }
 }

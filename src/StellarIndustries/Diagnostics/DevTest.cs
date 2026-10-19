@@ -920,6 +920,10 @@ namespace StellarIndustries.Diagnostics
             if (node != null)
             {
                 var minable = node.Value.Object;
+                // What the game shows when the rock is aimed at (its hover label needs that collider tag)
+                string label = ((Planets.Interface.Model.IMinableObject)minable).Label;
+                bool tagged = minable.GetComponentsInChildren<Collider>().Any(c => c.CompareTag("PlanetSurfaceObject"));
+                Log($"{(label.Contains(Lang.T("inépuisable", "inexhaustible")) && tagged ? "PASS" : "FAIL")} inexhaustible deposit labelled when aimed at: '{label}', collider tagged {tagged}");
                 var before = SDModKit.Game.PlayerAccess.CurrentCounts();
                 int had = before.TryGetValue(node.Value.Item, out int h) ? h : 0;
                 float health = minable.CurrentHealth;

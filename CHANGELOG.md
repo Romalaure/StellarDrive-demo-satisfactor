@@ -1,5 +1,23 @@
 # Journal des changements
 
+## 0.20.0 — minerais retravaillés, gisements toujours nommés
+
+- **Minerais sans nom impossibles à miner** : les gisements inépuisables de charbon, soufre,
+  calcaire, quartz et or perdaient leur mention au bout de quelques secondes ; on visait un rocher
+  sans explication et le laser n'y faisait rien. Le nom affiché au laser est maintenant calculé à
+  chaque visée : minerai, pureté, et « gisement inépuisable, extracteurs seulement » quand c'est le
+  cas (par exemple « Charbon (pur) : gisement inépuisable, extracteurs seulement »).
+- **Minerais plus propres et plus réalistes** :
+  - plus de pointillés blancs sur les arêtes ni de contours de texture au milieu des faces : le
+    minerai épouse le rocher sans fente, chaque facette montre son propre grain ;
+  - le charbon et le calcaire forment des couches qui recouvrent la roche, le soufre, le quartz
+    et l'or des veines dans la roche hôte ;
+  - pépites en blocs irréguliers à demi enfoncés (fer, cuivre, aluminium, charbon, or), cristaux
+    en grappes de prismes hexagonaux inclinés (éclats stellaires, glace, verre, soufre, quartz) ;
+  - les gisements inépuisables gardent une couronne visible de loin, mais en affleurement du
+    minerai entouré d'éclats stellaires lumineux, au lieu de grandes pointes.
+- Aucun changement pour les machines, les extracteurs, le scanner ni les sauvegardes.
+
 ## 0.19.0 — conteneur industriel ×4 et plus léger
 
 - **40 emplacements** au lieu de 10 dans le conteneur industriel. Toutes les cases sont visibles
